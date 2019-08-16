@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Text;
+using System.Threading;
+using RSG;
 
 namespace Chromia.PostchainClient
 {
@@ -66,12 +68,54 @@ namespace Chromia.PostchainClient
             _get(this._urlBase, "tx/" + this._blockhainRID + "/" + StringToHex(messageHash) + "/status", cb);
         }
 
-        public void query(string queryName, string queryObject){
-            throw new NotImplementedException("Please create a test first.");
+        public Promise<dynamic> query(string queryName, dynamic queryObject){
+            queryObject.type = queryName;
+
+            return new Promise<dynamic>((resolve, reject) => {
+                Action<string, dynamic> cb = delegate(string error, dynamic result){
+                    if (error != ""){
+                        reject(new System.Exception(error));
+                    } else {
+                        resolve(result);
+                    }
+                };
+
+                _doPost(this._urlBase, "query/" + this._blockhainRID, queryObject, cb);
+            });
         }
 
-        public void waitConfirmation(string txRID){
-            throw new NotImplementedException("Please create a test first.");
+        public Promise<string> waitConfirmation(string txRID){
+            return new Promise<string>((resolve, reject) => {
+                Action<string, dynamic> cb = delegate(string error, dynamic result){
+                    if (error != ""){
+                        resolve(error);
+                    } else {
+                        var status = result.status;
+                        switch(status){
+                            case "confirmed":
+                                resolve(null);
+                                break;
+                            case "rejected":
+                                reject(new System.Exception("Message was rejected"));
+                                break;
+                            case "unknown":                                
+                                reject(new System.Exception("Server lost our message"));
+                                break;
+                            case "waiting":
+                                // I don't think that will work
+                                Thread.Sleep(511);
+                                this.waitConfirmation(txRID);
+                                break;
+                            default:
+                                Console.WriteLine(status);
+                                reject(new System.Exception("got unexpected response from server"));
+                                break;
+                        }
+                    }
+                };
+
+                this.status(txRID, cb);
+            });
         }
 
         public void postAndWaitConfirmation(string serializedTransaction, string txRID, bool validate){
