@@ -19,29 +19,29 @@ namespace Chromia.PostchainClient
             this._blockhainRID = blockhainRID;
         }
 
-        public void getTransaction(string messageHash, Action<string, dynamic> callback)
+        public void GetTransaction(string messageHash, Action<string, dynamic> callback)
         {
-            _validateMessageHash(messageHash);
+            ValidateMessageHash(messageHash);
 
-            _get(this._urlBase, "tx/" + this._blockhainRID + "/" + StringToHex(messageHash), (string error, int statusCode, dynamic responseObject) => 
+            Get(this._urlBase, "tx/" + this._blockhainRID + "/" + StringToHex(messageHash), (string error, int statusCode, dynamic responseObject) => 
             {
-                _handleGetResponse(error, statusCode, statusCode == 200 ? StringToHex(responseObject["tx"].ToString()) : null, callback);
+                HandleGetResponse(error, statusCode, statusCode == 200 ? StringToHex(responseObject["tx"].ToString()) : null, callback);
             });
         }
 
-        public void postTransaction(string serializedTransaction, Action<string, dynamic> callback)
+        public void PostTransaction(string serializedTransaction, Action<string, dynamic> callback)
         {
             string jsonString = @"{tx: " + StringToHex(serializedTransaction) + "}";
             var jsonObject = JsonConvert.DeserializeObject<dynamic>(jsonString);
 
-            _doPost(this._urlBase, "tx/" + this._blockhainRID, jsonObject, callback);
+            DoPost(this._urlBase, "tx/" + this._blockhainRID, jsonObject, callback);
         }
 
-        public void getConfirmationProof(string messageHash, Action<string, string> callback)
+        public void GetConfirmationProof(string messageHash, Action<string, string> callback)
         {
-            _validateMessageHash(messageHash);
+            ValidateMessageHash(messageHash);
 
-            _get(_urlBase, "tx/" + this._blockhainRID + "/" + StringToHex(messageHash) + "/confirmationProof", (string error, int statusCode, dynamic responseObject) => 
+            Get(_urlBase, "tx/" + this._blockhainRID + "/" + StringToHex(messageHash) + "/confirmationProof", (string error, int statusCode, dynamic responseObject) => 
             {
                 if (statusCode == 200)
                 {
@@ -67,17 +67,17 @@ namespace Chromia.PostchainClient
             });
         }
 
-        public void status(string messageHash, Action<string, dynamic> callback)
+        public void Status(string messageHash, Action<string, dynamic> callback)
         {
-            _validateMessageHash(messageHash);
+            ValidateMessageHash(messageHash);
 
-            _get(this._urlBase, "tx/" + this._blockhainRID + "/" + StringToHex(messageHash) + "/status", (string error, int statusCode, dynamic responseObject) => 
+            Get(this._urlBase, "tx/" + this._blockhainRID + "/" + StringToHex(messageHash) + "/status", (string error, int statusCode, dynamic responseObject) => 
             {
-                _handleGetResponse(error, statusCode, responseObject, callback);
+                HandleGetResponse(error, statusCode, responseObject, callback);
             });
         }
 
-        public Promise<dynamic> query(string queryName, dynamic queryObject)
+        public Promise<dynamic> Query(string queryName, dynamic queryObject)
         {
             queryObject.type = queryName;
 
@@ -94,11 +94,11 @@ namespace Chromia.PostchainClient
                     }
                 };
 
-                _doPost(this._urlBase, "query/" + this._blockhainRID, queryObject, cb);
+                DoPost(this._urlBase, "query/" + this._blockhainRID, queryObject, cb);
             });
         }
 
-        public Promise<string> waitConfirmation(string txRID)
+        public Promise<string> WaitConfirmation(string txRID)
         {
             return new Promise<string>((resolve, reject) => 
             {
@@ -124,7 +124,7 @@ namespace Chromia.PostchainClient
                             case "waiting":
                                 // I don't think that will work
                                 Thread.Sleep(511);
-                                this.waitConfirmation(txRID);
+                                this.WaitConfirmation(txRID);
                                 break;
                             default:
                                 Console.WriteLine(status);
@@ -134,11 +134,11 @@ namespace Chromia.PostchainClient
                     }
                 };
 
-                this.status(txRID, cb);
+                this.Status(txRID, cb);
             });
         }
 
-        public Promise<Promise<string>> postAndWaitConfirmation(string serializedTransaction, string txRID, bool validate)
+        public Promise<Promise<string>> PostAndWaitConfirmation(string serializedTransaction, string txRID, bool validate)
         {
             if (validate)
             {
@@ -147,22 +147,22 @@ namespace Chromia.PostchainClient
 
             return new Promise<Promise<string>>((resolve, reject) => 
             {
-                this.postTransaction(serializedTransaction, (err, responseCallback) => 
+                this.PostTransaction(serializedTransaction, (err, responseCallback) => 
                 {
                     if (err != "")
                     {
                         reject(new System.Exception(err));
                     } else 
                     {
-                        resolve(this.waitConfirmation(txRID));
+                        resolve(this.WaitConfirmation(txRID));
                     }
                 });
             });
         }
 
-        private void _doPost(string config, string path, object jsonObject, Action<string, dynamic> responseCallback)
+        private void DoPost(string config, string path, object jsonObject, Action<string, dynamic> responseCallback)
         {
-            _post(config, path, jsonObject, (error, statusCode, responseObject) => 
+            Post(config, path, jsonObject, (error, statusCode, responseObject) => 
             {
                 if (error != "")
                 {
@@ -185,7 +185,7 @@ namespace Chromia.PostchainClient
             });
         }
 
-        private async void _get(string urlBase, string path, Action<string, int, dynamic> callback)
+        private async void Get(string urlBase, string path, Action<string, int, dynamic> callback)
         {
             var url = Url.Combine(urlBase, path);         
             Console.WriteLine("GET URL {0}", url);
@@ -207,7 +207,7 @@ namespace Chromia.PostchainClient
             }
         }
 
-        private async void _post(string urlBase, string path, object jsonBody, Action<string, int, string> callback)
+        private async void Post(string urlBase, string path, object jsonBody, Action<string, int, string> callback)
         {
             var url = Url.Combine(urlBase, path);         
             Console.WriteLine("POST URL {0}", url);
@@ -229,7 +229,7 @@ namespace Chromia.PostchainClient
             }
         }
 
-        private void _validateMessageHash(string messageHash)
+        private void ValidateMessageHash(string messageHash)
         {
             if (messageHash == null)
             {
@@ -242,7 +242,7 @@ namespace Chromia.PostchainClient
             }
         }
 
-        private void _handleGetResponse(string error, int statusCode, string responseObject, Action<string, dynamic> callback)
+        private void HandleGetResponse(string error, int statusCode, string responseObject, Action<string, dynamic> callback)
         {
             if (error == "")
             {
