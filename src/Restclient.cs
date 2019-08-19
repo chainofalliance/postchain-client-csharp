@@ -2,6 +2,9 @@
 using System.Text;
 using System.Threading;
 using RSG;
+using Flurl;
+using Flurl.Http;
+using Newtonsoft.Json;
 
 namespace Chromia.PostchainClient
 {
@@ -9,37 +12,43 @@ namespace Chromia.PostchainClient
     {
         private string _urlBase;
         private string _blockhainRID;
-        private int _maxSockets;
 
-        public Restclient(string urlBase, string blockhainRID, int maxSockets = 10){
+        public Restclient(string urlBase, string blockhainRID)
+        {
             this._urlBase = urlBase;
             this._blockhainRID = blockhainRID;
-            this._maxSockets = maxSockets;
         }
 
-        public void getTransaction(string messageHash, Action<string, dynamic> callback){
+        public void getTransaction(string messageHash, Action<string, dynamic> callback)
+        {
             _validateMessageHash(messageHash);
-            Action<string,int,dynamic> cb = delegate(string error, int statusCode, dynamic responseObject){
-                _handleGetResponse(error, statusCode, statusCode == 200 ? StringToHex(responseObject["tx"].ToString()) : null, callback);
-            };
 
-            _get(this._urlBase, "tx/" + this._blockhainRID + "/" + StringToHex(messageHash), cb);
+            _get(this._urlBase, "tx/" + this._blockhainRID + "/" + StringToHex(messageHash), (string error, int statusCode, dynamic responseObject) => 
+            {
+                _handleGetResponse(error, statusCode, statusCode == 200 ? StringToHex(responseObject["tx"].ToString()) : null, callback);
+            });
         }
 
-        public void postTransaction(string serializedTransaction, Action<string, dynamic> callback){
+        public void postTransaction(string serializedTransaction, Action<string, dynamic> callback)
+        {
             string jsonString = @"{tx: " + StringToHex(serializedTransaction) + "}";
-            var jsonObject = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(jsonString);
+            var jsonObject = JsonConvert.DeserializeObject<dynamic>(jsonString);
 
             _doPost(this._urlBase, "tx/" + this._blockhainRID, jsonObject, callback);
         }
 
-        public void getConfirmationProof(string messageHash, Action<string, string> callback){
+        public void getConfirmationProof(string messageHash, Action<string, string> callback)
+        {
             _validateMessageHash(messageHash);
-            Action<string,int,dynamic> cb = delegate(string error, int statusCode, dynamic responseObject){
-                if (statusCode == 200){
+
+            _get(_urlBase, "tx/" + this._blockhainRID + "/" + StringToHex(messageHash) + "/confirmationProof", (string error, int statusCode, dynamic responseObject) => 
+            {
+                if (statusCode == 200)
+                {
                     responseObject["hash"] = _b(responseObject["hash"].ToString());
                     responseObject["blockHeader"] = _b(responseObject["blockHeader"].ToString());
-                    if (responseObject["signatures"].ToString() != ""){
+                    if (responseObject["signatures"].ToString() != "")
+                    {
                         for (int i = 0; i < responseObject["signatures"].Count; i++)
                         {
                             responseObject["signatures"][i]["pubKey"] = _b(responseObject["signatures"][i]["pubKey"].ToString());
@@ -47,35 +56,40 @@ namespace Chromia.PostchainClient
                         }
                     }
 
-                    if (responseObject["merklePath"].ToString() != ""){
+                    if (responseObject["merklePath"].ToString() != "")
+                    {
                         for (int i = 0; i < responseObject["merklePath"].Count; i++)
                         {
                             responseObject["merklePath"][i]["hash"] = _b(responseObject["merklePath"][i]["hash"].ToString());
                         }
                     }
                 }
-            };
-
-            _get(_urlBase, "tx/" + this._blockhainRID + "/" + StringToHex(messageHash) + "/confirmationProof", cb);
+            });
         }
 
-        public void status(string messageHash, Action<string, dynamic> callback){
+        public void status(string messageHash, Action<string, dynamic> callback)
+        {
             _validateMessageHash(messageHash);
-            Action<string,int,dynamic> cb = delegate(string error, int statusCode, dynamic responseObject){
-                _handleGetResponse(error, statusCode, responseObject, callback);
-            };
 
-            _get(this._urlBase, "tx/" + this._blockhainRID + "/" + StringToHex(messageHash) + "/status", cb);
+            _get(this._urlBase, "tx/" + this._blockhainRID + "/" + StringToHex(messageHash) + "/status", (string error, int statusCode, dynamic responseObject) => 
+            {
+                _handleGetResponse(error, statusCode, responseObject, callback);
+            });
         }
 
-        public Promise<dynamic> query(string queryName, dynamic queryObject){
+        public Promise<dynamic> query(string queryName, dynamic queryObject)
+        {
             queryObject.type = queryName;
 
-            return new Promise<dynamic>((resolve, reject) => {
-                Action<string, dynamic> cb = delegate(string error, dynamic result){
-                    if (error != ""){
+            return new Promise<dynamic>((resolve, reject) => 
+            {
+                Action<string, dynamic> cb = delegate(string error, dynamic result)
+                {
+                    if (error != "")
+                    {
                         reject(new System.Exception(error));
-                    } else {
+                    } else 
+                    {
                         resolve(result);
                     }
                 };
@@ -84,14 +98,20 @@ namespace Chromia.PostchainClient
             });
         }
 
-        public Promise<string> waitConfirmation(string txRID){
-            return new Promise<string>((resolve, reject) => {
-                Action<string, dynamic> cb = delegate(string error, dynamic result){
-                    if (error != ""){
+        public Promise<string> waitConfirmation(string txRID)
+        {
+            return new Promise<string>((resolve, reject) => 
+            {
+                Action<string, dynamic> cb = delegate(string error, dynamic result)
+                {
+                    if (error != "")
+                    {
                         resolve(error);
-                    } else {
+                    } else 
+                    {
                         var status = result.status;
-                        switch(status){
+                        switch(status)
+                        {
                             case "confirmed":
                                 resolve(null);
                                 break;
@@ -118,28 +138,132 @@ namespace Chromia.PostchainClient
             });
         }
 
-        public void postAndWaitConfirmation(string serializedTransaction, string txRID, bool validate){
-            throw new NotImplementedException("Please create a test first.");
+        public Promise<Promise<string>> postAndWaitConfirmation(string serializedTransaction, string txRID, bool validate)
+        {
+            if (validate)
+            {
+                return null;
+            }
+
+            return new Promise<Promise<string>>((resolve, reject) => 
+            {
+                this.postTransaction(serializedTransaction, (err, responseCallback) => 
+                {
+                    if (err != "")
+                    {
+                        reject(new System.Exception(err));
+                    } else 
+                    {
+                        resolve(this.waitConfirmation(txRID));
+                    }
+                });
+            });
         }
 
-        private void _doPost(string config, string path, string jsonObject, Action<string, dynamic> responseCallback){
-            throw new NotImplementedException("Please create a test first.");
+        private void _doPost(string config, string path, object jsonObject, Action<string, dynamic> responseCallback)
+        {
+            _post(config, path, jsonObject, (error, statusCode, responseObject) => 
+            {
+                if (error != "")
+                {
+                    Console.WriteLine("In resclient doPost(). " + error);
+                } else if (statusCode != 200)
+                {
+                    Console.WriteLine("Unexpected status code from server: " + statusCode);
+                } else
+                {
+                    try
+                    {
+                        var jsonString = JsonConvert.SerializeObject(jsonObject);
+                        Console.WriteLine("Ok calling responseCallback with responseObject: {0}", jsonString);
+                        responseCallback("", responseObject);
+                    } catch (Exception e)
+                    {
+                        Console.WriteLine("restclient.doPost(): Failed to call callback function {0}", e);
+                    }
+                }
+            });
         }
 
-        private void _get(string config, string path, Action<string, int, dynamic> callback){
-            throw new NotImplementedException("Please create a test first.");
+        private async void _get(string urlBase, string path, Action<string, int, dynamic> callback)
+        {
+            var url = Url.Combine(urlBase, path);         
+            Console.WriteLine("GET URL {0}", url);
+
+            var response = await url.GetAsync();
+            dynamic jsonObject = JsonConvert.DeserializeObject(await response.Content.ReadAsStringAsync());
+            if (!response.IsSuccessStatusCode)
+            {
+                callback(jsonObject.ToString(), 0, null);
+            } else
+            {
+                try
+                {
+                    callback("", (int) response.StatusCode, jsonObject);
+                } catch (Exception e)
+                {
+                    callback(e.ToString(), 0, null);
+                }
+            }
         }
 
-        private void _post(string config, string path, string jsonBody, Action<string, int, string> callback){
-            throw new NotImplementedException("Please create a test first.");
+        private async void _post(string urlBase, string path, object jsonBody, Action<string, int, string> callback)
+        {
+            var url = Url.Combine(urlBase, path);         
+            Console.WriteLine("POST URL {0}", url);
+
+            var response = await url.PostJsonAsync(jsonBody);
+            dynamic jsonObject = JsonConvert.DeserializeObject(await response.Content.ReadAsStringAsync());
+            if (!response.IsSuccessStatusCode)
+            {
+                callback(jsonObject.ToString(), 0, null);
+            } else
+            {
+                try
+                {
+                    callback("", (int) response.StatusCode, jsonObject);
+                } catch (Exception e)
+                {
+                    callback(e.ToString(), 0, null);
+                }
+            }
         }
 
-        private void _validateMessageHash(string messageHash){
-            throw new NotImplementedException("Please create a test first.");
+        private void _validateMessageHash(string messageHash)
+        {
+            if (messageHash == null)
+            {
+                throw new Exception("messageHash is not a Buffer");
+            }
+
+            if (messageHash.Length != 32)
+            {
+                throw new Exception("expected length 32 of messageHash, but got " + messageHash);
+            }
         }
 
-        private void _handleGetResponse(string error, int statusCode, string responseObject, Action<string, dynamic> callback){
-            throw new NotImplementedException("Please create a test first.");
+        private void _handleGetResponse(string error, int statusCode, string responseObject, Action<string, dynamic> callback)
+        {
+            if (error == "")
+            {
+                callback(error, null);
+            } else if (statusCode == 404)
+            {
+                Console.WriteLine("404 received");
+                callback("", null);
+            } else if (statusCode != 200)
+            {
+                callback("Unexpected status code from server: " + statusCode, null);
+            } else
+            {
+                try
+                {
+                    callback("", responseObject);
+                } catch (Exception e)
+                {
+                    Console.WriteLine("restclient.handleGetResponse(): Failed to call callback function " + e);
+                }
+            }
         }
 
         private string StringToHex(string stringValue)
@@ -151,8 +275,18 @@ namespace Chromia.PostchainClient
             }
             return sb.ToString();
         }
-        private string _b(string stringValue){
-            throw new NotImplementedException("Please create a test first.");
+
+        private string _b(string stringValue)
+        {
+            int r;
+            if(int.TryParse(stringValue, 
+                    System.Globalization.NumberStyles.HexNumber, 
+                    System.Globalization.CultureInfo.InvariantCulture, out r))
+            {
+                return stringValue;
+            }
+
+            return StringToHex(stringValue);
         }
     }
 }
