@@ -28,56 +28,51 @@ namespace Chromia.PostchainClient
         * @returns the gtx
         * @throws if gtx is null or if gtx is already signed
         */
-        public static Gtx AddTransactionToGtx(string opName, Gtx gtx, params object[] args)
+        public Gtx AddTransactionToGtx(string opName, params object[] args)
         {
-            if(gtx == null)
-            {
-                throw new Exception("No Gtx to add operation to");
-            }
-
-            if(gtx.signers.Count != 0)
+           if(this.signers.Count != 0)
             {
                 throw new Exception("Cannot add function calls to an already signed gtx");
             }
 
-            gtx.operations.Add(new Operation(opName, args));
+            this.operations.Add(new Operation(opName, args));
    
-            return gtx;
+            return this;
         }
 
-        public static void AddSignerToGtx(byte[] signer, Gtx gtx)
+        public void AddSignerToGtx(byte[] signer)
         {
-            if(gtx.signers.Count != 0)
+            if(this.signers.Count != 0)
             {
                 throw new Exception("Cannot add signers to an already signed gtx");
             }
 
-            gtx.signers.Add(signer);
+            this.signers.Add(signer);
         }
 
-        public static void Sign(byte[] privKey, byte[] pubKey, Gtx gtx)
+        public void Sign(byte[] privKey, byte[] pubKey)
         {
-            byte[] bufferToSign = Gtx.GetBufferToSign(gtx);
+            byte[] bufferToSign = this.GetBufferToSign();
             var signature = Util.Sign(bufferToSign, privKey);
             Console.WriteLine("PubKey: " + BitConverter.ToString(pubKey));
             Console.WriteLine("Signature: " + BitConverter.ToString(signature));
-            Gtx.AddSignature(pubKey, signature, gtx);
+            Gtx.AddSignature(pubKey, signature, this);
         }
 
         /**
         * Serializes the gtx for signing
         * @param gtx the gtx to serialize
         */
-        public static byte[] GetBufferToSign(Gtx gtx)
+        public byte[] GetBufferToSign()
         {
             //return serialization.encode({blockchainRID: gtx.blockchainRID, operations: gtx.operations, signers: gtx.signers, signatures: []});
             return null;
         }
 
-        public static void AddSignature(byte[] pubKeyBuffer, byte[] signatureBuffer, Gtx gtx)
+        public void AddSignature(byte[] pubKeyBuffer, byte[] signatureBuffer)
         {
-            if(gtx.signatures == null) {
-                gtx.signatures = new List<byte[]>();
+            if(this.signatures == null) {
+                this.signatures = new List<byte[]>();
             }
 
             /* ?
@@ -86,20 +81,20 @@ namespace Chromia.PostchainClient
             } 
             */
 
-            var signerIndex = gtx.signers.IndexOf(pubKeyBuffer);
+            var signerIndex = this.signers.IndexOf(pubKeyBuffer);
 
             if (signerIndex == -1) {
                 throw new Exception("No such signer, remember to call addSignerToGtx() before adding a signature");
             }
 
-            gtx.signatures[signerIndex] = signatureBuffer;
+            this.signatures[signerIndex] = signatureBuffer;
         }
 
-        public static string Serialize(Gtx gtx)
+        public string Serialize()
         {
-           if (gtx.signatures == null)
+           if (this.signatures == null)
            {
-                gtx.signatures = new List<byte[]>();
+                this.signatures = new List<byte[]>();
            }
 
            //return serialization.encode(gtx);

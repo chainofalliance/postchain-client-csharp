@@ -26,7 +26,7 @@ namespace Chromia.PostchainClient
 
             foreach(byte[] signer in signers)
             {
-                Gtx.AddSignerToGtx(signer, newGtx);
+                newGtx.AddSignerToGtx(signer);
             }
 
             Transaction req = new Transaction(newGtx, this._restApiClient);
@@ -48,7 +48,7 @@ namespace Chromia.PostchainClient
         {
             foreach(string functionName in this._functionNames)
             {
-                
+                req._gtx.AddTransactionToGtx(functionName, 1);
             }
         }
 
@@ -69,7 +69,7 @@ namespace Chromia.PostchainClient
                 {
                     pub = Secp256K1Manager.GetPublicKey(privKey, false);
                 }
-                Gtx.Sign(privKey, pub, this._gtx);
+                this._gtx.Sign(privKey, pub);
             }
 
             public string GetTxRID()
@@ -79,29 +79,29 @@ namespace Chromia.PostchainClient
 
             public byte[] GetBufferToSign()
             {
-                return Gtx.GetBufferToSign(this._gtx);
+                return this._gtx.GetBufferToSign();
             }
 
             public void AddSignature(byte[] pubKey, byte[] signature)
             {
-                Gtx.AddSignature(pubKey, signature, this._gtx);
+                this._gtx.AddSignature(pubKey, signature);
             }
 
             public void AddOperation(string name, params object[] args)
             {
-                Gtx.AddTransactionToGtx(name, this._gtx, args);
+                this._gtx.AddTransactionToGtx(name, args);
             }
 
             public Promise<Promise<string>> PostAndWaitConfirmation()
             {
                 return this._restclient.PostAndWaitConfirmation(
-                    Gtx.Serialize(this._gtx), this.GetTxRID(), true
+                    this._gtx.Serialize(), this.GetTxRID()
                 );
             }
 
             public void Send(Action<string, dynamic> callback)
             {
-                var gtxBytes = Gtx.Serialize(this._gtx);
+                var gtxBytes = this._gtx.Serialize();
                 this._restclient.PostTransaction(gtxBytes, callback);
                 this._gtx = null;
                 //?this.gtxBytes = gtxBytes;
@@ -109,7 +109,7 @@ namespace Chromia.PostchainClient
 
             public string Encode()
             {
-                return Gtx.Serialize(this._gtx);
+                return this._gtx.Serialize();
             }
         }
     }
