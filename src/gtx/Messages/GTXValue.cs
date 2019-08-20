@@ -1,7 +1,7 @@
 using System.Security.Cryptography.Asn1;
 using System.Linq;
 
-namespace Chromia.PostchainClient.GTX.Messages
+namespace Chromia.PostchainClient.GTX.ASN1Messages
 {    
     public enum GTXValueChoice
     {

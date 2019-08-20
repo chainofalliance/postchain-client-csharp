@@ -1,7 +1,7 @@
 using System.Security.Cryptography.Asn1;
 using System.Collections.Generic;
 
-namespace Chromia.PostchainClient.GTX.Messages
+namespace Chromia.PostchainClient.GTX.ASN1Messages
 {
     public class GTXTransaction
     {

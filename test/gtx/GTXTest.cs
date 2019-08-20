@@ -1,5 +1,5 @@
 using Xunit;
-using Chromia.PostchainClient.GTX.Messages;
+using Chromia.PostchainClient.GTX.ASN1Messages;
 
 namespace Chromia.PostchainClient.Tests.GTX
 {
