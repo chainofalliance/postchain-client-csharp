@@ -56,7 +56,7 @@ namespace Chromia.PostchainClient
             var signature = Util.Sign(bufferToSign, privKey);
             Console.WriteLine("PubKey: " + BitConverter.ToString(pubKey));
             Console.WriteLine("Signature: " + BitConverter.ToString(signature));
-            Gtx.AddSignature(pubKey, signature, this);
+            this.AddSignature(pubKey, signature);
         }
 
         /**
@@ -75,11 +75,11 @@ namespace Chromia.PostchainClient
                 this.signatures = new List<byte[]>();
             }
 
-            /* ?
-            if (gtx.signers.length != gtx.signatures.length) {
-                throw new Error("Mismatching signers and signatures");
+            
+            if (this.signers.Count != this.signatures.Count) {
+                throw new Exception("Mismatching signers and signatures");
             } 
-            */
+            
 
             var signerIndex = this.signers.IndexOf(pubKeyBuffer);
 
