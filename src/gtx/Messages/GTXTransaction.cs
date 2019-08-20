@@ -1,13 +1,21 @@
 using System.Security.Cryptography.Asn1;
+using System.Collections.Generic;
 
 namespace Chromia.PostchainClient.GTX.Messages
 {
     public class GTXTransaction
     {
         public byte[] BlockchainID;
-        public GTXOperation[] Operations;
-        public byte[][] Signers;
-        public byte[][] Signatures;
+        public List<GTXOperation> Operations;
+        public List<byte[]> Signers;
+        public List<byte[]> Signatures;
+
+        public GTXTransaction(){
+            this.BlockchainID = new byte[0];
+            this.Operations = new List<GTXOperation>();
+            this.Signers = new List<byte[]>();
+            this.Signatures = new List<byte[]>();
+        }
 
         public byte[] Encode()
         {
@@ -17,23 +25,32 @@ namespace Chromia.PostchainClient.GTX.Messages
             messageWriter.WriteOctetString(this.BlockchainID);
 
             messageWriter.PushSequence();
-            foreach(var operation in this.Operations)
+            if (this.Operations.Count > 0)
             {
-                messageWriter.WriteEncodedValue(operation.Encode());
+                foreach(var operation in this.Operations)
+                {
+                    messageWriter.WriteEncodedValue(operation.Encode());
+                }
             }
             messageWriter.PopSequence();
 
             messageWriter.PushSequence();
-            foreach(var signer in this.Signers)
+            if (this.Signers.Count > 0)
             {
-                messageWriter.WriteOctetString(signer);
+                foreach(var signer in this.Signers)
+                {
+                    messageWriter.WriteOctetString(signer);
+                }
             }
             messageWriter.PopSequence();
 
             messageWriter.PushSequence();
-            foreach(var signature in this.Signatures)
+            if (this.Signatures.Count > 0)
             {
-                messageWriter.WriteOctetString(signature);
+                foreach(var signature in this.Signatures)
+                {
+                    messageWriter.WriteOctetString(signature);
+                }
             }
             messageWriter.PopSequence();
 
@@ -50,13 +67,13 @@ namespace Chromia.PostchainClient.GTX.Messages
             newObject.BlockchainID = gtxTransactionSequence.ReadOctetString();
 
             var operationSequence = gtxTransactionSequence.ReadSequence();
-            newObject.Operations = Util.SequenceToArray<GTXOperation>(operationSequence, GTXOperation.Decode);
+            newObject.Operations = Util.SequenceToList<GTXOperation>(operationSequence, GTXOperation.Decode);
 
             var signerSequence = gtxTransactionSequence.ReadSequence();
-            newObject.Signers = Util.SequenceToArray<byte[]>(signerSequence, null);
+            newObject.Signers = Util.SequenceToList<byte[]>(signerSequence, null);
 
             var signatureSequence = gtxTransactionSequence.ReadSequence();
-            newObject.Signatures = Util.SequenceToArray<byte[]>(signatureSequence, null);
+            newObject.Signatures = Util.SequenceToList<byte[]>(signatureSequence, null);
 
             return newObject;
         }

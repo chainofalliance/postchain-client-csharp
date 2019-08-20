@@ -1,11 +1,17 @@
 using System.Security.Cryptography.Asn1;
+using System.Collections.Generic;
 
 namespace Chromia.PostchainClient.GTX.Messages
 {
     public class GTXOperation
     {
         public string OpName;
-        public GTXValue[] Args;
+        public List<GTXValue> Args;
+
+        public GTXOperation(){
+            this.OpName = "";
+            this.Args = new List<GTXValue>();
+        }
 
         public byte[] Encode()
         {
@@ -14,12 +20,15 @@ namespace Chromia.PostchainClient.GTX.Messages
 
             messageWriter.WriteCharacterString(UniversalTagNumber.UTF8String, this.OpName);
 
-            messageWriter.PushSequence();
-            foreach(var arg in this.Args)
+            if (this.Args.Count > 0)
             {
-                messageWriter.WriteEncodedValue(arg.Encode());
+                messageWriter.PushSequence();
+                foreach(var arg in this.Args)
+                {
+                    messageWriter.WriteEncodedValue(arg.Encode());
+                }
+                messageWriter.PopSequence();
             }
-            messageWriter.PopSequence();
 
             messageWriter.PopSequence();
             return messageWriter.Encode();
@@ -34,7 +43,7 @@ namespace Chromia.PostchainClient.GTX.Messages
             newObject.OpName = gtxOperationSequence.ReadCharacterString(UniversalTagNumber.UTF8String);
 
             var valueSequence = gtxOperationSequence.ReadSequence();
-            newObject.Args = Util.SequenceToArray<GTXValue>(valueSequence, GTXValue.Decode);
+            newObject.Args = Util.SequenceToList<GTXValue>(valueSequence, GTXValue.Decode);
 
             return newObject;
         }

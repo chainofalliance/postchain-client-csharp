@@ -44,7 +44,7 @@ namespace Chromia.PostchainClient.GTX.Messages{
             return maxAmount;
         }
 
-        public static T[] SequenceToArray<T>(AsnReader sequence, Func<byte[], T> callback){
+        public static List<T> SequenceToList<T>(AsnReader sequence, Func<byte[], T> callback){
             var returnList = new List<T>();
 
             while (true)
@@ -77,7 +77,7 @@ namespace Chromia.PostchainClient.GTX.Messages{
                 }
             }
 
-            return returnList.ToArray();
+            return returnList;
         }
     }
 }
