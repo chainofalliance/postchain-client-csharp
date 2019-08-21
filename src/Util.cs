@@ -1,5 +1,6 @@
-using crypto = System.Security.Cryptography;
 using secp256k1 = Cryptography.ECDSA;
+using System.Collections.Generic;
+using Chromia.PostchainClient.GTX.ASN1Messages;
 using System;
 
 namespace Chromia.PostchainClient
@@ -47,6 +48,43 @@ namespace Chromia.PostchainClient
         public static byte[] SignDigest(byte[] digestBuffer, byte[] privKey)
         {
             return secp256k1.Secp256K1Manager.SignCompressedCompact(digestBuffer, privKey);
+        }
+
+        /**
+        * Creates a key pair (which usually represents one user)
+        * @returns {{pubKey: Buffer, privKey: Buffer}}
+        */
+        public static Dictionary<string, byte[]> MakeKeyPair()
+        {
+            var privKey = secp256k1.Secp256K1Manager.GenerateRandomKey();
+            var pubKey = secp256k1.Secp256K1Manager.GetPublicKey(privKey, true);
+
+            Dictionary<string, byte[]> keys = new Dictionary<string, byte[]>();
+            keys.Add("privKey", privKey);
+            keys.Add("pubKey", pubKey);
+
+            return keys;
+        }
+
+        /**
+        * Verify that keypair is correct. Providing the private key, this function returns its associated public key
+        * @param privKey: Buffer
+        * @returns {pubKey: Buffer}
+        */
+        public static byte[] VerifyKeyPair(string privKey)
+        {   
+            var pubKey = secp256k1.Secp256K1Manager.GetPublicKey(ToBuffer(privKey), true);
+            return pubKey;
+        }
+
+        /**
+        * Converts hex string to Buffer
+        * @param key: string
+        * @returns {Buffer}
+        */
+        public static byte[] ToBuffer(string key)
+        {
+            return ASN1Util.StringToByteArray(key);
         }
 
     }
