@@ -40,6 +40,11 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
         public static int GetMaxAmountOfBytesForInteger(int value)
         {
             int maxAmount = 0;
+            
+            if (value == 0)
+            {
+                return 1;
+            }
 
             while(value > 0)
             {
