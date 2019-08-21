@@ -10,20 +10,20 @@ namespace Chromia.PostchainClient
 {
     public class RESTClient
     {
-        private string _urlBase;
-        private string _blockhainRID;
+        private string UrlBase;
+        private string BlockhainRID;
 
         public RESTClient(string urlBase, string blockhainRID)
         {
-            this._urlBase = urlBase;
-            this._blockhainRID = blockhainRID;
+            this.UrlBase = urlBase;
+            this.BlockhainRID = blockhainRID;
         }
 
         public void GetTransaction(string messageHash, Action<string, dynamic> callback)
         {
             ValidateMessageHash(messageHash);
 
-            Get(this._urlBase, "tx/" + this._blockhainRID + "/" + StringToHex(messageHash), (string error, int statusCode, dynamic responseObject) => 
+            Get(this.UrlBase, "tx/" + this.BlockhainRID + "/" + StringToHex(messageHash), (string error, int statusCode, dynamic responseObject) => 
             {
                 HandleGetResponse(error, statusCode, statusCode == 200 ? StringToHex(responseObject["tx"].ToString()) : null, callback);
             });
@@ -34,14 +34,14 @@ namespace Chromia.PostchainClient
             string jsonString = @"{tx: " + StringToHex(serializedTransaction) + "}";
             var jsonObject = JsonConvert.DeserializeObject<dynamic>(jsonString);
 
-            DoPost(this._urlBase, "tx/" + this._blockhainRID, jsonObject, callback);
+            DoPost(this.UrlBase, "tx/" + this.BlockhainRID, jsonObject, callback);
         }
 
         public void GetConfirmationProof(string messageHash, Action<string, string> callback)
         {
             ValidateMessageHash(messageHash);
 
-            Get(_urlBase, "tx/" + this._blockhainRID + "/" + StringToHex(messageHash) + "/confirmationProof", (string error, int statusCode, dynamic responseObject) => 
+            Get(UrlBase, "tx/" + this.BlockhainRID + "/" + StringToHex(messageHash) + "/confirmationProof", (string error, int statusCode, dynamic responseObject) => 
             {
                 if (statusCode == 200)
                 {
@@ -71,7 +71,7 @@ namespace Chromia.PostchainClient
         {
             ValidateMessageHash(messageHash);
 
-            Get(this._urlBase, "tx/" + this._blockhainRID + "/" + StringToHex(messageHash) + "/status", (string error, int statusCode, dynamic responseObject) => 
+            Get(this.UrlBase, "tx/" + this.BlockhainRID + "/" + StringToHex(messageHash) + "/status", (string error, int statusCode, dynamic responseObject) => 
             {
                 HandleGetResponse(error, statusCode, responseObject, callback);
             });
@@ -94,7 +94,7 @@ namespace Chromia.PostchainClient
                     }
                 };
 
-                DoPost(this._urlBase, "query/" + this._blockhainRID, queryObject, cb);
+                DoPost(this.UrlBase, "query/" + this.BlockhainRID, queryObject, cb);
             });
         }
 
