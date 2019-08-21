@@ -38,6 +38,9 @@ namespace Chromia.PostchainClient.Tests.GTX
             var promise = req.PostAndWaitConfirmation();
             promise.Then(result => result.Then(ret => Console.WriteLine(ret)));
 
+            dynamic[] queryObject = {"Hamburg"};
+            dynamic resp = gtx.Query("get_city", queryObject);
+
         }
     }
 }

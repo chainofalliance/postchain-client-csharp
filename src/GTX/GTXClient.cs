@@ -32,6 +32,11 @@ namespace Chromia.PostchainClient.GTX
             Transaction req = new Transaction(gtx, this.RestApiClient);
 
             return req;
-        }        
+        }
+
+        public dynamic Query(string queryName, dynamic queryObject)
+        {
+            return this.RestApiClient.Query(queryName, queryObject);
+        }  
     }
 }
