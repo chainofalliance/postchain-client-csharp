@@ -1,6 +1,6 @@
-using crypto = System.Security.Cryptography;
 using secp256k1 = Cryptography.ECDSA;
 using System.Collections.Generic;
+using System.Text;
 using System;
 
 namespace Chromia.PostchainClient
@@ -64,6 +64,16 @@ namespace Chromia.PostchainClient
             keys.Add("pubKey", pubKey);
 
             return keys;
+        }
+
+        /**
+        * Converts hex string to Buffer
+        * @param key: string
+        * @returns {Buffer}
+        */
+        public static byte[] ToBuffer(string key)
+        {
+            return Encoding.ASCII.GetBytes(key);
         }
 
     }
