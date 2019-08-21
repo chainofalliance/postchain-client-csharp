@@ -58,7 +58,7 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
                 }
                 case (GTXValueChoice.Integer):
                 {
-                    choiceConstants = new byte[] {0xa3, (byte) (Util.GetMaxAmountOfBytesForInteger(this.Integer) + 2)};
+                    choiceConstants = new byte[] {0xa3, (byte) (ASN1Util.GetMaxAmountOfBytesForInteger(this.Integer) + 2)};
                     messageWriter.WriteInteger(this.Integer);
                     break;
                 }

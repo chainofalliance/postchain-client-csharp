@@ -16,7 +16,7 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
         Sequence = 16
     }
 
-    public class Util
+    public class ASN1Util
     {
         public static byte[] StringToByteArray(string hex)
         {
@@ -77,7 +77,7 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
                         break;
                     }
                 } 
-                catch (System.Security.Cryptography.CryptographicException e)
+                catch (System.Security.Cryptography.CryptographicException)
                 {
                     break;
                 }

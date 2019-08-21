@@ -24,9 +24,9 @@ namespace Chromia.PostchainClient.Tests.GTX
 
         [Fact]
         public void SimpleTransactionTest(){
-            var blockhainID = Util.StringToByteArray("78967baa4768cbcef11c508326ffb13a956689fcb6dc3ba17f4b895cbb1577a3");
-            var signer = Util.StringToByteArray("034ca0506ddf2328dc903c685f1638a9af33e572ee437867e7c4404bd21bf2adfe");
-            var signature = Util.StringToByteArray("71a1fe694b7853209313cc09d2ba9f5115c63914eee33dd186a638b48fcbcd2464488e91787e9e9d5ef904b389d177e3b309f3951df44ead2047f0308832520c");
+            var blockhainID = ASN1Util.StringToByteArray("78967baa4768cbcef11c508326ffb13a956689fcb6dc3ba17f4b895cbb1577a3");
+            var signer = ASN1Util.StringToByteArray("034ca0506ddf2328dc903c685f1638a9af33e572ee437867e7c4404bd21bf2adfe");
+            var signature = ASN1Util.StringToByteArray("71a1fe694b7853209313cc09d2ba9f5115c63914eee33dd186a638b48fcbcd2464488e91787e9e9d5ef904b389d177e3b309f3951df44ead2047f0308832520c");
 
             var gtxTransaction = new GTXTransaction();
             gtxTransaction.BlockchainID = blockhainID;

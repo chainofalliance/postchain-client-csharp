@@ -43,7 +43,7 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
             newObject.OpName = gtxOperationSequence.ReadCharacterString(UniversalTagNumber.UTF8String);
 
             var valueSequence = gtxOperationSequence.ReadSequence();
-            newObject.Args = Util.SequenceToList<GTXValue>(valueSequence, GTXValue.Decode);
+            newObject.Args = ASN1Util.SequenceToList<GTXValue>(valueSequence, GTXValue.Decode);
 
             return newObject;
         }

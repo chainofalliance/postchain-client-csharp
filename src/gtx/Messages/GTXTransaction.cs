@@ -67,13 +67,13 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
             newObject.BlockchainID = gtxTransactionSequence.ReadOctetString();
 
             var operationSequence = gtxTransactionSequence.ReadSequence();
-            newObject.Operations = Util.SequenceToList<GTXOperation>(operationSequence, GTXOperation.Decode);
+            newObject.Operations = ASN1Util.SequenceToList<GTXOperation>(operationSequence, GTXOperation.Decode);
 
             var signerSequence = gtxTransactionSequence.ReadSequence();
-            newObject.Signers = Util.SequenceToList<byte[]>(signerSequence, null);
+            newObject.Signers = ASN1Util.SequenceToList<byte[]>(signerSequence, null);
 
             var signatureSequence = gtxTransactionSequence.ReadSequence();
-            newObject.Signatures = Util.SequenceToList<byte[]>(signatureSequence, null);
+            newObject.Signatures = ASN1Util.SequenceToList<byte[]>(signatureSequence, null);
 
             return newObject;
         }

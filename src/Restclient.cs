@@ -138,7 +138,7 @@ namespace Chromia.PostchainClient
             });
         }
 
-        public Promise<Promise<string>> PostAndWaitConfirmation(string serializedTransaction, string txRID, bool validate)
+        public Promise<Promise<string>> PostAndWaitConfirmation(string serializedTransaction, string txRID, bool validate = false)
         {
             if (validate)
             {
