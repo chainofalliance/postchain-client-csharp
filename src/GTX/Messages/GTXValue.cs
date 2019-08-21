@@ -28,6 +28,32 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
             this.Choice = GTXValueChoice.NotSet;
         }
 
+        public override bool Equals(object obj)
+        {
+            if ((obj == null) || ! this.GetType().Equals(obj.GetType())) 
+            {
+                return false;
+            }
+            else { 
+                GTXValue gtxValue = (GTXValue) obj;
+                
+                return this.Choice.Equals(gtxValue.Choice) 
+                    && this.ByteArray.Equals(gtxValue.ByteArray)
+                    && this.Integer.Equals(gtxValue.Integer)
+                    && this.Dict.Equals(gtxValue.Dict)
+                    && this.Array.Equals(gtxValue.Array);
+            }   
+        }
+
+        public override int GetHashCode()
+        {
+            return Choice.GetHashCode()
+                + ByteArray.GetHashCode()
+                + Integer.GetHashCode()
+                + Dict.GetHashCode()
+                + Array.GetHashCode();
+        }
+
         public byte[] Encode()
         {
             var messageWriter = new AsnWriter(AsnEncodingRules.BER);

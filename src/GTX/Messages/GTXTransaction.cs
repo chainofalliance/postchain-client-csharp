@@ -17,6 +17,27 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
             this.Signatures = new List<byte[]>();
         }
 
+        public override bool Equals(object obj)
+        {
+            if ((obj == null) || ! this.GetType().Equals(obj.GetType())) 
+            {
+                return false;
+            }
+            else { 
+                GTXTransaction gtxTransaction = (GTXTransaction) obj;
+                
+                return this.BlockchainID.Equals(gtxTransaction.BlockchainID) 
+                    && this.Operations.Equals(gtxTransaction.Operations)
+                    && this.Signers.Equals(gtxTransaction.Signers)
+                    && this.Signatures.Equals(gtxTransaction.Signatures);
+            }   
+        }
+
+        public override int GetHashCode()
+        {
+            return BlockchainID.GetHashCode();
+        }
+
         public byte[] Encode()
         {
             var messageWriter = new AsnWriter(AsnEncodingRules.BER);

@@ -21,6 +21,26 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
             }
         }
 
+        public override bool Equals(object obj)
+        {
+            if ((obj == null) || ! this.GetType().Equals(obj.GetType())) 
+            {
+                return false;
+            }
+            else { 
+                DictPair dictPair = (DictPair) obj;
+                
+                return this.Name.Equals(dictPair.Name)
+                    && this.Value.Equals(dictPair.Value);
+            }   
+        }
+
+        public override int GetHashCode()
+        {
+            return Name.GetHashCode()
+                + Value.GetHashCode();
+        }
+
         public byte[] Encode()
         {
             var messageWriter = new AsnWriter(AsnEncodingRules.BER);

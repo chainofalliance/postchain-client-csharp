@@ -8,9 +8,29 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
         public string OpName;
         public List<GTXValue> Args;
 
-        public GTXOperation(string opName = ""){
+        public GTXOperation(string opName = "")
+        {
             this.OpName = opName;
             this.Args = new List<GTXValue>();
+        }
+
+        public override bool Equals(object obj)
+        {
+            if ((obj == null) || ! this.GetType().Equals(obj.GetType())) 
+            {
+                return false;
+            }
+            else { 
+                GTXOperation gtxOperation = (GTXOperation) obj;
+                
+                return this.OpName.Equals(gtxOperation.OpName)
+                    && this.Args.Equals(gtxOperation.Args);
+            }   
+        }
+
+        public override int GetHashCode()
+        {
+            return OpName.GetHashCode();
         }
 
         public byte[] Encode()
