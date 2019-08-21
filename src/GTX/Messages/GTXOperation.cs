@@ -1,5 +1,6 @@
 using System.Security.Cryptography.Asn1;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Chromia.PostchainClient.GTX.ASN1Messages
 {
@@ -24,7 +25,7 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
                 GTXOperation gtxOperation = (GTXOperation) obj;
                 
                 return this.OpName.Equals(gtxOperation.OpName)
-                    && this.Args.Equals(gtxOperation.Args);
+                    && ((this.Args == null || gtxOperation.Args == null) ? this.Args == gtxOperation.Args : Enumerable.SequenceEqual(this.Args, gtxOperation.Args));
             }   
         }
 

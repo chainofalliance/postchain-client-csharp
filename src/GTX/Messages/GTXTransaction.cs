@@ -1,5 +1,6 @@
 using System.Security.Cryptography.Asn1;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Chromia.PostchainClient.GTX.ASN1Messages
 {
@@ -26,10 +27,10 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
             else { 
                 GTXTransaction gtxTransaction = (GTXTransaction) obj;
                 
-                return this.BlockchainID.Equals(gtxTransaction.BlockchainID) 
-                    && this.Operations.Equals(gtxTransaction.Operations)
-                    && this.Signers.Equals(gtxTransaction.Signers)
-                    && this.Signatures.Equals(gtxTransaction.Signatures);
+                return ((this.BlockchainID == null || gtxTransaction.BlockchainID == null) ? this.BlockchainID == gtxTransaction.BlockchainID : Enumerable.SequenceEqual(this.BlockchainID, gtxTransaction.BlockchainID)) 
+                    && ((this.Operations == null || gtxTransaction.Operations == null) ? this.Operations == gtxTransaction.Operations : Enumerable.SequenceEqual(this.Operations, gtxTransaction.Operations))
+                    && ((this.Signers == null || gtxTransaction.Signers == null) ? this.Signers == gtxTransaction.Signers : Enumerable.SequenceEqual(this.Signers, gtxTransaction.Signers))
+                    && ((this.Signatures == null || gtxTransaction.Signatures == null) ? this.Signatures == gtxTransaction.Signatures : Enumerable.SequenceEqual(this.Signatures, gtxTransaction.Signatures));
             }   
         }
 
