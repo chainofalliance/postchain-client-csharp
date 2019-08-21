@@ -1,5 +1,6 @@
 using System.Security.Cryptography.Asn1;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace Chromia.PostchainClient.GTX.ASN1Messages
 {    
@@ -16,12 +17,11 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
     public class GTXValue
     {
         public GTXValueChoice Choice;
-        public bool Null;
         public byte[] ByteArray;
         public string String;
         public int Integer;
-        public DictPair[] Dict = null;
-        public GTXValue[] Array = null;
+        public List<DictPair> Dict = null;
+        public List<GTXValue> Array = null;
 
         public GTXValue()
         {
@@ -87,7 +87,6 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
             {
                 case ((int) Asn1TagValues.Null):
                 {
-                    newObject.Null = true;
                     newObject.Choice = GTXValueChoice.Null;
                     break;
                 }                

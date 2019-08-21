@@ -7,6 +7,20 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
         public string Name;
         public GTXValue Value;
 
+        public DictPair(string name = "", GTXValue value = null)
+        {
+            this.Name = name;
+
+            if (value == null)
+            {
+                this.Value = new GTXValue();
+            }
+            else
+            {
+                this.Value = value;
+            }
+        }
+
         public byte[] Encode()
         {
             var messageWriter = new AsnWriter(AsnEncodingRules.BER);

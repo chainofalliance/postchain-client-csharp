@@ -8,12 +8,12 @@ using Newtonsoft.Json;
 
 namespace Chromia.PostchainClient
 {
-    public class Restclient
+    public class RESTClient
     {
         private string _urlBase;
         private string _blockhainRID;
 
-        public Restclient(string urlBase, string blockhainRID)
+        public RESTClient(string urlBase, string blockhainRID)
         {
             this._urlBase = urlBase;
             this._blockhainRID = blockhainRID;

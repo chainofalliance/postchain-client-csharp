@@ -8,8 +8,8 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
         public string OpName;
         public List<GTXValue> Args;
 
-        public GTXOperation(){
-            this.OpName = "";
+        public GTXOperation(string opName = ""){
+            this.OpName = opName;
             this.Args = new List<GTXValue>();
         }
 
