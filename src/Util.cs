@@ -31,10 +31,6 @@ namespace Chromia.PostchainClient
             }
 
             var digestBuffer = Sha256(content);
-
-            Console.WriteLine("Bytes to digest:" + BitConverter.ToString(content));
-            Console.WriteLine("Digest to sign:" + BitConverter.ToString(digestBuffer));
-            Console.WriteLine("privKey: " + BitConverter.ToString(privKey));
             
             return Util.SignDigest(digestBuffer, privKey);
         }
