@@ -39,9 +39,12 @@ namespace Chromia.PostchainClient.Tests.GTX
             req.Sign(Util.HexStringToBuffer(signerPrivKeyA), Util.HexStringToBuffer(signerPubKeyA));
 
             var txRID = req.GetTxRID();
+            Console.WriteLine("txRID: " + txRID);
+
 
             var promise = req.PostAndWaitConfirmation();
             promise.Then(result => Console.WriteLine(result));
+
         }
     }
 }

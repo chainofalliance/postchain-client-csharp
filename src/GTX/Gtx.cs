@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System.Linq;
 using System;
 using Chromia.PostchainClient.GTX.ASN1Messages;
 
@@ -26,7 +26,7 @@ namespace Chromia.PostchainClient.GTX
         */
         public Gtx AddOperationToGtx(string opName, dynamic[] args)
         {
-           if(this.Transaction.Signers.Count != 0)
+           if(this.Transaction.Signatures.Count != 0)
             {
                 throw new Exception("Cannot add function calls to an already signed gtx");
             }
@@ -124,13 +124,16 @@ namespace Chromia.PostchainClient.GTX
         }
 
         public void AddSignature(byte[] pubKeyBuffer, byte[] signatureBuffer)
-        {            
+        {   
+            foreach(var signer in this.Transaction.Signers)
+            {
+                this.Transaction.Signatures.Add(null);
+            }
+
             if (this.Transaction.Signers.Count != this.Transaction.Signatures.Count) {
                 throw new Exception("Mismatching signers and signatures");
             } 
-            
-
-            var signerIndex = this.Transaction.Signers.IndexOf(pubKeyBuffer);
+            var signerIndex = this.Transaction.Signers.FindIndex(signer => signer.SequenceEqual(pubKeyBuffer));
 
             if (signerIndex == -1) {
                 throw new Exception("No such signer, remember to call addSignerToGtx() before adding a signature");

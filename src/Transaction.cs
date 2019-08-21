@@ -1,3 +1,4 @@
+using Chromia.PostchainClient.GTX.ASN1Messages;
 using Cryptography.ECDSA;
 using System;
 using RSG;
@@ -20,14 +21,14 @@ namespace Chromia.PostchainClient.GTX
             byte[] pub = pubKey;
             if(pubKey == null)
             {
-                pub = Secp256K1Manager.GetPublicKey(privKey, false);
+                pub = Secp256K1Manager.GetPublicKey(privKey, true);
             }
             this.GtxObject.Sign(privKey, pub);
         }
 
         public string GetTxRID()
         {
-            return System.Text.Encoding.Default.GetString(Util.Sha256(this.GetBufferToSign()));
+            return ASN1Util.ByteArrayToString(Util.Sha256(this.GetBufferToSign()));
         }
 
         public byte[] GetBufferToSign()
