@@ -41,15 +41,15 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
 
             messageWriter.WriteCharacterString(UniversalTagNumber.UTF8String, this.OpName);
 
+            messageWriter.PushSequence();
             if (this.Args.Count > 0)
             {
-                messageWriter.PushSequence();
                 foreach(var arg in this.Args)
                 {
                     messageWriter.WriteEncodedValue(arg.Encode());
                 }
-                messageWriter.PopSequence();
             }
+            messageWriter.PopSequence();
 
             messageWriter.PopSequence();
             return messageWriter.Encode();
