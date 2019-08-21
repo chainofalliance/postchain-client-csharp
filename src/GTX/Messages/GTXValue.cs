@@ -38,10 +38,10 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
                 GTXValue gtxValue = (GTXValue) obj;
                 
                 return this.Choice.Equals(gtxValue.Choice) 
-                    && this.ByteArray.Equals(gtxValue.ByteArray)
+                    && ((this.ByteArray == null || gtxValue.ByteArray == null) ? this.ByteArray == gtxValue.ByteArray : Enumerable.SequenceEqual(this.ByteArray, gtxValue.ByteArray))
                     && this.Integer.Equals(gtxValue.Integer)
-                    && this.Dict.Equals(gtxValue.Dict)
-                    && this.Array.Equals(gtxValue.Array);
+                    && ((this.Dict == null || gtxValue.Dict == null) ? this.Dict == gtxValue.Dict : Enumerable.SequenceEqual(this.Dict, gtxValue.Dict))
+                    && ((this.Array == null || gtxValue.Array == null) ? this.Array == gtxValue.Array : Enumerable.SequenceEqual(this.Array, gtxValue.Array));
             }   
         }
 
