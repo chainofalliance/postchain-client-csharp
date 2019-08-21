@@ -33,7 +33,7 @@ namespace Chromia.PostchainClient.Tests.GTX
             var req = gtx.NewTransaction(new byte[][] {Util.HexStringToBuffer(signerPubKeyA)});
 
             // call fun1 with three arguments: a string, an array and a Buffer
-            dynamic nopVal = 42;
+            dynamic[] nopVal = {42};
             req.AddOperation("nop", nopVal);
 
             req.Sign(Util.HexStringToBuffer(signerPrivKeyA), Util.HexStringToBuffer(signerPubKeyA));
