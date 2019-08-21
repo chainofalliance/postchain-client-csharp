@@ -42,7 +42,7 @@ namespace Chromia.PostchainClient.GTX
 
         public void AddOperation(string name, dynamic[] args)
         {
-            this.GtxObject.AddTransactionToGtx(name, args);
+            this.GtxObject.AddOperationToGtx(name, args);
         }
 
         public Promise<Promise<string>> PostAndWaitConfirmation()

@@ -24,7 +24,7 @@ namespace Chromia.PostchainClient.GTX
         * @returns the gtx
         * @throws if gtx is null or if gtx is already signed
         */
-        public Gtx AddTransactionToGtx(string opName, dynamic[] args)
+        public Gtx AddOperationToGtx(string opName, dynamic[] args)
         {
            if(this.Transaction.Signers.Count != 0)
             {
@@ -32,7 +32,12 @@ namespace Chromia.PostchainClient.GTX
             }
 
             var newOperation = new GTXOperation(opName);
-            // TODO
+
+            foreach (var arg in args)
+            {
+                newOperation.Args.Add(ArgToGTXValue(arg));
+            }
+
             this.Transaction.Operations.Add(newOperation);
    
             return this;
