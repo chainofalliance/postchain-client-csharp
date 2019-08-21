@@ -1,6 +1,7 @@
 using System.Security.Cryptography.Asn1;
 using System.Linq;
 using System.Collections.Generic;
+using System;
 
 namespace Chromia.PostchainClient.GTX.ASN1Messages
 {    
@@ -84,6 +85,7 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
                 }
                 case (GTXValueChoice.Integer):
                 {
+                    this.Integer = Math.Abs(this.Integer);
                     choiceConstants = new byte[] {0xa3, (byte) (ASN1Util.GetMaxAmountOfBytesForInteger(this.Integer) + 2)};
                     messageWriter.WriteInteger(this.Integer);
                     break;
