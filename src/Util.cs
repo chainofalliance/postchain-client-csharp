@@ -67,6 +67,17 @@ namespace Chromia.PostchainClient
         }
 
         /**
+        * Verify that keypair is correct. Providing the private key, this function returns its associated public key
+        * @param privKey: Buffer
+        * @returns {pubKey: Buffer}
+        */
+        public static byte[] VerifyKeyPair(string privKey)
+        {
+            var pubKey = secp256k1.Secp256K1Manager.GetPublicKey(ToBuffer(privKey), true);
+            return pubKey;
+        }
+
+        /**
         * Converts hex string to Buffer
         * @param key: string
         * @returns {Buffer}
