@@ -1,6 +1,6 @@
 using secp256k1 = Cryptography.ECDSA;
 using System.Collections.Generic;
-using System.Text;
+using Chromia.PostchainClient.GTX.ASN1Messages;
 using System;
 
 namespace Chromia.PostchainClient
@@ -72,7 +72,7 @@ namespace Chromia.PostchainClient
         * @returns {pubKey: Buffer}
         */
         public static byte[] VerifyKeyPair(string privKey)
-        {
+        {   
             var pubKey = secp256k1.Secp256K1Manager.GetPublicKey(ToBuffer(privKey), true);
             return pubKey;
         }
@@ -84,7 +84,7 @@ namespace Chromia.PostchainClient
         */
         public static byte[] ToBuffer(string key)
         {
-            return Encoding.ASCII.GetBytes(key);
+            return ASN1Util.StringToByteArray(key);
         }
 
     }
