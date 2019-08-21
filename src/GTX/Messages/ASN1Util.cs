@@ -65,7 +65,7 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
                     // The "ContextSpecific" AsnTag has the same value as Boolean (1). Thats why we check for the tag string.
                     else if (sequence.PeekTag().TagClass.ToString() == "ContextSpecific")
                     {
-                        returnList.Add(callback(sequence.ReadEncodedValue().ToArray().Skip(2).ToArray()));
+                        returnList.Add(callback(sequence.ReadEncodedValue().ToArray()));
                     }
                     else if (sequence.PeekTag().TagValue == (int) Asn1TagValues.OctetString)
                     {
