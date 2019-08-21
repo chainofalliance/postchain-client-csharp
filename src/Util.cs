@@ -31,6 +31,9 @@ namespace Chromia.PostchainClient
             }
 
             var digestBuffer = Sha256(content);
+            Console.WriteLine("Bytes to digest:" + ASN1Util.ByteArrayToString(content));
+            Console.WriteLine("Digest to sign:" + ASN1Util.ByteArrayToString(digestBuffer));
+            Console.WriteLine("privKey: " + ASN1Util.ByteArrayToString(privKey));
             
             return Util.SignDigest(digestBuffer, privKey);
         }
@@ -84,6 +87,17 @@ namespace Chromia.PostchainClient
             return ASN1Util.StringToByteArray(key);
         }
 
+        public static byte[] StringToByteArray(string str)
+        {
+            var retArr = new List<byte>();
+
+            foreach (var c in str)
+            {
+                retArr.Add((byte) c);
+            }
+            
+            return retArr.ToArray();
+        }
     }
 
 }

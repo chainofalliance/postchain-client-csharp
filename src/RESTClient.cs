@@ -23,25 +23,24 @@ namespace Chromia.PostchainClient
         {
             ValidateMessageHash(messageHash);
 
-            Get(this.UrlBase, "tx/" + this.BlockhainRID + "/" + StringToHex(messageHash), (string error, int statusCode, dynamic responseObject) => 
+            Get(this.UrlBase, "tx/" + this.BlockhainRID + "/" + messageHash, (string error, int statusCode, dynamic responseObject) => 
             {
-                HandleGetResponse(error, statusCode, statusCode == 200 ? StringToHex(responseObject["tx"].ToString()) : null, callback);
+                HandleGetResponse(error, statusCode, statusCode == 200 ? responseObject["tx"].ToString(): null, callback);
             });
         }
 
         public void PostTransaction(string serializedTransaction, Action<string, dynamic> callback)
         {
-            string jsonString = @"{tx: " + StringToHex(serializedTransaction) + "}";
-            var jsonObject = JsonConvert.DeserializeObject<dynamic>(jsonString);
-
-            DoPost(this.UrlBase, "tx/" + this.BlockhainRID, jsonObject, callback);
+            string jsonString = String.Format(@"{{""tx"": ""{0}""}}", serializedTransaction);
+            
+            DoPost(this.UrlBase, "tx/" + this.BlockhainRID, jsonString, callback);
         }
 
         public void GetConfirmationProof(string messageHash, Action<string, string> callback)
         {
             ValidateMessageHash(messageHash);
 
-            Get(UrlBase, "tx/" + this.BlockhainRID + "/" + StringToHex(messageHash) + "/confirmationProof", (string error, int statusCode, dynamic responseObject) => 
+            Get(UrlBase, "tx/" + this.BlockhainRID + "/" + messageHash + "/confirmationProof", (string error, int statusCode, dynamic responseObject) => 
             {
                 if (statusCode == 200)
                 {
@@ -71,7 +70,7 @@ namespace Chromia.PostchainClient
         {
             ValidateMessageHash(messageHash);
 
-            Get(this.UrlBase, "tx/" + this.BlockhainRID + "/" + StringToHex(messageHash) + "/status", (string error, int statusCode, dynamic responseObject) => 
+            Get(this.UrlBase, "tx/" + this.BlockhainRID + "/" + messageHash + "/status", (string error, int statusCode, dynamic responseObject) => 
             {
                 HandleGetResponse(error, statusCode, responseObject, callback);
             });
@@ -160,9 +159,9 @@ namespace Chromia.PostchainClient
             });
         }
 
-        private void DoPost(string config, string path, object jsonObject, Action<string, dynamic> responseCallback)
+        private void DoPost(string config, string path, string jsonString, Action<string, dynamic> responseCallback)
         {
-            Post(config, path, jsonObject, (error, statusCode, responseObject) => 
+            Post(config, path, jsonString, (error, statusCode, responseObject) => 
             {
                 if (error != "")
                 {
@@ -174,7 +173,6 @@ namespace Chromia.PostchainClient
                 {
                     try
                     {
-                        var jsonString = JsonConvert.SerializeObject(jsonObject);
                         Console.WriteLine("Ok calling responseCallback with responseObject: {0}", jsonString);
                         responseCallback("", responseObject);
                     } catch (Exception e)
@@ -207,12 +205,12 @@ namespace Chromia.PostchainClient
             }
         }
 
-        private async void Post(string urlBase, string path, object jsonBody, Action<string, int, string> callback)
+        private async void Post(string urlBase, string path, string jsonString, Action<string, int, string> callback)
         {
             var url = Url.Combine(urlBase, path);         
             Console.WriteLine("POST URL {0}", url);
 
-            var response = await url.PostJsonAsync(jsonBody);
+            var response = await url.PostJsonAsync(JsonConvert.DeserializeObject<object>(jsonString));
             dynamic jsonObject = JsonConvert.DeserializeObject(await response.Content.ReadAsStringAsync());
             if (!response.IsSuccessStatusCode)
             {

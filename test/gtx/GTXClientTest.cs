@@ -11,11 +11,8 @@ namespace Chromia.PostchainClient.Tests.GTX
         public void FullClientTest(){
             const string blockchainRID = "78967baa4768cbcef11c508326ffb13a956689fcb6dc3ba17f4b895cbb1577a3";
 
-            string signerPrivKeyA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-            string signerPubKeyA = ASN1Util.ByteArrayToString(Util.VerifyKeyPair(signerPrivKeyA));
-
-            string signerPrivKeyB = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
-            string signerPubKeyB = ASN1Util.ByteArrayToString(Util.VerifyKeyPair(signerPrivKeyB));
+            string signerPrivKeyA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+            string signerPubKeyA = "02e5a018b3a2e155316109d9cdc5eab739759c0e07e0c00bf9fccb8237fe4d7f02";
 
             // The lower-level client that can be used for any
             // postchain client messages. It only handles binary data.
@@ -33,17 +30,13 @@ namespace Chromia.PostchainClient.Tests.GTX
             var req = gtx.NewTransaction(new byte[][] {Util.HexStringToBuffer(signerPubKeyA)});
 
             // call fun1 with three arguments: a string, an array and a Buffer
-            dynamic[] nopVal = {42};
-            req.AddOperation("nop", nopVal);
+            dynamic[] opVal = {"Hamburg", 223232};
+            req.AddOperation("insert_city", opVal);
 
-            req.Sign(Util.HexStringToBuffer(signerPrivKeyA), Util.HexStringToBuffer(signerPubKeyA));
-
-            var txRID = req.GetTxRID();
-            Console.WriteLine("txRID: " + txRID);
-
+            req.Sign(Util.StringToByteArray(signerPrivKeyA), Util.HexStringToBuffer(signerPubKeyA));
 
             var promise = req.PostAndWaitConfirmation();
-            promise.Then(result => Console.WriteLine(result));
+            promise.Then(result => result.Then(ret => Console.WriteLine(ret)));
 
         }
     }

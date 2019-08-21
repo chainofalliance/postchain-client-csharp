@@ -125,9 +125,12 @@ namespace Chromia.PostchainClient.GTX
 
         public void AddSignature(byte[] pubKeyBuffer, byte[] signatureBuffer)
         {   
-            foreach(var signer in this.Transaction.Signers)
+            if (this.Transaction.Signatures.Count == 0)
             {
-                this.Transaction.Signatures.Add(null);
+                foreach(var signer in this.Transaction.Signers)
+                {
+                    this.Transaction.Signatures.Add(null);
+                }
             }
 
             if (this.Transaction.Signers.Count != this.Transaction.Signatures.Count) {

@@ -125,13 +125,7 @@ namespace Chromia.PostchainClient.Tests.GTX
             var operations = new List<GTXOperation> {new GTXOperation("func1åäö")};
             var gtxTransaction = CreateTestTransaction(operations: operations);
             
-            Console.WriteLine(gtxTransaction.Operations[0].OpName);
-
-            var tmp2 = gtxTransaction.Encode();
-            Console.WriteLine(ASN1Util.ByteArrayToString(tmp2));
-            var tmp = GTXTransaction.Decode(tmp2);
-            Console.WriteLine(tmp.Operations.Count);
-            Assert.Equal(gtxTransaction, tmp);
+            Assert.Equal(gtxTransaction, GTXTransaction.Decode(gtxTransaction.Encode()));
         }
 
         [Fact]
