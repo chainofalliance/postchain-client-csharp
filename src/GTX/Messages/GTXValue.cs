@@ -78,7 +78,8 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
 
         public static GTXValue Decode(byte[] encodedMessage)
         {
-            var gtxValue = new AsnReader(encodedMessage, AsnEncodingRules.BER);
+            //Since the ASN1 library can't en-/decode CHOICEs, we just skip over the specific octets
+            var gtxValue = new AsnReader(encodedMessage.Skip(2).ToArray(), AsnEncodingRules.BER);
 
             var gtxValueData = new AsnReader(gtxValue.PeekContentBytes(), AsnEncodingRules.BER);
 
