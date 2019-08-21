@@ -47,7 +47,8 @@ namespace Chromia.PostchainClient
         */
         public static byte[] SignDigest(byte[] digestBuffer, byte[] privKey)
         {
-            return secp256k1.Secp256K1Manager.SignCompressedCompact(digestBuffer, privKey);
+            var recoveryID = 0;
+            return secp256k1.Secp256K1Manager.SignCompact(digestBuffer, privKey, out recoveryID);
         }
 
         /**
@@ -73,7 +74,7 @@ namespace Chromia.PostchainClient
         */
         public static byte[] VerifyKeyPair(string privKey)
         {   
-            var pubKey = secp256k1.Secp256K1Manager.GetPublicKey(ToBuffer(privKey), true);
+            var pubKey = secp256k1.Secp256K1Manager.GetPublicKey(HexStringToBuffer(privKey), true);
             return pubKey;
         }
 
@@ -82,7 +83,7 @@ namespace Chromia.PostchainClient
         * @param key: string
         * @returns {Buffer}
         */
-        public static byte[] ToBuffer(string key)
+        public static byte[] HexStringToBuffer(string key)
         {
             return ASN1Util.StringToByteArray(key);
         }
