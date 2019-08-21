@@ -35,7 +35,7 @@ namespace Chromia.PostchainClient.Tests.GTX
             const string expSignature = "bb432587f75316cad1a60494930917b2ed973e4aa5dd55e4c08dfe8eda6c017d3f1a40c8da1de454584828f43205dd0f670f8075309f546fb349c76d2e5bbb30";
             const string privKey = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
             string pubKey = ASN1Util.ByteArrayToString(Util.VerifyKeyPair(privKey));
-            var content = Encoding.ASCII.GetBytes("hello");
+            var content = Encoding.UTF8.GetBytes("hello");
             var signature = Util.Sign(content, Util.HexStringToBuffer(privKey));
             
             Assert.Equal(ASN1Util.ByteArrayToString(signature), expSignature);
