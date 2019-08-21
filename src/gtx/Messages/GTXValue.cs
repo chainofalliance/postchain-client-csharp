@@ -1,7 +1,7 @@
 using System.Security.Cryptography.Asn1;
 using System.Linq;
 
-namespace Chromia.PostchainClient.GTX.Messages
+namespace Chromia.PostchainClient.GTX.ASN1Messages
 {    
     public enum GTXValueChoice
     {
@@ -39,7 +39,11 @@ namespace Chromia.PostchainClient.GTX.Messages
                 {
                     messageWriter.WriteNull();
                     break;
-                }                
+                } 
+                // The CHOICE in Asn1 is not implement in the used (experimental) library, yet.
+                // Therefore we have to hack around a bit and create the bytes manually.
+                // Since we can't seem to access the standard, we observed that the 2 octets are structured as follow:
+                // |--0xa--| |--type--| |----length----|
                 case (GTXValueChoice.ByteArray):
                 {
                     choiceConstants = new byte[] {0xa1, (byte) (this.ByteArray.Length + 2)};
@@ -54,7 +58,7 @@ namespace Chromia.PostchainClient.GTX.Messages
                 }
                 case (GTXValueChoice.Integer):
                 {
-                    choiceConstants = new byte[] {0xa3, (byte) (Util.GetMaxAmountOfBytesForInteger(this.Integer) + 2)};
+                    choiceConstants = new byte[] {0xa3, (byte) (ASN1Util.GetMaxAmountOfBytesForInteger(this.Integer) + 2)};
                     messageWriter.WriteInteger(this.Integer);
                     break;
                 }

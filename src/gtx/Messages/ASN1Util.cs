@@ -4,8 +4,10 @@ using System.Text;
 using System.Security.Cryptography.Asn1;
 using System.Collections.Generic;
 
-namespace Chromia.PostchainClient.GTX.Messages{
-    enum Asn1TagValues{
+namespace Chromia.PostchainClient.GTX.ASN1Messages
+{
+    enum Asn1TagValues
+    {
         ContextSpecific = 1,
         Integer = 2,
         OctetString = 4,
@@ -14,8 +16,10 @@ namespace Chromia.PostchainClient.GTX.Messages{
         Sequence = 16
     }
 
-    public class Util{
-        public static byte[] StringToByteArray(string hex) {
+    public class ASN1Util
+    {
+        public static byte[] StringToByteArray(string hex)
+        {
             return Enumerable.Range(0, hex.Length)
                             .Where(x => x % 2 == 0)
                             .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
@@ -33,10 +37,12 @@ namespace Chromia.PostchainClient.GTX.Messages{
             return hex.ToString();
         }
 
-        public static int GetMaxAmountOfBytesForInteger(int value){
+        public static int GetMaxAmountOfBytesForInteger(int value)
+        {
             int maxAmount = 0;
 
-            while(value > 0){
+            while(value > 0)
+            {
                 maxAmount += 1;
                 value >>= 8;
             }
@@ -44,18 +50,19 @@ namespace Chromia.PostchainClient.GTX.Messages{
             return maxAmount;
         }
 
-        public static T[] SequenceToArray<T>(AsnReader sequence, Func<byte[], T> callback){
+        public static List<T> SequenceToList<T>(AsnReader sequence, Func<byte[], T> callback)
+        {
             var returnList = new List<T>();
 
             while (true)
             {
                 try
                 {
-                    // The "ContextSpecific" AsnTag has the same value as Boolean (1). Thats why we check for the tag string.
                     if (sequence.PeekTag().TagValue == (int) Asn1TagValues.Sequence)
                     {
                         returnList.Add(callback(sequence.ReadEncodedValue().ToArray().ToArray()));
                     } 
+                    // The "ContextSpecific" AsnTag has the same value as Boolean (1). Thats why we check for the tag string.
                     else if (sequence.PeekTag().TagClass.ToString() == "ContextSpecific")
                     {
                         returnList.Add(callback(sequence.ReadEncodedValue().ToArray().Skip(2).ToArray()));
@@ -70,14 +77,13 @@ namespace Chromia.PostchainClient.GTX.Messages{
                         break;
                     }
                 } 
-                catch (System.Security.Cryptography.CryptographicException e)
+                catch (System.Security.Cryptography.CryptographicException)
                 {
-                    Console.WriteLine(e);
                     break;
                 }
             }
 
-            return returnList.ToArray();
+            return returnList;
         }
     }
 }

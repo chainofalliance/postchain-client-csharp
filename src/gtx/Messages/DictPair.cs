@@ -1,6 +1,6 @@
 using System.Security.Cryptography.Asn1;
 
-namespace Chromia.PostchainClient.GTX.Messages
+namespace Chromia.PostchainClient.GTX.ASN1Messages
 {
     public class DictPair
     {
