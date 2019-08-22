@@ -1,6 +1,5 @@
 using Xunit;
 using Chromia.PostchainClient.GTX.ASN1Messages;
-using System;
 using System.Collections.Generic;
 
 namespace Chromia.PostchainClient.Tests.GTX

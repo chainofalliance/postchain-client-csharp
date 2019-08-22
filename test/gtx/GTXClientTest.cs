@@ -1,14 +1,14 @@
 using Xunit;
-using Chromia.PostchainClient.GTX.ASN1Messages;
 using Chromia.PostchainClient.GTX;
 using System;
+using System.Collections.Generic;
 
 namespace Chromia.PostchainClient.Tests.GTX
 {
     public class GTXClientTest
     {
         [Fact]
-        public void FullClientTest(){
+        public async void FullClientTest(){
             const string blockchainRID = "78967baa4768cbcef11c508326ffb13a956689fcb6dc3ba17f4b895cbb1577a3";
 
             string signerPrivKeyA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -35,12 +35,13 @@ namespace Chromia.PostchainClient.Tests.GTX
 
             req.Sign(Util.StringToByteArray(signerPrivKeyA), Util.HexStringToBuffer(signerPubKeyA));
 
-            var promise = req.PostAndWaitConfirmation();
-            promise.Then(result => result.Then(ret => Console.WriteLine(ret)));
-
-            dynamic[] queryObject = {"Hamburg"};
-            dynamic resp = gtx.Query("get_city", queryObject);
-
+            var result = await req.PostAndWaitConfirmation();
+            Console.WriteLine("Operation: " + result);
+            
+            var queryObject = new List<dynamic> {("name", "Hamburg")};
+            result = await gtx.Query("get_city", queryObject);
+            Console.WriteLine("Query: " + result);
+            
         }
     }
 }

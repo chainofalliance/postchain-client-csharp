@@ -1,7 +1,6 @@
 using Chromia.PostchainClient.GTX.ASN1Messages;
 using Cryptography.ECDSA;
-using System;
-using RSG;
+using System.Threading.Tasks;
 
 namespace Chromia.PostchainClient.GTX
 {
@@ -35,8 +34,8 @@ namespace Chromia.PostchainClient.GTX
         {
             return this.GtxObject.GetBufferToSign();
         }
-
-        public void AddSignature(byte[] pubKey, byte[] signature)
+        
+        private void AddSignature(byte[] pubKey, byte[] signature)
         {
             this.GtxObject.AddSignature(pubKey, signature);
         }
@@ -46,17 +45,15 @@ namespace Chromia.PostchainClient.GTX
             this.GtxObject.AddOperationToGtx(name, args);
         }
 
-        public Promise<Promise<string>> PostAndWaitConfirmation()
+        public async Task<dynamic> PostAndWaitConfirmation()
         {
-            return this.RestClient.PostAndWaitConfirmation(
-                this.GtxObject.Serialize(), this.GetTxRID()
-            );
+            return await this.RestClient.PostAndWaitConfirmation(this.GtxObject.Serialize(), this.GetTxRID());
         }
 
-        public void Send(Action<string, dynamic> callback)
+        public async void Send()
         {
             var gtxBytes = this.GtxObject.Serialize();
-            this.RestClient.PostTransaction(gtxBytes, callback);
+            await this.RestClient.PostTransaction(gtxBytes);
             this.GtxObject = null;
         }
 

@@ -8,7 +8,6 @@
     <PackageReference Include="Cryptography.ECDSA.Secp256k1" Version="1.1.2" />
     <PackageReference Include="Flurl.Http" Version="2.4.2" />
     <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
-    <PackageReference Include="RSG.Promise" Version="3.0.1" />
     <PackageReference Include="System.Security.Cryptography.Asn1.Experimental" Version="0.1.1-preview2-190117-2" />
   </ItemGroup>
 

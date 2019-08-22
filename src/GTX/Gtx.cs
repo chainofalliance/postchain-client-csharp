@@ -103,8 +103,7 @@ namespace Chromia.PostchainClient.GTX
         {
             byte[] bufferToSign = this.GetBufferToSign();
             var signature = Util.Sign(bufferToSign, privKey);
-            Console.WriteLine("PubKey: " + BitConverter.ToString(pubKey));
-            Console.WriteLine("Signature: " + BitConverter.ToString(signature));
+            
             this.AddSignature(pubKey, signature);
         }
 

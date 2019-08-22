@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Text;
-using System.Threading;
-using RSG;
+using System.Threading.Tasks;
 using Flurl;
 using Flurl.Http;
 using Newtonsoft.Json;
@@ -19,212 +18,100 @@ namespace Chromia.PostchainClient
             this.BlockhainRID = blockhainRID;
         }
 
-        public void GetTransaction(string messageHash, Action<string, dynamic> callback)
-        {
-            ValidateMessageHash(messageHash);
-
-            Get(this.UrlBase, "tx/" + this.BlockhainRID + "/" + messageHash, (string error, int statusCode, dynamic responseObject) => 
-            {
-                HandleGetResponse(error, statusCode, statusCode == 200 ? responseObject["tx"].ToString(): null, callback);
-            });
-        }
-
-        public void PostTransaction(string serializedTransaction, Action<string, dynamic> callback)
+        public async Task<dynamic> PostTransaction(string serializedTransaction)
         {
             string jsonString = String.Format(@"{{""tx"": ""{0}""}}", serializedTransaction);
             
-            DoPost(this.UrlBase, "tx/" + this.BlockhainRID, jsonString, callback);
+            return await Post(this.UrlBase, "tx/" + this.BlockhainRID, jsonString);
         }
 
-        public void GetConfirmationProof(string messageHash, Action<string, string> callback)
+        public async Task<dynamic> Status(string messageHash)
         {
             ValidateMessageHash(messageHash);
 
-            Get(UrlBase, "tx/" + this.BlockhainRID + "/" + messageHash + "/confirmationProof", (string error, int statusCode, dynamic responseObject) => 
-            {
-                if (statusCode == 200)
-                {
-                    responseObject["hash"] = _b(responseObject["hash"].ToString());
-                    responseObject["blockHeader"] = _b(responseObject["blockHeader"].ToString());
-                    if (responseObject["signatures"].ToString() != "")
-                    {
-                        for (int i = 0; i < responseObject["signatures"].Count; i++)
-                        {
-                            responseObject["signatures"][i]["pubKey"] = _b(responseObject["signatures"][i]["pubKey"].ToString());
-                            responseObject["signatures"][i]["signature"] = _b(responseObject["signatures"][i]["signature"].ToString());
-                        }
-                    }
-
-                    if (responseObject["merklePath"].ToString() != "")
-                    {
-                        for (int i = 0; i < responseObject["merklePath"].Count; i++)
-                        {
-                            responseObject["merklePath"][i]["hash"] = _b(responseObject["merklePath"][i]["hash"].ToString());
-                        }
-                    }
-                }
-            });
+            return await Get(this.UrlBase, "tx/" + this.BlockhainRID + "/" + messageHash + "/status");
         }
 
-        public void Status(string messageHash, Action<string, dynamic> callback)
+        public async Task<dynamic> Query(string queryName, dynamic queryObject)
         {
-            ValidateMessageHash(messageHash);
+            queryObject.Add(("type", queryName));
 
-            Get(this.UrlBase, "tx/" + this.BlockhainRID + "/" + messageHash + "/status", (string error, int statusCode, dynamic responseObject) => 
+            string queryString = "{";
+
+            foreach (dynamic queryParam in queryObject)
             {
-                HandleGetResponse(error, statusCode, responseObject, callback);
-            });
-        }
-
-        public Promise<dynamic> Query(string queryName, dynamic queryObject)
-        {
-            queryObject.type = queryName;
-
-            return new Promise<dynamic>((resolve, reject) => 
-            {
-                Action<string, dynamic> cb = delegate(string error, dynamic result)
-                {
-                    if (error != "")
-                    {
-                        reject(new System.Exception(error));
-                    } else 
-                    {
-                        resolve(result);
-                    }
-                };
-
-                DoPost(this.UrlBase, "query/" + this.BlockhainRID, queryObject, cb);
-            });
-        }
-
-        public Promise<string> WaitConfirmation(string txRID)
-        {
-            return new Promise<string>((resolve, reject) => 
-            {
-                Action<string, dynamic> cb = delegate(string error, dynamic result)
-                {
-                    if (error != "")
-                    {
-                        resolve(error);
-                    } else 
-                    {
-                        var status = result.status;
-                        switch(status)
-                        {
-                            case "confirmed":
-                                resolve(null);
-                                break;
-                            case "rejected":
-                                reject(new System.Exception("Message was rejected"));
-                                break;
-                            case "unknown":                                
-                                reject(new System.Exception("Server lost our message"));
-                                break;
-                            case "waiting":
-                                // I don't think that will work
-                                Thread.Sleep(511);
-                                this.WaitConfirmation(txRID);
-                                break;
-                            default:
-                                Console.WriteLine(status);
-                                reject(new System.Exception("got unexpected response from server"));
-                                break;
-                        }
-                    }
-                };
-
-                this.Status(txRID, cb);
-            });
-        }
-
-        public Promise<Promise<string>> PostAndWaitConfirmation(string serializedTransaction, string txRID, bool validate = false)
-        {
-            if (validate)
-            {
-                return null;
+                queryString += String.Format(@"""{0}"": ""{1}"",", queryParam.Item1, queryParam.Item2);
             }
 
-            return new Promise<Promise<string>>((resolve, reject) => 
-            {
-                this.PostTransaction(serializedTransaction, (err, responseCallback) => 
-                {
-                    if (err != "")
-                    {
-                        reject(new System.Exception(err));
-                    } else 
-                    {
-                        resolve(this.WaitConfirmation(txRID));
-                    }
-                });
-            });
+            queryString = queryString.Remove(queryString.Length - 1) + "}";
+
+            return await Post(this.UrlBase, "query/" + this.BlockhainRID, queryString);
         }
 
-        private void DoPost(string config, string path, string jsonString, Action<string, dynamic> responseCallback)
+        public async Task<dynamic> WaitConfirmation(string txRID)
         {
-            Post(config, path, jsonString, (error, statusCode, responseObject) => 
-            {
-                if (error != "")
-                {
-                    Console.WriteLine("In resclient doPost(). " + error);
-                } else if (statusCode != 200)
-                {
-                    Console.WriteLine("Unexpected status code from server: " + statusCode);
-                } else
-                {
-                    try
-                    {
-                        Console.WriteLine("Ok calling responseCallback with responseObject: {0}", jsonString);
-                        responseCallback("", responseObject);
-                    } catch (Exception e)
-                    {
-                        Console.WriteLine("restclient.doPost(): Failed to call callback function {0}", e);
-                    }
-                }
-            });
-        }
+            var status = await this.Status(txRID);
 
-        private async void Get(string urlBase, string path, Action<string, int, dynamic> callback)
-        {
-            var url = Url.Combine(urlBase, path);         
-            Console.WriteLine("GET URL {0}", url);
-
-            var response = await url.GetAsync();
-            dynamic jsonObject = JsonConvert.DeserializeObject(await response.Content.ReadAsStringAsync());
-            if (!response.IsSuccessStatusCode)
+            var statusString = status.status.ToObject<string>();
+            switch(statusString)
             {
-                callback(jsonObject.ToString(), 0, null);
-            } else
-            {
-                try
-                {
-                    callback("", (int) response.StatusCode, jsonObject);
-                } catch (Exception e)
-                {
-                    callback(e.ToString(), 0, null);
-                }
+                case "confirmed":
+                    return null;
+                case "rejected":
+                    return "Message was rejected";
+                case "unknown":                                
+                    return "Server lost our message";
+                case "waiting":
+                    await Task.Delay(511);
+                    return await this.WaitConfirmation(txRID);
+                default:
+                    return "Got unexpected response from server: " + statusString;
             }
         }
 
-        private async void Post(string urlBase, string path, string jsonString, Action<string, int, string> callback)
+        public async Task<dynamic> PostAndWaitConfirmation(string serializedTransaction, string txRID)
         {
-            var url = Url.Combine(urlBase, path);         
-            Console.WriteLine("POST URL {0}", url);
+            await this.PostTransaction(serializedTransaction);
 
-            var response = await url.PostJsonAsync(JsonConvert.DeserializeObject<object>(jsonString));
-            dynamic jsonObject = JsonConvert.DeserializeObject(await response.Content.ReadAsStringAsync());
-            if (!response.IsSuccessStatusCode)
+            return await this.WaitConfirmation(txRID);
+        }
+
+        private async Task<dynamic> Get(string urlBase, string path)
+        {
+            try
             {
-                callback(jsonObject.ToString(), 0, null);
-            } else
-            {
-                try
-                {
-                    callback("", (int) response.StatusCode, jsonObject);
-                } catch (Exception e)
-                {
-                    callback(e.ToString(), 0, null);
-                }
+                var url = Url.Combine(urlBase, path);
+
+                var response = await url.GetAsync();
+                var jsonObject = JsonConvert.DeserializeObject(await response.Content.ReadAsStringAsync());
+
+                return jsonObject;
             }
+            catch (FlurlHttpException e)
+            {
+                return e;
+            }
+        }
+
+        private async Task<dynamic> Post(string urlBase, string path, string jsonString)
+        {
+            try
+            {
+                var url = Url.Combine(urlBase, path);
+
+                var requestObject =  JsonConvert.DeserializeObject<object>(jsonString);
+                var response = await url.PostJsonAsync(requestObject);
+                
+                var responseString = await response.Content.ReadAsStringAsync();
+                var jsonObject = JsonConvert.DeserializeObject(responseString);
+
+                return jsonObject;
+            }
+            catch (FlurlHttpException e)
+            {
+                return e;
+            }
+            
         }
 
         private void ValidateMessageHash(string messageHash)
@@ -234,12 +121,39 @@ namespace Chromia.PostchainClient
                 throw new Exception("messageHash is not a Buffer");
             }
 
-            if (messageHash.Length != 32)
+            if (messageHash.Length != 64)
             {
-                throw new Exception("expected length 32 of messageHash, but got " + messageHash);
+                throw new Exception("expected length 64 of messageHash, but got " + messageHash.Length);
             }
         }
 
+        private string StringToHex(string stringValue)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (char c in stringValue)
+            { 
+                sb.Append(Convert.ToInt32(c).ToString("X")); 
+            }
+            return sb.ToString();
+        }
+
+        [Obsolete]
+        public async Task<dynamic> GetTransaction(string messageHash, Action<string, dynamic> callback)
+        {
+            ValidateMessageHash(messageHash);
+
+            return await Get(this.UrlBase, "tx/" + this.BlockhainRID + "/" + messageHash);
+        }
+
+        [Obsolete]
+        public async Task<dynamic> GetConfirmationProof(string messageHash, Action<string, string> callback)
+        {
+            ValidateMessageHash(messageHash);
+
+            return await Get(UrlBase, "tx/" + this.BlockhainRID + "/" + messageHash + "/confirmationProof");
+        }
+
+        [Obsolete]
         private void HandleGetResponse(string error, int statusCode, string responseObject, Action<string, dynamic> callback)
         {
             if (error == "")
@@ -247,7 +161,6 @@ namespace Chromia.PostchainClient
                 callback(error, null);
             } else if (statusCode == 404)
             {
-                Console.WriteLine("404 received");
                 callback("", null);
             } else if (statusCode != 200)
             {
@@ -264,16 +177,7 @@ namespace Chromia.PostchainClient
             }
         }
 
-        private string StringToHex(string stringValue)
-        {
-            StringBuilder sb = new StringBuilder();
-            foreach (char c in stringValue)
-            { 
-                sb.Append(Convert.ToInt32(c).ToString("X")); 
-            }
-            return sb.ToString();
-        }
-
+        [Obsolete]
         private string _b(string stringValue)
         {
             int r;

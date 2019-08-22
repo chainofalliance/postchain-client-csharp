@@ -1,3 +1,6 @@
+using System.Threading.Tasks;
+using System;
+
 namespace Chromia.PostchainClient.GTX
 {
     public class GTXClient
@@ -25,6 +28,12 @@ namespace Chromia.PostchainClient.GTX
             return req;
         }
 
+        public async Task<dynamic> Query(string queryName, dynamic queryObject)
+        {
+            return await this.RestApiClient.Query(queryName, queryObject);
+        } 
+
+        [Obsolete]
         public Transaction TransactionFromRawTransaction(byte[] rawTransaction)
         {
             Gtx gtx = Gtx.Deserialize(rawTransaction);
@@ -33,10 +42,5 @@ namespace Chromia.PostchainClient.GTX
 
             return req;
         }
-
-        public dynamic Query(string queryName, dynamic queryObject)
-        {
-            return this.RestApiClient.Query(queryName, queryObject);
-        }  
     }
 }
