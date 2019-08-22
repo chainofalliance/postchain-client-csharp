@@ -39,11 +39,20 @@ namespace Chromia.PostchainClient.GTX
             this.GtxObject.AddSignature(pubKey, signature);
         }
 
+        ///<summary>
+        ///Add an operation to the Transaction.
+        ///</summary>
+        ///<param name = "name">Name of the operation.</param>
+        ///<param name = "args">Array of dynamic parameters. For example {"Hamburg", 42}</param>
         public void AddOperation(string name, dynamic[] args)
         {
             this.GtxObject.AddOperationToGtx(name, args);
         }
 
+        ///<summary>
+        ///Commit the Transaction and send it to the blockchain.
+        ///</summary>
+        ///<returns>Task, which returns null if it was succesful or the error message if not.</returns>
         public async Task<dynamic> PostAndWaitConfirmation()
         {
             return await this.RestClient.PostAndWaitConfirmation(this.GtxObject.Serialize(), this.GetTxRID());

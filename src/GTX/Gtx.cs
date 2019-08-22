@@ -15,15 +15,6 @@ namespace Chromia.PostchainClient.GTX
             this.Transaction.BlockchainID = ASN1Util.StringToByteArray(blockchainRID);
         }
 
-        /**
-        * Adds a function call to a GTX. Creates a new GTX if none specified.
-        * This function will throw Error if gtx is already signed
-        * @param opName the name of the function to call
-        * @param args the array of arguments of the function call. If no args, this must be an empty array
-        * @param gtx the function call will be added to this gtx
-        * @returns the gtx
-        * @throws if gtx is null or if gtx is already signed
-        */
         public Gtx AddOperationToGtx(string opName, dynamic[] args)
         {
            if(this.Transaction.Signatures.Count != 0)
@@ -107,10 +98,6 @@ namespace Chromia.PostchainClient.GTX
             this.AddSignature(pubKey, signature);
         }
 
-        /**
-        * Serializes the gtx for signing
-        * @param gtx the gtx to serialize
-        */
         public byte[] GetBufferToSign()
         {
             var oldSignatures = this.Transaction.Signatures;

@@ -10,26 +10,31 @@ namespace Chromia.PostchainClient
     public class RESTClient
     {
         private string UrlBase;
-        private string BlockhainRID;
+        private string BlockchainRID;
 
-        public RESTClient(string urlBase, string blockhainRID)
+        ///<summary>
+        ///Create new RESTClient object.
+        ///</summary>
+        ///<param name = "urlBase">URL to rest server.</param>
+        ///<param name = "blockchainRID">RID of blockchain.</param>
+        public RESTClient(string urlBase, string blockchainRID)
         {
             this.UrlBase = urlBase;
-            this.BlockhainRID = blockhainRID;
+            this.BlockchainRID = blockchainRID;
         }
 
         public async Task<dynamic> PostTransaction(string serializedTransaction)
         {
             string jsonString = String.Format(@"{{""tx"": ""{0}""}}", serializedTransaction);
             
-            return await Post(this.UrlBase, "tx/" + this.BlockhainRID, jsonString);
+            return await Post(this.UrlBase, "tx/" + this.BlockchainRID, jsonString);
         }
 
-        public async Task<dynamic> Status(string messageHash)
+        private async Task<dynamic> Status(string messageHash)
         {
             ValidateMessageHash(messageHash);
 
-            return await Get(this.UrlBase, "tx/" + this.BlockhainRID + "/" + messageHash + "/status");
+            return await Get(this.UrlBase, "tx/" + this.BlockchainRID + "/" + messageHash + "/status");
         }
 
         public async Task<dynamic> Query(string queryName, dynamic queryObject)
@@ -38,7 +43,7 @@ namespace Chromia.PostchainClient
 
             string queryString = BuildQuery(queryObject);
 
-            return await Post(this.UrlBase, "query/" + this.BlockhainRID, queryString);
+            return await Post(this.UrlBase, "query/" + this.BlockchainRID, queryString);
         }
 
         private string BuildQuery(dynamic queryObject)
@@ -160,7 +165,7 @@ namespace Chromia.PostchainClient
         {
             ValidateMessageHash(messageHash);
 
-            return await Get(this.UrlBase, "tx/" + this.BlockhainRID + "/" + messageHash);
+            return await Get(this.UrlBase, "tx/" + this.BlockchainRID + "/" + messageHash);
         }
 
         [Obsolete]
@@ -168,7 +173,7 @@ namespace Chromia.PostchainClient
         {
             ValidateMessageHash(messageHash);
 
-            return await Get(UrlBase, "tx/" + this.BlockhainRID + "/" + messageHash + "/confirmationProof");
+            return await Get(UrlBase, "tx/" + this.BlockchainRID + "/" + messageHash + "/confirmationProof");
         }
 
         [Obsolete]
