@@ -36,16 +36,34 @@ namespace Chromia.PostchainClient
         {
             queryObject.Add(("type", queryName));
 
+            string queryString = BuildQuery(queryObject);
+
+            return await Post(this.UrlBase, "query/" + this.BlockhainRID, queryString);
+        }
+
+        private string BuildQuery(dynamic queryObject)
+        {
             string queryString = "{";
 
             foreach (dynamic queryParam in queryObject)
             {
-                queryString += String.Format(@"""{0}"": ""{1}"",", queryParam.Item1, queryParam.Item2);
+                if (queryParam.Item2 is System.Array)
+                {
+                    queryString += String.Format(@"""{0}"": ""{1}"",", queryParam.Item1, Util.ByteArrayToString(queryParam.Item2));
+                }
+                else if (queryParam.Item2 is System.Int32)
+                {
+                    queryString += String.Format(@"""{0}"": {1},", queryParam.Item1, queryParam.Item2);
+                }
+                else
+                {
+                    queryString += String.Format(@"""{0}"": ""{1}"",", queryParam.Item1, queryParam.Item2);
+                }
             }
 
             queryString = queryString.Remove(queryString.Length - 1) + "}";
 
-            return await Post(this.UrlBase, "query/" + this.BlockhainRID, queryString);
+            return queryString;
         }
 
         public async Task<dynamic> WaitConfirmation(string txRID)

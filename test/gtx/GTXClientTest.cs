@@ -11,8 +11,9 @@ namespace Chromia.PostchainClient.Tests.GTX
         public async void FullClientTest(){
             const string blockchainRID = "78967baa4768cbcef11c508326ffb13a956689fcb6dc3ba17f4b895cbb1577a3";
 
-            string signerPrivKeyA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-            string signerPubKeyA = "02e5a018b3a2e155316109d9cdc5eab739759c0e07e0c00bf9fccb8237fe4d7f02";
+            var keyPair = Util.MakeKeyPair();
+            var privKey = keyPair["privKey"];
+            var pubKey = keyPair["pubKey"];
 
             // The lower-level client that can be used for any
             // postchain client messages. It only handles binary data.
@@ -27,21 +28,36 @@ namespace Chromia.PostchainClient.Tests.GTX
             // Start a new request. A request instance is created.
             // The public keys are the keys that must sign the request
             // before sending it to postchain. Can be empty.
-            var req = gtx.NewTransaction(new byte[][] {Util.HexStringToBuffer(signerPubKeyA)});
+            var req = gtx.NewTransaction(new byte[][] {pubKey});
 
             // call fun1 with three arguments: a string, an array and a Buffer
-            dynamic[] opVal = {"Hamburg", 223232};
-            req.AddOperation("insert_city", opVal);
+            req.AddOperation("insert_city", new dynamic[] {"Hamburg", 223232});
+            req.AddOperation("create_user", new dynamic[] {pubKey, "Peter"});
+            req.AddOperation("nop", new dynamic[] {1000});
 
-            req.Sign(Util.StringToByteArray(signerPrivKeyA), Util.HexStringToBuffer(signerPubKeyA));
+
+            req.Sign(privKey, pubKey);
 
             var result = await req.PostAndWaitConfirmation();
             Console.WriteLine("Operation: " + result);
             
-            var queryObject = new List<dynamic> {("name", "Hamburg")};
-            result = await gtx.Query("get_city", queryObject);
+            result = await gtx.Query("get_city", new List<dynamic> {("name", "Hamburg")});
             Console.WriteLine("Query: " + result);
+
+            result = await gtx.Query("get_plz", new List<dynamic> {("plz", 223232)});
+            Console.WriteLine("Query2: " + result);
+
+            result = await gtx.Query("get_user_name", new List<dynamic> {("pubkey", pubKey)});
+            Console.WriteLine("Query3: " + result);
             
+
+            req = gtx.NewTransaction(new byte[][] {pubKey});
+            req.AddOperation("insert_city", new dynamic[] {"Berlin", 21343214});
+            req.Sign(privKey, pubKey);
+            await req.PostAndWaitConfirmation();
+
+            result = await gtx.Query("get_city", new List<dynamic> {("name", "Berlin")});
+            Console.WriteLine("Query: " + result);
         }
     }
 }
