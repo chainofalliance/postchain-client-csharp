@@ -1,4 +1,3 @@
-using Chromia.PostchainClient.GTX.ASN1Messages;
 using Cryptography.ECDSA;
 using System.Threading.Tasks;
 
@@ -27,7 +26,7 @@ namespace Chromia.PostchainClient.GTX
 
         public string GetTxRID()
         {
-            return ASN1Util.ByteArrayToString(Util.Sha256(this.GetBufferToSign()));
+            return Util.ByteArrayToString(Util.Sha256(this.GetBufferToSign()));
         }
 
         public byte[] GetBufferToSign()

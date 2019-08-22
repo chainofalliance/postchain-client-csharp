@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Text;
 using System.Security.Cryptography.Asn1;
 using System.Collections.Generic;
 
@@ -26,27 +25,16 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
                             .ToArray();
         }
 
-        public static string ByteArrayToString(byte[] ba)
-        {
-            StringBuilder hex = new StringBuilder(ba.Length * 2);
-            foreach (byte b in ba)
-            {
-                hex.AppendFormat("{0:x2}", b);
-            }
-
-            return hex.ToString();
-        }
-
         public static int GetMaxAmountOfBytesForInteger(int value)
         {
             int maxAmount = 0;
-            
+
             if (value == 0)
             {
                 return 1;
             }
 
-            while(value > 0)
+            while (value > 0)
             {
                 maxAmount += 1;
                 value >>= 8;
@@ -63,16 +51,16 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
             {
                 try
                 {
-                    if (sequence.PeekTag().TagValue == (int) Asn1TagValues.Sequence)
+                    if (sequence.PeekTag().TagValue == (int)Asn1TagValues.Sequence)
                     {
                         returnList.Add(callback(sequence.ReadEncodedValue().ToArray().ToArray()));
-                    } 
+                    }
                     // The "ContextSpecific" AsnTag has the same value as Boolean (1). Thats why we check for the tag string.
                     else if (sequence.PeekTag().TagClass.ToString() == "ContextSpecific")
                     {
                         returnList.Add(callback(sequence.ReadEncodedValue().ToArray()));
                     }
-                    else if (sequence.PeekTag().TagValue == (int) Asn1TagValues.OctetString)
+                    else if (sequence.PeekTag().TagValue == (int)Asn1TagValues.OctetString)
                     {
                         var ret_val = sequence.ReadOctetString();
                         returnList.Add((T)(object)ret_val);
@@ -81,7 +69,7 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
                     {
                         break;
                     }
-                } 
+                }
                 catch (System.Security.Cryptography.CryptographicException)
                 {
                     break;

@@ -2,6 +2,7 @@ using secp256k1 = Cryptography.ECDSA;
 using System.Collections.Generic;
 using Chromia.PostchainClient.GTX.ASN1Messages;
 using System;
+using System.Text;
 
 namespace Chromia.PostchainClient
 {
@@ -82,6 +83,17 @@ namespace Chromia.PostchainClient
         public static byte[] HexStringToBuffer(string key)
         {
             return ASN1Util.StringToByteArray(key);
+        }
+
+        public static string ByteArrayToString(byte[] ba)
+        {
+            StringBuilder hex = new StringBuilder(ba.Length * 2);
+            foreach (byte b in ba)
+            {
+                hex.AppendFormat("{0:x2}", b);
+            }
+
+            return hex.ToString();
         }
 
         public static byte[] StringToByteArray(string str)

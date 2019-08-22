@@ -146,7 +146,7 @@ namespace Chromia.PostchainClient.GTX
 
         public string Serialize()
         {
-           return ASN1Util.ByteArrayToString(this.Transaction.Encode());
+           return Util.ByteArrayToString(this.Transaction.Encode());
         }
 
         public static Gtx Deserialize(byte[] gtxBytes)
