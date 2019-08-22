@@ -61,3 +61,30 @@ Console.WriteLine("Query2: " + result);
 result = await gtx.Query("get_user_name", new List<dynamic> {("pubkey", pubKey)});
 Console.WriteLine("Query3: " + result);
 ```
+
+### Rell file
+```
+class city { key name; plz: integer; }
+class user {pubkey; name;}
+
+operation insert_city (name, plz: integer) {
+    create city (name, plz);
+}
+
+query get_city(name){
+    return city @ {name}.plz;
+}
+
+
+query get_plz(plz: integer){
+    return city @ {plz}.name;
+}
+
+operation create_user(pubkey, name){
+    create user (pubkey,name);
+}
+
+query get_user_name(pubkey){
+    return user @ {pubkey}.name;
+}
+```
