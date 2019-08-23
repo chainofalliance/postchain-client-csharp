@@ -73,25 +73,38 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
                 // |--0xa--| |--type--| |----length----|
                 case (GTXValueChoice.ByteArray):
                 {
-                    choiceConstants = new byte[] {0xa1, (byte) (this.ByteArray.Length + 2)};
+                    choiceConstants = new byte[] {0xa1, GetValueSize(this)};
                     messageWriter.WriteOctetString(this.ByteArray);
                     break;
                 }
                 case (GTXValueChoice.String):
                 {
-                    choiceConstants = new byte[] {0xa2, (byte) (this.String.Length + 2)};
+                    choiceConstants = new byte[] {0xa2, GetValueSize(this)};
                     messageWriter.WriteCharacterString(UniversalTagNumber.UTF8String, this.String);
                     break;
                 }
                 case (GTXValueChoice.Integer):
                 {
                     this.Integer = Math.Abs(this.Integer);
-                    choiceConstants = new byte[] {0xa3, (byte) (ASN1Util.GetMaxAmountOfBytesForInteger(this.Integer) + 2)};
+                    choiceConstants = new byte[] {0xa3, GetValueSize(this)};
                     messageWriter.WriteInteger(this.Integer);
                     break;
                 }
-                case (GTXValueChoice.Dict):
                 case (GTXValueChoice.Array):
+                {
+
+                    choiceConstants = new byte[] {0xa5, (byte) (GetValueSize(this))};
+
+                    messageWriter.PushSequence();
+                    foreach (var gtxValue in this.Array)
+                    {
+                        messageWriter.WriteEncodedValue(gtxValue.Encode());
+                    }
+                    messageWriter.PopSequence();
+
+                    break;
+                }
+                case (GTXValueChoice.Dict):
                 {
                     throw new System.Exception("Chromia.PostchainClient.GTX.Messages GTXValue.Encode() GTXValueChoice.Dict and GTXValueChoice.Array (of DictPair or GTXValue) not yet implemented.");
                 }
@@ -102,6 +115,44 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
             }
 
             return choiceConstants.Concat(messageWriter.Encode()).ToArray();
+        }
+
+        private static byte GetValueSize(GTXValue gtxValue)
+        {
+            switch (gtxValue.Choice)
+            {
+                case (GTXValueChoice.ByteArray):
+                {
+                    return (byte) (gtxValue.ByteArray.Length + 2);
+                }
+                case (GTXValueChoice.String):
+                {
+                    return (byte) (gtxValue.String.Length + 2);
+                }
+                case (GTXValueChoice.Integer):
+                {                    
+                    return (byte) (ASN1Util.GetMaxAmountOfBytesForInteger(gtxValue.Integer) + 2);
+                }
+                case (GTXValueChoice.Array):
+                {
+                    byte choiceSize = (byte) (2 + (gtxValue.Array.Count * 2));
+
+                    foreach (var val in gtxValue.Array)
+                    {
+                        choiceSize += GetValueSize(val);
+                    }
+
+                    return choiceSize;
+                }
+                case (GTXValueChoice.Dict):
+                {
+                    throw new System.Exception("Chromia.PostchainClient.GTX.Messages GTXValue.Encode() GTXValueChoice.Dict and GTXValueChoice.Array (of DictPair or GTXValue) not yet implemented.");
+                }
+                default:
+                {
+                    throw new System.Exception("Chromia.PostchainClient.GTX.Messages GTXValue.GetValueSize() GTXValueChoice.Default case. Unknown choice " + gtxValue.Choice);
+                }
+            }
         }
 
         public static GTXValue Decode(byte[] encodedMessage)

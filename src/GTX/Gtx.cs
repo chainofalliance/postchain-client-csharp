@@ -1,6 +1,7 @@
 using System.Linq;
 using System;
 using Chromia.PostchainClient.GTX.ASN1Messages;
+using System.Collections.Generic;
 
 namespace Chromia.PostchainClient.GTX
 {
@@ -37,6 +38,7 @@ namespace Chromia.PostchainClient.GTX
         private GTXValue ArgToGTXValue(dynamic arg)
         {
             var gtxValue = new GTXValue();
+            gtxValue.Array = new List<GTXValue>();
             
             if (arg == null)
             {
@@ -61,7 +63,7 @@ namespace Chromia.PostchainClient.GTX
             {
                 gtxValue.Choice = GTXValueChoice.Array;
 
-                foreach (dynamic subArg in (dynamic[]) arg)
+                foreach (var subArg in arg)
                 {
                     gtxValue.Array.Add(ArgToGTXValue(subArg));
                 }
