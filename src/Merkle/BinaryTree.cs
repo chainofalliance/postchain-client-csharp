@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System;
-
 namespace Chromia.PostchainClient.GTV
 {
     enum HashPrefix
@@ -67,7 +63,7 @@ namespace Chromia.PostchainClient.GTV
         }
     }
 
-    public class Leaf<T>: BinaryTreeElement
+    public class Leaf: BinaryTreeElement
     {
         private dynamic Content;
 
@@ -131,7 +127,7 @@ namespace Chromia.PostchainClient.GTV
             else if (node is Node)
             {
                 var castedNode = (Node) node;
-                return Math.Max(this.MaxLevelInternal(castedNode.Left), this.MaxLevelInternal(castedNode.Right)) + 1;
+                return System.Math.Max(this.MaxLevelInternal(castedNode.Left), this.MaxLevelInternal(castedNode.Right)) + 1;
             }
             else
             {
