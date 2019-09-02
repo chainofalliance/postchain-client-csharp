@@ -37,18 +37,16 @@ namespace Chromia.PostchainClient
             return await Get(this.UrlBase, "tx/" + this.BlockchainRID + "/" + messageHash + "/status");
         }
 
-        public async Task<dynamic> Query(string queryName, dynamic queryObject)
+        public async Task<dynamic> Query(string queryName, params dynamic[] queryObject)
         {
-            queryObject.Add(("type", queryName));
-
-            string queryString = BuildQuery(queryObject);
+            string queryString = BuildQuery(queryName, queryObject);
 
             return await Post(this.UrlBase, "query/" + this.BlockchainRID, queryString);
         }
 
-        private string BuildQuery(dynamic queryObject)
+        private string BuildQuery(string queryName, dynamic[] queryObject)
         {
-            string queryString = "{";
+            string queryString = String.Format(@"{{""type"": ""{0}"",", queryName);
 
             foreach (dynamic queryParam in queryObject)
             {

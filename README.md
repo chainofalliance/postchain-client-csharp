@@ -5,14 +5,14 @@
 ## Installation
 ### With NuGet:
 ```
-Install-Package PostchainClient -Version 0.1.0
+Install-Package PostchainClient -Version 0.2.0
 ```
 ### With .NET CLI:
 ```
-dotnet add package PostchainClient --version 0.1.0
+dotnet add package PostchainClient --version 0.2.0
 ```
 
-For more information, see https://www.nuget.org/packages/PostchainClient/0.1.0
+For more information, see https://www.nuget.org/packages/PostchainClient/0.2.0
 
 ## Usage
 ```c#
@@ -41,8 +41,8 @@ var gtx = new GTXClient(rest, blockchainRID);
 var req = gtx.NewTransaction(new byte[][] {pubKey});
 
 // Add operations to transaction
-req.AddOperation("insert_city", new dynamic[] {"Hamburg", 223232});
-req.AddOperation("create_user", new dynamic[] {pubKey, "Peter"});
+req.AddOperation("insert_city", "Hamburg", 223232);
+req.AddOperation("create_user", pubKey, "Peter");
 
 // Sign transaction with key pair
 req.Sign(privKey, pubKey);
@@ -54,13 +54,13 @@ Console.WriteLine("Operation: " + result);
 
 
 // Query data to see if it was inserted correctly
-result = await gtx.Query("get_city", new List<dynamic> {("name", "Hamburg")});
+result = await gtx.Query("get_city", ("name", "Hamburg"));
 Console.WriteLine("Query: " + result);
 
-result = await gtx.Query("get_plz", new List<dynamic> {("plz", 223232)});
+result = await gtx.Query("get_plz", ("plz", 223232));
 Console.WriteLine("Query2: " + result);
 
-result = await gtx.Query("get_user_name", new List<dynamic> {("pubkey", pubKey)});
+result = await gtx.Query("get_user_name", ("pubkey", pubKey));
 Console.WriteLine("Query3: " + result);
 ```
 
