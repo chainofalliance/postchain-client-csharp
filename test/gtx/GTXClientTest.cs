@@ -31,32 +31,30 @@ namespace Chromia.PostchainClient.Tests.GTX
             var req = gtx.NewTransaction(new byte[][] {pubKey});
 
             // call fun1 with three arguments: a string, an array and a Buffer
-            req.AddOperation("insert_city", new dynamic[] {"Hamburg", 223232});
-            req.AddOperation("create_user", new dynamic[] {pubKey, "Peter"});
-            req.AddOperation("nop", new dynamic[] {1000});
-
+            var dict = new Dictionary<string,dynamic>();
+            dict.Add("name", "Hamburg");
+            req.AddOperation("insert_city_dict", dict);
+            req.AddOperation("create_user", pubKey, "Peter");
+            req.AddOperation("nop", 1000);
 
             req.Sign(privKey, pubKey);
 
             var result = await req.PostAndWaitConfirmation();
             Console.WriteLine("Operation: " + result);
             
-            result = await gtx.Query("get_city", new List<dynamic> {("name", "Hamburg")});
+            result = await gtx.Query("get_city", ("name", "Hamburg"));
             Console.WriteLine("Query: " + result);
 
-            result = await gtx.Query("get_plz", new List<dynamic> {("plz", 223232)});
-            Console.WriteLine("Query2: " + result);
-
-            result = await gtx.Query("get_user_name", new List<dynamic> {("pubkey", pubKey)});
+            result = await gtx.Query("get_user_name", ("pubkey", pubKey));
             Console.WriteLine("Query3: " + result);
             
 
             req = gtx.NewTransaction(new byte[][] {pubKey});
-            req.AddOperation("insert_city", new dynamic[] {"Berlin", 21343214});
+            req.AddOperation("insert_city", "Berlin", "21343214");
             req.Sign(privKey, pubKey);
             await req.PostAndWaitConfirmation();
 
-            result = await gtx.Query("get_city", new List<dynamic> {("name", "Berlin")});
+            result = await gtx.Query("get_city", ("name", "Berlin"));
             Console.WriteLine("Query: " + result);
         }
     }

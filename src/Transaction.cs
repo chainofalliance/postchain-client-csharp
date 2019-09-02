@@ -44,7 +44,7 @@ namespace Chromia.PostchainClient.GTX
         ///</summary>
         ///<param name = "name">Name of the operation.</param>
         ///<param name = "args">Array of dynamic parameters. For example {"Hamburg", 42}</param>
-        public void AddOperation(string name, dynamic[] args)
+        public void AddOperation(string name, params dynamic[] args)
         {
             this.GtxObject.AddOperationToGtx(name, args);
         }

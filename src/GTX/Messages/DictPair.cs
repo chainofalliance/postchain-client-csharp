@@ -48,6 +48,7 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
             messageWriter.PushSequence();
             messageWriter.WriteCharacterString(UniversalTagNumber.UTF8String, this.Name);
             messageWriter.WriteEncodedValue(Value.Encode());
+            messageWriter.PopSequence();
 
             return messageWriter.Encode();
         }

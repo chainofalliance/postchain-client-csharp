@@ -1,6 +1,7 @@
 using System.Linq;
 using System;
 using Chromia.PostchainClient.GTX.ASN1Messages;
+using System.Collections.Generic;
 
 namespace Chromia.PostchainClient.GTX
 {
@@ -38,7 +39,7 @@ namespace Chromia.PostchainClient.GTX
         {
             var gtxValue = new GTXValue();
             
-            if (arg == null)
+            if (arg is null)
             {
                 gtxValue.Choice = GTXValueChoice.Null;
             }
@@ -61,19 +62,27 @@ namespace Chromia.PostchainClient.GTX
             {
                 gtxValue.Choice = GTXValueChoice.Array;
 
-                foreach (dynamic subArg in (dynamic[]) arg)
+                gtxValue.Array = new List<GTXValue>();
+                foreach (var subArg in arg)
                 {
                     gtxValue.Array.Add(ArgToGTXValue(subArg));
                 }
             }
-            else if (arg is Tuple<string, dynamic>[])
+            else if (arg is Dictionary<string, dynamic>)
             {
                 gtxValue.Choice = GTXValueChoice.Dict;
 
-                foreach (Tuple<string, dynamic> subArg in arg)
+                var dict = (Dictionary<string, dynamic>) arg;
+
+                gtxValue.Dict = new List<DictPair>();
+                foreach (var dictPair in dict)
                 {
-                    gtxValue.Dict.Add(new DictPair(subArg.Item1, ArgToGTXValue(subArg.Item2)));
+                    gtxValue.Dict.Add(new DictPair(dictPair.Key, ArgToGTXValue(dictPair.Value)));
                 }
+            }
+            else
+            {
+                throw new System.Exception("Chromia.PostchainClient.GTX Gtx.ArgToGTXValue() Can't create GTXValue out of type " + arg.GetType());
             }
 
 
