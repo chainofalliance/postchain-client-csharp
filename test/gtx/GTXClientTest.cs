@@ -31,10 +31,14 @@ namespace Chromia.PostchainClient.Tests.GTX
             var req = gtx.NewTransaction(new byte[][] {pubKey});
 
             // call fun1 with three arguments: a string, an array and a Buffer
-            req.AddOperation("insert_city", new dynamic[] {"Hamburg", 223232});
+            var dict = new Dictionary<string,dynamic>();
+            dict.Add("name", "Hamburg");
+            dict.Add("al", 123);
+            req.AddOperation("insert_city_dict", new dynamic[] {dict});
             req.AddOperation("create_user", new dynamic[] {pubKey, "Peter"});
             req.AddOperation("nop", new dynamic[] {1000});
 
+            Console.WriteLine("ToSign: " + Util.ByteArrayToString(req.GetBufferToSign()));
 
             req.Sign(privKey, pubKey);
 

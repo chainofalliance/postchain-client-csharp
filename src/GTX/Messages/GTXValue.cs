@@ -106,7 +106,16 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
                 }
                 case (GTXValueChoice.Dict):
                 {
-                    throw new System.Exception("Chromia.PostchainClient.GTX.Messages GTXValue.Encode() GTXValueChoice.Dict and GTXValueChoice.Array (of DictPair or GTXValue) not yet implemented.");
+                    choiceConstants = new byte[] {0xa4, (byte) (GetValueSize(this))};
+
+                    messageWriter.PushSequence();
+                    foreach (var dictPair in this.Dict)
+                    {
+                        messageWriter.WriteEncodedValue(dictPair.Encode());
+                    }
+                    messageWriter.PopSequence();
+
+                    break;
                 }
                 default:
                 {
@@ -146,7 +155,14 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
                 }
                 case (GTXValueChoice.Dict):
                 {
-                    throw new System.Exception("Chromia.PostchainClient.GTX.Messages GTXValue.Encode() GTXValueChoice.Dict and GTXValueChoice.Array (of DictPair or GTXValue) not yet implemented.");
+                    byte choiceSize = (byte) (2 + (gtxValue.Dict.Count * 4));
+
+                    foreach (var val in gtxValue.Dict)
+                    {
+                        choiceSize += (byte) ((val.Name.Length + 2) + GetValueSize(val.Value));
+                    }
+
+                    return choiceSize;
                 }
                 default:
                 {
