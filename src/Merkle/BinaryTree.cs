@@ -10,7 +10,7 @@ namespace Chromia.PostchainClient.GTV
 
     public abstract class BinaryTreeElement
     {
-        private PathElement PathElem = null;
+        public PathElement PathElem {get;} = null;
 
         public bool IsPath()
         {
@@ -54,7 +54,7 @@ namespace Chromia.PostchainClient.GTV
 
     public class SubTreeRootNode<T>: Node
     {
-        private T Content;
+        public T Content {get;}
 
         public SubTreeRootNode(BinaryTreeElement left, BinaryTreeElement right, T content, PathElement pathElem = null) : base(left, right)
         {
@@ -65,7 +65,7 @@ namespace Chromia.PostchainClient.GTV
 
     public class Leaf: BinaryTreeElement
     {
-        private dynamic Content;
+        public dynamic Content {get;}
 
         public Leaf(dynamic content, PathElement pathElem = null)
         {
@@ -102,7 +102,7 @@ namespace Chromia.PostchainClient.GTV
 
     public class BinaryTree
     {
-        BinaryTreeElement Root;
+        public BinaryTreeElement Root {get;}
 
         public BinaryTree(BinaryTreeElement root)
         {
