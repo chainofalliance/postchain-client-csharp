@@ -35,7 +35,7 @@ namespace Chromia.PostchainClient.GTX
             return this;
         }
 
-        private GTXValue ArgToGTXValue(dynamic arg)
+        public static GTXValue ArgToGTXValue(dynamic arg)
         {
             var gtxValue = new GTXValue();
             

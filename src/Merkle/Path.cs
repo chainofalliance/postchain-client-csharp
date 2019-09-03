@@ -233,22 +233,74 @@ namespace Chromia.PostchainClient.GTV
 
         public PathSet KeepOnlyArrayPaths()
         {
-           return null;
+            var filteredPaths = this.Paths.Where(path => path.PathElements[0] is ArrayPathElement);
+
+            return new PathSet(filteredPaths.ToArray());
         }
 
         public PathSet KeepOnlyDictPaths()
         {
-           return null;
+            var filteredPaths = this.Paths.Where(path => path.PathElements[0] is DictPathElement);
+            
+            return new PathSet(filteredPaths.ToArray());
         }
 
         public PathSet GetTailIfFirstElementIsArrayOfThisIndexFromList(int index)
         {
-           return null;
+            var retPaths = new List<Path>();
+            foreach (var path in this.Paths)
+            {
+                var newPath = this.GetTail(index, path);
+                if (!(newPath is null))
+                {
+                    retPaths.Add(newPath);
+                }
+            }
+
+            return new PathSet(retPaths.ToArray());
         }
 
-        public PathSet GetTailIfFirstElementIsDictOfThisKeyFromList(dynamic key)
+        private Path GetTail(dynamic searchKey, Path path)
         {
-           return null;
+            if (searchKey is null)
+            {
+                throw new System.Exception("Have to provide a search key");
+            }
+
+            try
+            {
+                var firstElement = path.PathElements[0];
+                if (firstElement is SearchablePathElement)
+                {
+                    var searchableElement = (SearchablePathElement) firstElement;
+                    if (searchableElement.GetSearchKey().Equals(searchKey))
+                    {
+                        return path.Tail();
+                    }
+                }
+            }
+            catch (Exception err)
+            {
+                Console.WriteLine("Why are we dropping first element of an empty path? " + err.Message);
+                return null;
+            }
+            
+            return null;
+        }
+
+        public PathSet GetTailIfFirstElementIsDictOfThisKeyFromList(string key)
+        {
+           var retPaths = new List<Path>();
+            foreach (var path in this.Paths)
+            {
+                var newPath = this.GetTail(key, path);
+                if (!(newPath is null))
+                {
+                    retPaths.Add(newPath);
+                }
+            }
+
+            return new PathSet(retPaths.ToArray());
         }
 
         public PathSet GetTailFromList(dynamic searchKey, Func<dynamic, Path, Path> filterFun)

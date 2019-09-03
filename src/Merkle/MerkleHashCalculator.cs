@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Chromia.PostchainClient.GTX;
+using Chromia.PostchainClient.GTX.ASN1Messages;
 
 namespace Chromia.PostchainClient.GTV
 {
@@ -39,7 +41,8 @@ namespace Chromia.PostchainClient.GTV
 
         public byte[] CalculateLeafHash(dynamic value)
         {
-            return CalculateHashOfValueInternal(value, serialization.encodeValue);
+            var gtxValue = Gtx.ArgToGTXValue(value);
+            return CalculateHashOfValueInternal(gtxValue);
         }
 
         private byte[] CalculateNodeHashInternal(byte prefix, byte[] hashLeft, byte[] hashRight)
@@ -51,10 +54,10 @@ namespace Chromia.PostchainClient.GTV
             return HashingFun(buf.ToArray());
         }
 
-        private byte[] CalculateHashOfValueInternal(dynamic valuetoHash, Func<dynamic, byte[]> serializeFun)
+        private byte[] CalculateHashOfValueInternal(GTXValue gtxValue)
         {
             var buf = new List<byte>((byte)HashPrefix.Leaf);
-            buf.AddRange(serializeFun(valuetoHash));
+            buf.AddRange(gtxValue.Encode());
 
             return HashingFun(buf.ToArray());
         }
