@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Chromia.PostchainClient.GTV
 {
-    public abstract class BinaryTreeFactory
+    public class BinaryTreeFactory
     {
         public BinaryTreeElement HandleLeaf(dynamic leaf, PathSet paths, bool IsRoot = false)
         {
