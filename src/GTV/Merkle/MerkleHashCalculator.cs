@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Chromia.PostchainClient.GTX;
 using Chromia.PostchainClient.GTX.ASN1Messages;
 
-namespace Chromia.PostchainClient.GTV
+namespace Chromia.PostchainClient.GTV.Merkle
 {
     public class CryptoSystem
     {
@@ -41,23 +41,29 @@ namespace Chromia.PostchainClient.GTV
 
         public byte[] CalculateLeafHash(dynamic value)
         {
+            System.Console.WriteLine("LEAF VALUE: " + value);
             var gtxValue = Gtx.ArgToGTXValue(value);
             return CalculateHashOfValueInternal(gtxValue);
         }
 
         private byte[] CalculateNodeHashInternal(byte prefix, byte[] hashLeft, byte[] hashRight)
         {
-            var buf = new List<byte>(prefix);
+            Console.WriteLine("hash left: " + PostchainClient.Util.ByteArrayToString(hashLeft));
+            Console.WriteLine("hash right: " + PostchainClient.Util.ByteArrayToString(hashRight));
+            var buf = new List<byte>(){prefix};
             buf.AddRange(hashLeft);
             buf.AddRange(hashRight);
-
-            return HashingFun(buf.ToArray());
+            var nodehash = HashingFun(buf.ToArray());
+            Console.WriteLine("Node Hash: " + PostchainClient.Util.ByteArrayToString(nodehash));
+            return nodehash;
         }
 
         private byte[] CalculateHashOfValueInternal(GTXValue gtxValue)
         {
-            var buf = new List<byte>((byte)HashPrefix.Leaf);
+            var buf = new List<byte>(){(byte) HashPrefix.Leaf};
             buf.AddRange(gtxValue.Encode());
+
+            System.Console.WriteLine("CalculateHashOfValueInternal:: " + Chromia.PostchainClient.Util.ByteArrayToString(buf.ToArray()));            
 
             return HashingFun(buf.ToArray());
         }

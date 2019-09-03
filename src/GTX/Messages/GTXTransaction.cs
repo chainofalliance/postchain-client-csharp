@@ -4,6 +4,7 @@ using System.Linq;
 
 namespace Chromia.PostchainClient.GTX.ASN1Messages
 {
+    [System.Obsolete("Not used any more", true)]
     public class GTXTransaction
     {
         public byte[] BlockchainID;

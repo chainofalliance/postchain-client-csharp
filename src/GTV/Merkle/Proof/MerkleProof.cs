@@ -1,4 +1,4 @@
-namespace Chromia.PostchainClient.GTV.Proof
+namespace Chromia.PostchainClient.GTV.Merkle.Proof
 {
     public static class MerkleProof
     {

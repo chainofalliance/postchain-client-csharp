@@ -1,11 +1,12 @@
 using System;
 using System.Linq;
 
-namespace Chromia.PostchainClient.GTV.Proof
+namespace Chromia.PostchainClient.GTV.Merkle.Proof
 {
     public class MerkleHashSummary
     {
-        private byte[] MerkleHash;
+        public  byte[] MerkleHash {get;}
+        
         public MerkleHashSummary(byte[] merkleHash)
         {
             this.MerkleHash = merkleHash;

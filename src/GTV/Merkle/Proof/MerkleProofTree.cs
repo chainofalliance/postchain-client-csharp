@@ -1,6 +1,6 @@
 using System;
 
-namespace Chromia.PostchainClient.GTV.Proof
+namespace Chromia.PostchainClient.GTV.Merkle.Proof
 {
     public interface MerkleProofElement
     {
@@ -8,7 +8,7 @@ namespace Chromia.PostchainClient.GTV.Proof
 
     public class ProofNode: MerkleProofElement
     {
-        private byte Prefix;
+        public byte Prefix {get;}
         public MerkleProofElement Left;
         public MerkleProofElement Right;
 
@@ -32,18 +32,20 @@ namespace Chromia.PostchainClient.GTV.Proof
 
     public class ProofValueLeaf: MerkleProofElement
     {
-        private dynamic Content;
-        private int SizeInBytes;
-        public ProofValueLeaf(dynamic content, int sizeInBytes)
+        public dynamic Content {get;}
+        private SearchablePathElement PathElement;
+
+        public ProofValueLeaf(dynamic content, SearchablePathElement pathElem)
         {
             this.Content = content;
-            this.SizeInBytes = sizeInBytes;
+            this.PathElement = pathElem;
         }
     }
 
     public class ProofHashedLeaf: MerkleProofElement
     {
-        byte[] MerkleHash;
+        public byte[] MerkleHash {get;}
+
         public ProofHashedLeaf(byte[] merkleHash)
         {
             this.MerkleHash = merkleHash;
@@ -89,7 +91,8 @@ namespace Chromia.PostchainClient.GTV.Proof
 
     public class MerkleProofTree
     {
-        private MerkleProofElement Root;
+        public MerkleProofElement Root {get;}
+
         public MerkleProofTree(MerkleProofElement root)
         {
             this.Root = root;

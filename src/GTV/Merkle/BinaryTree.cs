@@ -1,4 +1,4 @@
-namespace Chromia.PostchainClient.GTV
+namespace Chromia.PostchainClient.GTV.Merkle
 {
     enum HashPrefix
     {
@@ -10,7 +10,7 @@ namespace Chromia.PostchainClient.GTV
 
     public abstract class BinaryTreeElement
     {
-        public PathElement PathElem {get;} = null;
+        public PathElement PathElem {get;set;} = null;
 
         public bool IsPath()
         {
@@ -96,7 +96,7 @@ namespace Chromia.PostchainClient.GTV
 
         public override int GetPrefixByte()
         {
-            return (int) HashPrefix.Leaf;
+            return (int) HashPrefix.Node; //???
         }
     }
 

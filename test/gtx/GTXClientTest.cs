@@ -11,9 +11,14 @@ namespace Chromia.PostchainClient.Tests.GTX
         public async void FullClientTest(){
             const string blockchainRID = "78967baa4768cbcef11c508326ffb13a956689fcb6dc3ba17f4b895cbb1577a3";
 
+            /*
             var keyPair = Util.MakeKeyPair();
             var privKey = keyPair["privKey"];
             var pubKey = keyPair["pubKey"];
+            */
+
+            var privKey = Util.StringToByteArray("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+            var pubKey = Util.StringToByteArray("02e5a018b3a2e155316109d9cdc5eab739759c0e07e0c00bf9fccb8237fe4d7f02");
 
             // The lower-level client that can be used for any
             // postchain client messages. It only handles binary data.
@@ -33,12 +38,17 @@ namespace Chromia.PostchainClient.Tests.GTX
             // call fun1 with three arguments: a string, an array and a Buffer
             var dict = new Dictionary<string,dynamic>();
             dict.Add("name", "Hamburg");
-            req.AddOperation("insert_city_dict", dict);
-            req.AddOperation("create_user", pubKey, "Peter");
+            //req.AddOperation("insert_city_dict", dict);
+            //req.AddOperation("create_user", pubKey, "Peter");
             req.AddOperation("nop", 1000);
 
-            req.Sign(privKey, pubKey);
+            //Console.WriteLine(req.Encode());
+            Console.WriteLine("BUFFER TO SIGN: " + Util.ByteArrayToString(req.GetBufferToSign()));
 
+            //req.Sign(privKey, pubKey);
+
+
+            /*
             var result = await req.PostAndWaitConfirmation();
             Console.WriteLine("Operation: " + result);
             
@@ -56,6 +66,7 @@ namespace Chromia.PostchainClient.Tests.GTX
 
             result = await gtx.Query("get_city", ("name", "Berlin"));
             Console.WriteLine("Query: " + result);
+            */
         }
     }
 }

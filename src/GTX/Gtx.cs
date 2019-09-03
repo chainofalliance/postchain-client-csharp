@@ -8,29 +8,29 @@ namespace Chromia.PostchainClient.GTX
 
     public class Gtx
     {
-        private GTXTransaction Transaction;
+        private string BlockchainID;
+        private List<dynamic> Operations;
+        private List<byte[]> Signers;
+        private List<byte[]> Signatures;
 
         public Gtx(string blockchainRID = "")
         {
-            this.Transaction = new GTXTransaction();
-            this.Transaction.BlockchainID = ASN1Util.StringToByteArray(blockchainRID);
+            this.BlockchainID = blockchainRID;
+            this.Operations = new List<dynamic>();
+            this.Signers = new List<byte[]>();
+            this.Signatures = new List<byte[]>();
         }
 
         public Gtx AddOperationToGtx(string opName, dynamic[] args)
         {
-           if(this.Transaction.Signatures.Count != 0)
+           if(this.Signatures.Count != 0)
             {
                 throw new Exception("Cannot add function calls to an already signed gtx");
             }
 
-            var newOperation = new GTXOperation(opName);
+            var newOperation = new List<dynamic>(){opName, args};
 
-            foreach (var arg in args)
-            {
-                newOperation.Args.Add(ArgToGTXValue(arg));
-            }
-
-            this.Transaction.Operations.Add(newOperation);
+            this.Operations.Add(newOperation.ToArray());
    
             return this;
         }
@@ -91,12 +91,12 @@ namespace Chromia.PostchainClient.GTX
 
         public void AddSignerToGtx(byte[] signer)
         {
-            if(this.Transaction.Signers.Count != 0)
+            if(this.Signers.Count != 0)
             {
                 throw new Exception("Cannot add signers to an already signed gtx");
             }
 
-            this.Transaction.Signers.Add(signer);
+            this.Signers.Add(signer);
         }
 
         public void Sign(byte[] privKey, byte[] pubKey)
@@ -109,47 +109,64 @@ namespace Chromia.PostchainClient.GTX
 
         public byte[] GetBufferToSign()
         {
-            var oldSignatures = this.Transaction.Signatures;
-            this.Transaction.Signatures.Clear();
+            var oldSignatures = this.Signatures;
+            this.Signatures.Clear();
 
-            var encodedBuffer = this.Transaction.Encode();
-            this.Transaction.Signatures = oldSignatures;
+            var encodedBuffer = Chromia.PostchainClient.GTV.Gtv.Hash(GetGtvTxBody());
+            //Console.WriteLine(Util.ByteArrayToString(encodedBuffer));
+            this.Signatures = oldSignatures;
 
             return encodedBuffer;
         }
 
+        private dynamic[] GetGtvTxBody()
+        {
+            var body = new List<dynamic>();
+            body.Add(this.BlockchainID);
+            body.Add(this.Operations.ToArray());
+            body.Add(this.Signers.ToArray());
+
+            return body.ToArray();
+        }
+
         public void AddSignature(byte[] pubKeyBuffer, byte[] signatureBuffer)
         {   
-            if (this.Transaction.Signatures.Count == 0)
+            if (this.Signatures.Count == 0)
             {
-                foreach(var signer in this.Transaction.Signers)
+                foreach(var signer in this.Signers)
                 {
-                    this.Transaction.Signatures.Add(null);
+                    this.Signatures.Add(null);
                 }
             }
 
-            if (this.Transaction.Signers.Count != this.Transaction.Signatures.Count) {
+            if (this.Signers.Count != this.Signatures.Count) {
                 throw new Exception("Mismatching signers and signatures");
             } 
-            var signerIndex = this.Transaction.Signers.FindIndex(signer => signer.SequenceEqual(pubKeyBuffer));
+            var signerIndex = this.Signers.FindIndex(signer => signer.SequenceEqual(pubKeyBuffer));
 
             if (signerIndex == -1) {
                 throw new Exception("No such signer, remember to call addSignerToGtx() before adding a signature");
             }
 
-            this.Transaction.Signatures[signerIndex] = signatureBuffer;
+            this.Signatures[signerIndex] = signatureBuffer;
         }
 
         public string Serialize()
         {
-           return Util.ByteArrayToString(this.Transaction.Encode());
+            var gtxBody = new List<dynamic[]>();
+            gtxBody.Add(GetGtvTxBody());
+            this.Signatures.Add(Util.HexStringToBuffer("ef172f540ac45a87f38c9803b2312250bd0405b4a68e9087870f57b77f313d29026765bbad40b2a20e99cf64f6579396309c9dfea3bc047815bc31a52238c51b"));
+            gtxBody.Add(this.Signatures.ToArray());
+            return Util.ByteArrayToString(Gtx.ArgToGTXValue(gtxBody.ToArray()).Encode());
         }
 
+        /*
         public static Gtx Deserialize(byte[] gtxBytes)
         {
             var newGTXObject = new Gtx();
             newGTXObject.Transaction = GTXTransaction.Decode(gtxBytes);
             return newGTXObject;
         }
+        */
     }
 }

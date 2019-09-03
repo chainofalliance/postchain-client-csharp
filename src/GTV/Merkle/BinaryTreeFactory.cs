@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Chromia.PostchainClient.GTV
+namespace Chromia.PostchainClient.GTV.Merkle
 {
     public class BinaryTreeFactory
     {
@@ -39,17 +39,17 @@ namespace Chromia.PostchainClient.GTV
             {
                 return this.HandlePrimitiveLeaf(leaf, paths); 
             }
-            else if (leaf.GetType().IsArray())
+            else if (leaf.GetType().IsArray)
             {
                 return this.BuildFromArray(leaf, paths); 
             }
-            else if (leaf.GetType().IsGenercType && leaf.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))
+            else if (leaf.GetType().IsGenericType && leaf.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))
             {
                 return this.BuildFromDictionary(leaf, paths); 
             }
             else
             {
-                throw new System.Exception("Unsupporting data type");
+                throw new System.Exception("Unsupporting data type: " + leaf.GetType());
             }
         }
 
@@ -110,12 +110,12 @@ namespace Chromia.PostchainClient.GTV
             return this.BuildHigherLayer(layer + 1, returnArray);
         }
 
-        private BinaryTree Build(dynamic[] data)
+        public BinaryTree Build(dynamic[] data)
         {
             return this.BuildWithPath(data, this.GetEmptyPathSet());
         }
 
-        private BinaryTree BuildWithPath(dynamic[] data, PathSet paths)
+        public BinaryTree BuildWithPath(dynamic[] data, PathSet paths)
         {
             var result = this.HandleLeaf(data, paths, true);
             return new BinaryTree(result);

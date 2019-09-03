@@ -73,27 +73,62 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
                 // |--0xa--| |--type--| |----length----|
                 case (GTXValueChoice.ByteArray):
                 {
-                    choiceConstants = new byte[] {0xa1, GetValueSize(this)};
+                    var choiceSize = GetValueSize(this);
+                    if (choiceSize < 128)
+                    {
+                        choiceConstants = new byte[] {0xa1, choiceSize};
+                    }
+                    else
+                    {
+                        choiceConstants = new byte[] {0xa1, 0x81, choiceSize};
+                    }
+                    
                     messageWriter.WriteOctetString(this.ByteArray);
                     break;
                 }
                 case (GTXValueChoice.String):
                 {
-                    choiceConstants = new byte[] {0xa2, GetValueSize(this)};
+                    var choiceSize = GetValueSize(this);
+                    if (choiceSize < 128)
+                    {
+                        choiceConstants = new byte[] {0xa2, choiceSize};
+                    }
+                    else
+                    {
+                        choiceConstants = new byte[] {0xa2, 0x81, choiceSize};
+                    }
+                    
                     messageWriter.WriteCharacterString(UniversalTagNumber.UTF8String, this.String);
                     break;
                 }
                 case (GTXValueChoice.Integer):
                 {
+
                     this.Integer = Math.Abs(this.Integer);
-                    choiceConstants = new byte[] {0xa3, GetValueSize(this)};
+                    var choiceSize = GetValueSize(this);
+                    if (choiceSize < 128)
+                    {
+                        choiceConstants = new byte[] {0xa3, choiceSize};
+                    }
+                    else
+                    {
+                        choiceConstants = new byte[] {0xa3, 0x81, choiceSize};
+                    }
+                    
                     messageWriter.WriteInteger(this.Integer);
                     break;
                 }
                 case (GTXValueChoice.Array):
                 {
-
-                    choiceConstants = new byte[] {0xa5, (byte) (GetValueSize(this))};
+                    var choiceSize = GetValueSize(this);
+                    if (choiceSize < 128)
+                    {
+                        choiceConstants = new byte[] {0xa5, choiceSize};
+                    }
+                    else
+                    {
+                        choiceConstants = new byte[] {0xa5, 0x81, choiceSize};
+                    }
 
                     messageWriter.PushSequence();
                     foreach (var gtxValue in this.Array)
@@ -101,12 +136,19 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
                         messageWriter.WriteEncodedValue(gtxValue.Encode());
                     }
                     messageWriter.PopSequence();
-
                     break;
                 }
                 case (GTXValueChoice.Dict):
                 {
-                    choiceConstants = new byte[] {0xa4, (byte) (GetValueSize(this))};
+                    var choiceSize = GetValueSize(this);
+                    if (choiceSize < 128)
+                    {
+                        choiceConstants = new byte[] {0xa4, choiceSize};
+                    }
+                    else
+                    {
+                        choiceConstants = new byte[] {0xa4, 0x81, choiceSize};
+                    }
 
                     messageWriter.PushSequence();
                     foreach (var dictPair in this.Dict)
@@ -114,7 +156,6 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
                         messageWriter.WriteEncodedValue(dictPair.Encode());
                     }
                     messageWriter.PopSequence();
-
                     break;
                 }
                 default:
@@ -132,34 +173,80 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
             {
                 case (GTXValueChoice.ByteArray):
                 {
-                    return (byte) (gtxValue.ByteArray.Length + 2);
+                    byte size = (byte) (gtxValue.ByteArray.Length + 2);
+                    if (size > 127)
+                    {
+                        size += 1;
+                    }
+                    
+                    return size;
                 }
                 case (GTXValueChoice.String):
                 {
-                    return (byte) (gtxValue.String.Length + 2);
+                    byte size = (byte) (gtxValue.String.Length + 2);
+                    if (size > 127)
+                    {
+                        size += 1;
+                    }
+                    
+                    return size;
                 }
                 case (GTXValueChoice.Integer):
-                {                    
-                    return (byte) (ASN1Util.GetMaxAmountOfBytesForInteger(gtxValue.Integer) + 2);
+                {       
+                    byte size = (byte) (ASN1Util.GetMaxAmountOfBytesForInteger(gtxValue.Integer) + 2);
+                    if (size > 127)
+                    {
+                        size += 1;
+                    }
+                    
+                    return size;
                 }
                 case (GTXValueChoice.Array):
                 {
-                    byte choiceSize = (byte) (2 + (gtxValue.Array.Count * 2));
+                    byte choiceSize = (byte) 2;
 
                     foreach (var val in gtxValue.Array)
                     {
-                        choiceSize += GetValueSize(val);
+                        var tmpSize = GetValueSize(val);
+
+                        if (tmpSize > 127)
+                        {
+                            choiceSize += (byte) (tmpSize + 3);
+                        }
+                        else
+                        {
+                            choiceSize += (byte) (tmpSize + 2);
+                        }
+                    }
+                    
+                    if (choiceSize > 127)
+                    {
+                        choiceSize += 1;
                     }
 
                     return choiceSize;
                 }
                 case (GTXValueChoice.Dict):
                 {
-                    byte choiceSize = (byte) (2 + (gtxValue.Dict.Count * 4));
+                    byte choiceSize = (byte) 2;
 
                     foreach (var val in gtxValue.Dict)
                     {
-                        choiceSize += (byte) ((val.Name.Length + 2) + GetValueSize(val.Value));
+                        var tmpSize = (byte) ((val.Name.Length + 2) + GetValueSize(val.Value));
+
+                        if (tmpSize > 127)
+                        {
+                            choiceSize += (byte) (tmpSize + 5);
+                        }
+                        else
+                        {
+                            choiceSize += (byte) (tmpSize + 4);
+                        }
+                    }
+
+                    if (choiceSize > 127)
+                    {
+                        choiceSize += 1;
                     }
 
                     return choiceSize;

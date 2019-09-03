@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Chromia.PostchainClient.GTV.Proof
+namespace Chromia.PostchainClient.GTV.Merkle.Proof
 {
     public class MerkleProofTreeFactory
     {
@@ -37,6 +37,8 @@ namespace Chromia.PostchainClient.GTV.Proof
                 else
                 {
                     var hash = calculator.CalculateLeafHash(leafElement.Content);
+                    
+                    return new ProofHashedLeaf(hash);
                 }
             }
             else if (currentElement is SubTreeRootNode<dynamic>)
@@ -52,7 +54,7 @@ namespace Chromia.PostchainClient.GTV.Proof
                     else
                     {
                         var node = (Node) currentElement;
-                        this.ConvertNode(node, calculator);
+                        return this.ConvertNode(node, calculator);
                     }
                 }
                 else
@@ -72,7 +74,7 @@ namespace Chromia.PostchainClient.GTV.Proof
             }
         }
 
-        public ProofHashedLeaf ConvertNode(Node node, MerkleHashCalculator calculator)
+        public MerkleProofElement ConvertNode(Node node, MerkleHashCalculator calculator)
         {
             var left = this.BuildFromBinaryTreeInternal(node.Left, calculator);
             var right = this.BuildFromBinaryTreeInternal(node.Right, calculator);
@@ -80,8 +82,8 @@ namespace Chromia.PostchainClient.GTV.Proof
             if (left is ProofHashedLeaf && right is ProofHashedLeaf)
             {
                 var leftConverted = (ProofHashedLeaf) left;
-                var rightConverted = (ProofHashedLeaf) right;
-                var addedHash = calculator.CalculateNodeHash(node.GetPrefixByte(), left.MerkleHash, right.MerkleHash);
+                var rightConverted = (ProofHashedLeaf) right;                
+                var addedHash = calculator.CalculateNodeHash((byte) node.GetPrefixByte(), leftConverted.MerkleHash, rightConverted.MerkleHash);
 
                 return new ProofHashedLeaf(addedHash);
             }

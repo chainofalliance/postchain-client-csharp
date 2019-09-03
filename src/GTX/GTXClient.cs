@@ -49,6 +49,7 @@ namespace Chromia.PostchainClient.GTX
             return await this.RestApiClient.Query(queryName, queryObject);
         } 
 
+        /*
         [Obsolete]
         public Transaction TransactionFromRawTransaction(byte[] rawTransaction)
         {
@@ -58,5 +59,6 @@ namespace Chromia.PostchainClient.GTX
 
             return req;
         }
+        */
     }
 }
