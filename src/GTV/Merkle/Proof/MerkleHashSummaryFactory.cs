@@ -49,7 +49,6 @@ namespace Chromia.PostchainClient.GTV.Merkle.Proof
                 }
                 else
                 {
-                    System.Console.WriteLine("LEAF VALUE: " + value);
                     return calculator.CalculateLeafHash(value);
                 }
             }

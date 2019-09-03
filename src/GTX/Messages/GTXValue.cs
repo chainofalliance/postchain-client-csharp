@@ -59,7 +59,8 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
         {
             var messageWriter = new AsnWriter(AsnEncodingRules.BER);
 
-            byte[] choiceConstants = new byte[] {0x0, 0x0};
+            var choiceSize = 0;
+            var choiceConstants = new List<byte>();
             switch (this.Choice)
             {
                 case (GTXValueChoice.Null):
@@ -73,30 +74,16 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
                 // |--0xa--| |--type--| |----length----|
                 case (GTXValueChoice.ByteArray):
                 {
-                    var choiceSize = GetValueSize(this);
-                    if (choiceSize < 128)
-                    {
-                        choiceConstants = new byte[] {0xa1, choiceSize};
-                    }
-                    else
-                    {
-                        choiceConstants = new byte[] {0xa1, 0x81, choiceSize};
-                    }
-                    
+                    choiceSize = GetValueSize(this);
+                    choiceConstants.Add(0xa1);
+
                     messageWriter.WriteOctetString(this.ByteArray);
                     break;
                 }
                 case (GTXValueChoice.String):
                 {
-                    var choiceSize = GetValueSize(this);
-                    if (choiceSize < 128)
-                    {
-                        choiceConstants = new byte[] {0xa2, choiceSize};
-                    }
-                    else
-                    {
-                        choiceConstants = new byte[] {0xa2, 0x81, choiceSize};
-                    }
+                    choiceSize = GetValueSize(this);
+                    choiceConstants.Add(0xa2);
                     
                     messageWriter.WriteCharacterString(UniversalTagNumber.UTF8String, this.String);
                     break;
@@ -105,30 +92,16 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
                 {
 
                     this.Integer = Math.Abs(this.Integer);
-                    var choiceSize = GetValueSize(this);
-                    if (choiceSize < 128)
-                    {
-                        choiceConstants = new byte[] {0xa3, choiceSize};
-                    }
-                    else
-                    {
-                        choiceConstants = new byte[] {0xa3, 0x81, choiceSize};
-                    }
+                    choiceSize = GetValueSize(this);
+                    choiceConstants.Add(0xa3);
                     
                     messageWriter.WriteInteger(this.Integer);
                     break;
                 }
                 case (GTXValueChoice.Array):
                 {
-                    var choiceSize = GetValueSize(this);
-                    if (choiceSize < 128)
-                    {
-                        choiceConstants = new byte[] {0xa5, choiceSize};
-                    }
-                    else
-                    {
-                        choiceConstants = new byte[] {0xa5, 0x81, choiceSize};
-                    }
+                    choiceSize = GetValueSize(this);
+                    choiceConstants.Add(0xa5);
 
                     messageWriter.PushSequence();
                     foreach (var gtxValue in this.Array)
@@ -140,15 +113,8 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
                 }
                 case (GTXValueChoice.Dict):
                 {
-                    var choiceSize = GetValueSize(this);
-                    if (choiceSize < 128)
-                    {
-                        choiceConstants = new byte[] {0xa4, choiceSize};
-                    }
-                    else
-                    {
-                        choiceConstants = new byte[] {0xa4, 0x81, choiceSize};
-                    }
+                    choiceSize = GetValueSize(this);
+                    choiceConstants.Add(0xa4);
 
                     messageWriter.PushSequence();
                     foreach (var dictPair in this.Dict)
@@ -163,8 +129,19 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
                     throw new System.Exception("Chromia.PostchainClient.GTX.Messages GTXValue.Encode() GTXValueChoice.Default case. Unknown choice " + this.Choice);
                 }
             }
+            
+            if (choiceSize < 128)
+            {
+                choiceConstants.Add((byte) choiceSize);
+            }
+            else
+            {
+                var sizeLength = (byte) Math.Ceiling((float) choiceSize / 128);
+                choiceConstants.Add((byte) (0x80 + sizeLength));
+                choiceConstants.AddRange(BitConverter.GetBytes(choiceSize).Where(x => x != 0));
+            }
 
-            return choiceConstants.Concat(messageWriter.Encode()).ToArray();
+            return choiceConstants.ToArray().Concat(messageWriter.Encode()).ToArray();  
         }
 
         private static byte GetValueSize(GTXValue gtxValue)
