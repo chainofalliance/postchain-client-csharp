@@ -113,7 +113,6 @@ namespace Chromia.PostchainClient.GTX
             this.Signatures.Clear();
 
             var encodedBuffer = Chromia.PostchainClient.GTV.Gtv.Hash(GetGtvTxBody());
-            //Console.WriteLine(Util.ByteArrayToString(encodedBuffer));
             this.Signatures = oldSignatures;
 
             return encodedBuffer;
@@ -154,9 +153,10 @@ namespace Chromia.PostchainClient.GTX
         public string Serialize()
         {
             var gtxBody = new List<dynamic[]>();
+
             gtxBody.Add(GetGtvTxBody());
-            this.Signatures.Add(Util.HexStringToBuffer("ef172f540ac45a87f38c9803b2312250bd0405b4a68e9087870f57b77f313d29026765bbad40b2a20e99cf64f6579396309c9dfea3bc047815bc31a52238c51b"));
             gtxBody.Add(this.Signatures.ToArray());
+            
             return Util.ByteArrayToString(Gtx.ArgToGTXValue(gtxBody.ToArray()).Encode());
         }
 

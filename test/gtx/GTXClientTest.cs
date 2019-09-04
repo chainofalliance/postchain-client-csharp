@@ -9,7 +9,7 @@ namespace Chromia.PostchainClient.Tests.GTX
     {
         [Fact]
         public async void FullClientTest(){
-            const string blockchainRID = "78967baa4768cbcef11c508326ffb13a956689fcb6dc3ba17f4b895cbb1577a3";
+            const string blockchainRID = "0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF";
 
             /*
             var keyPair = Util.MakeKeyPair();
@@ -39,26 +39,25 @@ namespace Chromia.PostchainClient.Tests.GTX
             var dict = new Dictionary<string,dynamic>();
             dict.Add("name", "Hamburg");
             //req.AddOperation("insert_city_dict", dict);
-            //req.AddOperation("create_user", pubKey, "Peter");
+            req.AddOperation("create_user", pubKey, "Peter");
             req.AddOperation("nop", 1000);
 
-            //Console.WriteLine(req.Encode());
-            Console.WriteLine("BUFFER TO SIGN: " + Util.ByteArrayToString(req.GetBufferToSign()));
+            //Console.WriteLine("BUFFER TO SIGN: " + Util.ByteArrayToString(req.GetBufferToSign()));
 
-            //req.Sign(privKey, pubKey);
+            req.Sign(privKey, pubKey);
 
-
-            /*
             var result = await req.PostAndWaitConfirmation();
             Console.WriteLine("Operation: " + result);
             
+            /*
             result = await gtx.Query("get_city", ("name", "Hamburg"));
             Console.WriteLine("Query: " + result);
+            */
 
             result = await gtx.Query("get_user_name", ("pubkey", pubKey));
             Console.WriteLine("Query3: " + result);
             
-
+            /*
             req = gtx.NewTransaction(new byte[][] {pubKey});
             req.AddOperation("insert_city", "Berlin", "21343214");
             req.Sign(privKey, pubKey);

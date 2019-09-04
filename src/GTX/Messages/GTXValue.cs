@@ -65,6 +65,7 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
             {
                 case (GTXValueChoice.Null):
                 {
+                    choiceConstants.Add(0x00);
                     messageWriter.WriteNull();
                     break;
                 } 
@@ -74,7 +75,6 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
                 // |--0xa--| |--type--| |----length----|
                 case (GTXValueChoice.ByteArray):
                 {
-                    choiceSize = GetValueSize(this);
                     choiceConstants.Add(0xa1);
 
                     messageWriter.WriteOctetString(this.ByteArray);
@@ -82,25 +82,21 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
                 }
                 case (GTXValueChoice.String):
                 {
-                    choiceSize = GetValueSize(this);
                     choiceConstants.Add(0xa2);
-                    
+
                     messageWriter.WriteCharacterString(UniversalTagNumber.UTF8String, this.String);
                     break;
                 }
                 case (GTXValueChoice.Integer):
                 {
-
                     this.Integer = Math.Abs(this.Integer);
-                    choiceSize = GetValueSize(this);
                     choiceConstants.Add(0xa3);
-                    
+
                     messageWriter.WriteInteger(this.Integer);
                     break;
                 }
                 case (GTXValueChoice.Array):
                 {
-                    choiceSize = GetValueSize(this);
                     choiceConstants.Add(0xa5);
 
                     messageWriter.PushSequence();
@@ -113,7 +109,6 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
                 }
                 case (GTXValueChoice.Dict):
                 {
-                    choiceSize = GetValueSize(this);
                     choiceConstants.Add(0xa4);
 
                     messageWriter.PushSequence();
@@ -130,20 +125,29 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
                 }
             }
             
+            choiceSize = messageWriter.GetEncodedLength();
             if (choiceSize < 128)
             {
                 choiceConstants.Add((byte) choiceSize);
             }
             else
             {
-                var sizeLength = (byte) Math.Ceiling((float) choiceSize / 128);
+                var sizeLength = (byte) Math.Floor((float) choiceSize / 128);
+                sizeLength = sizeLength == 0 ? (byte) 1 : sizeLength;
                 choiceConstants.Add((byte) (0x80 + sizeLength));
-                choiceConstants.AddRange(BitConverter.GetBytes(choiceSize).Where(x => x != 0));
+                var sizeInBytes = BitConverter.GetBytes(choiceSize);
+                if (BitConverter.IsLittleEndian)
+                {
+                    sizeInBytes = sizeInBytes.Reverse().ToArray();
+                }
+                choiceConstants.AddRange(sizeInBytes.Where(x => x != 0));
             }
 
-            return choiceConstants.ToArray().Concat(messageWriter.Encode()).ToArray();  
+            return choiceConstants.ToArray().Concat(messageWriter.Encode()).ToArray();
+ 
         }
 
+        [Obsolete("Use ASN1Writer.GetEncodedLength() instead")]
         private static byte GetValueSize(GTXValue gtxValue)
         {
             switch (gtxValue.Choice)
@@ -279,6 +283,59 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
             }
 
             return newObject;
+        }
+
+        public override string ToString()
+        {
+            switch (Choice)
+            {
+                case (GTXValueChoice.ByteArray):
+                {
+                    return Util.ByteArrayToString(ByteArray);
+                }
+                case (GTXValueChoice.String):
+                {
+                    return String;
+                }
+                case (GTXValueChoice.Integer):
+                {      
+                    return Integer.ToString();
+                }
+                case (GTXValueChoice.Array):
+                {
+                    string ret = "[";
+                    if (Array.Count == 0)
+                    {
+                        return ret + "]";
+                    }
+
+                    foreach(var elm in Array)
+                    {
+                        ret += elm.ToString() + ", ";
+                    }
+
+                    return ret.Remove(ret.Length - 2) + "]";
+                }
+                case (GTXValueChoice.Dict):
+                {
+                    string ret = "[";
+                    if (Dict.Count == 0)
+                    {
+                        return ret + "]";
+                    }
+
+                    foreach(var elm in Dict)
+                    {
+                        ret += @"{{""" + elm.Name + @""": " + elm.Value.ToString() + "}, ";
+                    }
+
+                    return ret.Remove(ret.Length - 2) + "]";
+                }
+                default:
+                {
+                    return "";
+                }
+            }
         }
     }
 }
