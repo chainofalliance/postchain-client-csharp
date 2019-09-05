@@ -26,16 +26,5 @@ namespace Chromia.PostchainClient.Tests.GTX
 
             Assert.Equal(pubKey, Util.ByteArrayToString(verifiedPubKey));
         }
-
-        [Fact]
-        public void CheckSignature(){
-            const string expSignature = "bb432587f75316cad1a60494930917b2ed973e4aa5dd55e4c08dfe8eda6c017d3f1a40c8da1de454584828f43205dd0f670f8075309f546fb349c76d2e5bbb30";
-            const string privKey = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-            string pubKey = Util.ByteArrayToString(Util.VerifyKeyPair(privKey));
-            var content = Encoding.UTF8.GetBytes("hello");
-            var signature = Util.Sign(content, Util.HexStringToBuffer(privKey));
-            
-            Assert.Equal(Util.ByteArrayToString(signature), expSignature);
-        }
     }
 }

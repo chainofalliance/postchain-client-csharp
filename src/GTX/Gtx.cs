@@ -13,7 +13,7 @@ namespace Chromia.PostchainClient.GTX
         private List<byte[]> Signers;
         private List<byte[]> Signatures;
 
-        public Gtx(string blockchainRID = "")
+        public Gtx(string blockchainRID)
         {
             this.BlockchainID = blockchainRID;
             this.Operations = new List<dynamic>();
@@ -102,7 +102,10 @@ namespace Chromia.PostchainClient.GTX
         public void Sign(byte[] privKey, byte[] pubKey)
         {
             byte[] bufferToSign = this.GetBufferToSign();
+            Console.WriteLine("digestToSign: " + Util.ByteArrayToString(bufferToSign));
             var signature = Util.Sign(bufferToSign, privKey);
+            Console.WriteLine("PubKey: " + Util.ByteArrayToString(pubKey));
+            Console.WriteLine("Signature: " + Util.ByteArrayToString(signature));
             
             this.AddSignature(pubKey, signature);
         }
@@ -112,16 +115,19 @@ namespace Chromia.PostchainClient.GTX
             var oldSignatures = this.Signatures;
             this.Signatures.Clear();
 
-            var encodedBuffer = Chromia.PostchainClient.GTV.Gtv.Hash(GetGtvTxBody());
+            var encodedBuffer = Chromia.PostchainClient.GTV.Gtv.Hash(GetGtvTxBody(true));
+
+            Console.WriteLine("ECNODED BUFFER: " + Util.ByteArrayToString(encodedBuffer));
+
             this.Signatures = oldSignatures;
 
             return encodedBuffer;
         }
 
-        private dynamic[] GetGtvTxBody()
+        private dynamic[] GetGtvTxBody(bool asHexString = false)
         {
             var body = new List<dynamic>();
-            body.Add(this.BlockchainID);
+            body.Add(Util.HexStringToBuffer(this.BlockchainID));
             body.Add(this.Operations.ToArray());
             body.Add(this.Signers.ToArray());
 

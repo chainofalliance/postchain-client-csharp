@@ -47,7 +47,6 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
             
             messageWriter.PushSequence();
             messageWriter.WriteCharacterString(UniversalTagNumber.UTF8String, this.Name);
-            System.Console.WriteLine("DICTPAIR VALUE: " + Value.Choice);
             messageWriter.WriteEncodedValue(Value.Encode());
             messageWriter.PopSequence();
 

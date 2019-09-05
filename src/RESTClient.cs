@@ -33,7 +33,6 @@ namespace Chromia.PostchainClient
         private async Task<dynamic> Status(string messageHash)
         {
             ValidateMessageHash(messageHash);
-
             return await Get(this.UrlBase, "tx/" + this.BlockchainRID + "/" + messageHash + "/status");
         }
 
@@ -80,11 +79,14 @@ namespace Chromia.PostchainClient
                     return null;
                 case "rejected":
                     return "Message was rejected";
-                case "unknown":                                
-                    return "Server lost our message";
+                case "unknown":
+                    await Task.Delay(511);
+                    return await this.WaitConfirmation(txRID);
                 case "waiting":
                     await Task.Delay(511);
                     return await this.WaitConfirmation(txRID);
+                case "exception":
+                    return "HTTP Exception: " + status.message;
                 default:
                     return "Got unexpected response from server: " + statusString;
             }
@@ -104,13 +106,14 @@ namespace Chromia.PostchainClient
                 var url = Url.Combine(urlBase, path);
 
                 var response = await url.GetAsync();
-                var jsonObject = JsonConvert.DeserializeObject(await response.Content.ReadAsStringAsync());
+                var jsonString = await response.Content.ReadAsStringAsync();
+                var jsonObject = JsonConvert.DeserializeObject(jsonString);
 
                 return jsonObject;
             }
             catch (FlurlHttpException e)
             {
-                return e;
+                return JsonConvert.DeserializeObject("{ 'status': 'exception', 'message': '" + e.Message + "' }");
             }
         }
 
@@ -130,7 +133,7 @@ namespace Chromia.PostchainClient
             }
             catch (FlurlHttpException e)
             {
-                return e;
+                return JsonConvert.DeserializeObject("{ 'status': 'exception', 'message': '" + e.Message + "' }");
             }
             
         }

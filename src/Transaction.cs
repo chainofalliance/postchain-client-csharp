@@ -26,7 +26,7 @@ namespace Chromia.PostchainClient.GTX
 
         public string GetTxRID()
         {
-            return Util.ByteArrayToString(Util.Sha256(this.GetBufferToSign()));
+            return Util.ByteArrayToString(this.GetBufferToSign());
         }
 
         public byte[] GetBufferToSign()

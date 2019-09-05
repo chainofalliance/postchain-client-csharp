@@ -9,7 +9,7 @@ namespace Chromia.PostchainClient.GTV.Merkle
     {
         public byte[] Digest(byte[] buffer)
         {
-            return Chromia.PostchainClient.Util.Sha256(System.Text.Encoding.UTF8.GetBytes(Chromia.PostchainClient.Util.ByteArrayToString(buffer)));
+            return Chromia.PostchainClient.Util.Sha256(buffer);
         }
     }
 
@@ -42,6 +42,7 @@ namespace Chromia.PostchainClient.GTV.Merkle
         public byte[] CalculateLeafHash(dynamic value)
         {
             var gtxValue = Gtx.ArgToGTXValue(value);
+            
             return CalculateHashOfValueInternal(gtxValue);
         }
 

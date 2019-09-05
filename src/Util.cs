@@ -30,10 +30,8 @@ namespace Chromia.PostchainClient
             {
                 throw new Exception("Programmer error. Invalid key length. Expected 32, but got " + privKey.Length);
             }
-
-            var digestBuffer = Sha256(content);
             
-            return Util.SignDigest(digestBuffer, privKey);
+            return Util.SignDigest(content, privKey);
         }
 
         /**
