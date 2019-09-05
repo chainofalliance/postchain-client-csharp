@@ -102,10 +102,7 @@ namespace Chromia.PostchainClient.GTX
         public void Sign(byte[] privKey, byte[] pubKey)
         {
             byte[] bufferToSign = this.GetBufferToSign();
-            Console.WriteLine("digestToSign: " + Util.ByteArrayToString(bufferToSign));
             var signature = Util.Sign(bufferToSign, privKey);
-            Console.WriteLine("PubKey: " + Util.ByteArrayToString(pubKey));
-            Console.WriteLine("Signature: " + Util.ByteArrayToString(signature));
             
             this.AddSignature(pubKey, signature);
         }
@@ -116,8 +113,6 @@ namespace Chromia.PostchainClient.GTX
             this.Signatures.Clear();
 
             var encodedBuffer = Chromia.PostchainClient.GTV.Gtv.Hash(GetGtvTxBody(true));
-
-            Console.WriteLine("ECNODED BUFFER: " + Util.ByteArrayToString(encodedBuffer));
 
             this.Signatures = oldSignatures;
 

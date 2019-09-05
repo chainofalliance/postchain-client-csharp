@@ -1,25 +1,26 @@
 # Postchain Client API C#
 
-## Compatible with Postchain 2 / Rell 0.8
+## Compatible with Postchain 3 / Rell 0.9
 
 ## Installation
 ### With NuGet:
 ```
-Install-Package PostchainClient -Version 0.2.0
+Install-Package PostchainClient -Version 0.3.0
 ```
 ### With .NET CLI:
 ```
-dotnet add package PostchainClient --version 0.2.0
+dotnet add package PostchainClient --version 0.3.0
 ```
 
-For more information, see https://www.nuget.org/packages/PostchainClient/0.2.0
+For more information, see https://www.nuget.org/packages/PostchainClient/0.3.0
 
 ## Usage
 ```c#
 using Chromia.PostchainClient;
 using Chromia.PostchainClient.GTX;
 
-const string blockchainRID = "78967baa4768cbcef11c508326ffb13a956689fcb6dc3ba17f4b895cbb1577a3";
+// Default RID from eclipse plugin
+const string blockchainRID = "0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF";
 
 // Generates a new key pair.
 var keyPair = Util.MakeKeyPair();
