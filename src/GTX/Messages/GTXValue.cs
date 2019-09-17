@@ -132,17 +132,17 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
             }
             else
             {
-                var sizeLength = (byte) Math.Floor((float) choiceSize / 128);
-                sizeLength = sizeLength == 0 ? (byte) 1 : sizeLength;
+                var sizeInBytes = BitConverter.GetBytes(choiceSize).Where(x => x != 0).ToArray();
+                var sizeLength = (byte) sizeInBytes.Length;
+
                 choiceConstants.Add((byte) (0x80 + sizeLength));
-                var sizeInBytes = BitConverter.GetBytes(choiceSize);
                 if (BitConverter.IsLittleEndian)
                 {
                     sizeInBytes = sizeInBytes.Reverse().ToArray();
                 }
-                choiceConstants.AddRange(sizeInBytes.Where(x => x != 0));
+                choiceConstants.AddRange(sizeInBytes);
             }
-
+            
             return choiceConstants.ToArray().Concat(messageWriter.Encode()).ToArray();
  
         }
