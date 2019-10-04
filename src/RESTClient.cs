@@ -42,7 +42,6 @@ namespace Chromia.PostchainClient
         {
             string queryString = BuildQuery(queryObject);
             queryString = AppendQueryName(queryName, queryString);
-            Console.WriteLine(queryString);
 
             return await Post(this.UrlBase, "query/" + this.BlockchainRID, queryString);
         }
