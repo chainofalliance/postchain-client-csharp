@@ -42,15 +42,23 @@ namespace Chromia.PostchainClient
         {
             string queryString = BuildQuery(queryObject);
             queryString = AppendQueryName(queryName, queryString);
+            Console.WriteLine(queryString);
 
             return await Post(this.UrlBase, "query/" + this.BlockchainRID, queryString);
         }
 
         private string AppendQueryName(string queryName, string queryString)
         {
-            queryString = queryString.Remove(queryString.Length - 1);
-            queryString += String.Format(@", ""type"": ""{0}""", queryName);
-            return queryString + " }";
+            if (!String.IsNullOrEmpty(queryString))
+            {
+                queryString = queryString.Remove(queryString.Length - 1);
+                queryString += String.Format(@", ""type"": ""{0}""", queryName);
+                return queryString + " }";
+            }
+            else
+            {
+                return String.Format(@"{{""type"": ""{0}""}}", queryName);
+            }
         }
 
         private static string BuildQuery(dynamic queryObject, int layer = 0)
@@ -79,6 +87,11 @@ namespace Chromia.PostchainClient
             }
             else if (queryObject is System.Array)
             {
+                if (queryObject.Length == 0)
+                {
+                    return "";
+                }
+
                 string queryString = "{";
 
                 foreach (var subQueryParam in queryObject)
