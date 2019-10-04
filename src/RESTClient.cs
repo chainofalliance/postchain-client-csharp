@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq;
+using System.Collections.Generic;
 using Flurl;
 using Flurl.Http;
 using Newtonsoft.Json;
@@ -38,34 +40,99 @@ namespace Chromia.PostchainClient
 
         public async Task<dynamic> Query(string queryName, params dynamic[] queryObject)
         {
-            string queryString = BuildQuery(queryName, queryObject);
+            string queryString = BuildQuery(queryObject);
+            queryString = AppendQueryName(queryName, queryString);
 
             return await Post(this.UrlBase, "query/" + this.BlockchainRID, queryString);
         }
 
-        private string BuildQuery(string queryName, dynamic[] queryObject)
+        private string AppendQueryName(string queryName, string queryString)
         {
-            string queryString = String.Format(@"{{""type"": ""{0}"",", queryName);
+            queryString = queryString.Remove(queryString.Length - 1);
+            queryString += String.Format(@", ""type"": ""{0}""", queryName);
+            return queryString + " }";
+        }
 
-            foreach (dynamic queryParam in queryObject)
+        private static string BuildQuery(dynamic queryObject, int layer = 0)
+        {
+            if (IsTuple(queryObject.GetType()))
             {
-                if (queryParam.Item2 is System.Array)
+                if (layer < 2)
                 {
-                    queryString += String.Format(@"""{0}"": ""{1}"",", queryParam.Item1, Util.ByteArrayToString(queryParam.Item2));
-                }
-                else if (queryParam.Item2 is System.Int32)
-                {
-                    queryString += String.Format(@"""{0}"": {1},", queryParam.Item1, queryParam.Item2);
+                    return String.Format(@"""{0}"": {1}", queryObject.Item1, BuildQuery(queryObject.Item2, layer + 1));
                 }
                 else
                 {
-                    queryString += String.Format(@"""{0}"": ""{1}"",", queryParam.Item1, queryParam.Item2);
+                    string queryString = "[";
+                    var queryItems = ToEnumerable(queryObject);
+                    foreach (var queryItem in queryItems)
+                    {
+                        queryString += BuildQuery(queryItem, layer + 1) + ", ";
+                    }
+                    queryString = queryString.Remove(queryString.Length - 2) + "]";
+                    return queryString;
                 }
             }
+            else if (queryObject is byte[])
+            {
+                return String.Format(@"""{0}""", Util.ByteArrayToString(queryObject));
+            }
+            else if (queryObject is System.Array)
+            {
+                string queryString = "{";
 
-            queryString = queryString.Remove(queryString.Length - 1) + "}";
+                foreach (var subQueryParam in queryObject)
+                {
+                    queryString += BuildQuery(subQueryParam, layer + 1) + ", ";
+                }
 
-            return queryString;
+                queryString = queryString.Remove(queryString.Length - 2) + "}";
+                return queryString;
+            }
+            else if (queryObject is System.Int32)
+            {
+                return queryObject.ToString();
+            }
+            else if (queryObject is string)
+            {
+                return String.Format(@"""{0}""", (string) queryObject);
+            }
+            else
+            {
+                throw new Exception("Unknown query data type " + queryObject.GetType());
+            }
+        }
+
+        private static IEnumerable<object> ToEnumerable(object tuple)
+        {
+            if (IsTuple(tuple.GetType()))
+            {
+                foreach (var prop in tuple.GetType()
+                    .GetFields()
+                    .Where(x => x.Name.StartsWith("Item")))
+                {
+                    yield return prop.GetValue(tuple);
+                }
+            }
+            else
+            {
+                throw new ArgumentException("Not a tuple!");
+            }
+        }
+
+        public static bool IsTuple(Type tuple)
+        {
+            if (!tuple.IsGenericType)
+                return false;
+            var openType = tuple.GetGenericTypeDefinition();
+            return openType == typeof(ValueTuple<>)
+                || openType == typeof(ValueTuple<,>)
+                || openType == typeof(ValueTuple<,,>)
+                || openType == typeof(ValueTuple<,,,>)
+                || openType == typeof(ValueTuple<,,,,>)
+                || openType == typeof(ValueTuple<,,,,,>)
+                || openType == typeof(ValueTuple<,,,,,,>)
+                || (openType == typeof(ValueTuple<,,,,,,,>) && IsTuple(tuple.GetGenericArguments()[7]));
         }
 
         public async Task<dynamic> WaitConfirmation(string txRID)

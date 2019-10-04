@@ -5,14 +5,14 @@
 ## Installation
 ### With NuGet:
 ```
-Install-Package PostchainClient -Version 0.3.1
+Install-Package PostchainClient -Version 0.3.2
 ```
 ### With .NET CLI:
 ```
-dotnet add package PostchainClient --version 0.3.1
+dotnet add package PostchainClient --version 0.3.2
 ```
 
-For more information, see https://www.nuget.org/packages/PostchainClient/0.3.1
+For more information, see https://www.nuget.org/packages/PostchainClient/0.3.2
 
 ## Usage
 ```c#
@@ -63,6 +63,12 @@ Console.WriteLine("Query2: " + result);
 
 result = await gtx.Query("get_user_name", ("pubkey", pubKey));
 Console.WriteLine("Query3: " + result);
+
+// Query with list as parameter
+// await gtx.Query("get_from_list", ("int_list", (1, 2, 3)));
+
+// Query with tuple of 7 or less items as parameter (only unnamed fields possible)
+// await gtx.Query("get_from_tuple", ("int_tuple", (1, 2)));
 ```
 
 ### Rell file

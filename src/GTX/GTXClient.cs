@@ -44,7 +44,7 @@ namespace Chromia.PostchainClient.GTX
         ///<param name = "queryName">Name of the query to be called.</param>
         ///<param name = "queryObject">List of parameter pairs of query parameter name and its value. For example {"city", "Hamburg"}.</param>
         ///<returns>Task, which returns the query return content.</returns>
-        public async Task<dynamic> Query(string queryName, dynamic queryObject)
+        public async Task<dynamic> Query(string queryName, params dynamic[] queryObject)
         {
             return await this.RestApiClient.Query(queryName, queryObject);
         } 
