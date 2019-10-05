@@ -43,6 +43,8 @@ namespace Chromia.PostchainClient
             string queryString = BuildQuery(queryObject);
             queryString = AppendQueryName(queryName, queryString);
 
+            Console.WriteLine(queryString);
+
             return await Post(this.UrlBase, "query/" + this.BlockchainRID, queryString);
         }
 
@@ -86,19 +88,42 @@ namespace Chromia.PostchainClient
             }
             else if (queryObject is System.Array)
             {
-                if (queryObject.Length == 0)
+                Console.WriteLine("jo");
+                if (layer == 0 && queryObject.Length == 0)
                 {
                     return "";
                 }
-
-                string queryString = "{";
+                else if(layer != 0 && queryObject.Length == 0)
+                {
+                    return "[]";
+                }
+                
+                string queryString  = "";
+                if(layer == 0)
+                {
+                    queryString = "{";
+                }
+                else 
+                {
+                    queryString = "[";
+                }
 
                 foreach (var subQueryParam in queryObject)
                 {
                     queryString += BuildQuery(subQueryParam, layer + 1) + ", ";
                 }
 
-                queryString = queryString.Remove(queryString.Length - 2) + "}";
+                if(layer == 0)
+                {
+                    queryString = queryString.Remove(queryString.Length - 2) + "}";
+                }
+                else 
+                {
+                    queryString = queryString.Remove(queryString.Length - 2) + "]";
+                }
+                
+
+                Console.WriteLine("jo" + queryString);
                 return queryString;
             }
             else if (queryObject is System.Int32)
