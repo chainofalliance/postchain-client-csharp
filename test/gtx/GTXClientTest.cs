@@ -27,7 +27,7 @@ namespace Chromia.PostchainClient.Tests.GTX
             // Start a new request. A request instance is created.
             // The public keys are the keys that must sign the request
             // before sending it to postchain. Can be empty.
-            /* 
+            
             var req = gtx.NewTransaction(new byte[][] {pubKey});
 
             var dict = new Dictionary<string,dynamic>();
@@ -46,42 +46,6 @@ namespace Chromia.PostchainClient.Tests.GTX
 
             result = await gtx.Query("get_user_name", ("pubkey", pubKey));
             Console.WriteLine("Query2: " + result);
-
-            */
-            //var info = await gtx.Query("get_character_info_cached", ("character_id", 24), ("synergies", GetActiveSynergies().ToArray()));
-            //var info = await gtx.Query("get_character_info_cached", ("character_id", 24), ("synergies", ((1,2), (3,2))));
-            //var info = await gtx.Query("get_character_info_cached");
-
-            Random r = new System.Random();
-            while (true)
-            {
-                var keyPair2 = Util.MakeKeyPair();
-                var pubKey2 = keyPair2["pubKey"];
-                var req = gtx.NewTransaction(new byte[][] {pubKey});
-                
-                req.AddOperation("set_player_ready", pubKey2);
-                req.AddOperation("update_game_state_machine", pubKey2);
-                req.AddOperation("nop", r.Next(System.Int32.MinValue, System.Int32.MaxValue).ToString());
-                req.AddOperation("nop", r.Next(System.Int32.MinValue, System.Int32.MaxValue).ToString());
-                req.AddOperation("nop", r.Next(System.Int32.MinValue, System.Int32.MaxValue).ToString());
-
-                req.Sign(privKey, pubKey);
-                var result = await req.PostAndWaitConfirmation();
-                Console.WriteLine("Operation: " + result);
-
-                System.Threading.Thread.Sleep(100);
-            }
-            
-        }
-
-        private List<(int,int)> GetActiveSynergies()
-        {
-            List<(int,int)> synergies = new List<(int,int)>();
-            
-            synergies.Add((1, 2));
-            synergies.Add((5, 8));
-                        
-            return synergies;
         }
     }
 }
