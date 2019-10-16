@@ -132,7 +132,8 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
             }
             else
             {
-                var sizeInBytes = BitConverter.GetBytes(choiceSize).Where(x => x != 0).ToArray();
+                var sizeInBytes = TrimByteList(BitConverter.GetBytes(choiceSize));
+                
                 var sizeLength = (byte) sizeInBytes.Length;
 
                 choiceConstants.Add((byte) (0x80 + sizeLength));
@@ -145,6 +146,25 @@ namespace Chromia.PostchainClient.GTX.ASN1Messages
             
             return choiceConstants.ToArray().Concat(messageWriter.Encode()).ToArray();
  
+        }
+
+        private static byte[] TrimByteList(byte[] byteList)
+        {
+            List<byte> trimmedBytes = new List<byte>();
+            for (int i = byteList.Length - 1; i >= 0; i--)// List<byte>(sizeInBytes.Reverse()))
+            {
+                if (byteList[i] != 0)
+                {
+                    for (int j = 0; j <= i; j++)
+                    {
+                        trimmedBytes.Add(byteList[j]);
+                    }
+
+                    break;
+                }
+            }
+
+            return trimmedBytes.ToArray();
         }
 
         [Obsolete("Use ASN1Writer.GetEncodedLength() instead")]
