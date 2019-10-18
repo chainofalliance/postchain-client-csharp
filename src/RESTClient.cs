@@ -7,7 +7,7 @@ using Flurl;
 using Flurl.Http;
 using Newtonsoft.Json;
 
-namespace Chromia.PostchainClient
+namespace Chromia.Postchain.Client
 {
     public class RESTClient
     {

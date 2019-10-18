@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Chromia.PostchainClient.GTV.Merkle
+namespace Chromia.Postchain.Client.GTV.Merkle
 {
     public class BinaryTreeFactory
     {

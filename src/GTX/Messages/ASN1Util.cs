@@ -3,7 +3,7 @@ using System.Linq;
 using System.Security.Cryptography.Asn1;
 using System.Collections.Generic;
 
-namespace Chromia.PostchainClient.GTX.ASN1Messages
+namespace Chromia.Postchain.Client.GTX.ASN1Messages
 {
     enum Asn1TagValues
     {

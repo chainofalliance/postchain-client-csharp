@@ -1,9 +1,9 @@
 using Xunit;
-using Chromia.PostchainClient.GTX;
+using Chromia.Postchain.Client.GTX;
 using System;
 using System.Collections.Generic;
 
-namespace Chromia.PostchainClient.Tests.GTX
+namespace Chromia.Postchain.Client.Tests.GTX
 {
     public class GTXClientTest
     {

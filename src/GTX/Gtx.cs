@@ -1,9 +1,9 @@
 using System.Linq;
 using System;
-using Chromia.PostchainClient.GTX.ASN1Messages;
+using Chromia.Postchain.Client.GTX.ASN1Messages;
 using System.Collections.Generic;
 
-namespace Chromia.PostchainClient.GTX
+namespace Chromia.Postchain.Client.GTX
 {
 
     public class Gtx
@@ -112,7 +112,7 @@ namespace Chromia.PostchainClient.GTX
             var oldSignatures = this.Signatures;
             this.Signatures.Clear();
 
-            var encodedBuffer = Chromia.PostchainClient.GTV.Gtv.Hash(GetGtvTxBody(true));
+            var encodedBuffer = Chromia.Postchain.Client.GTV.Gtv.Hash(GetGtvTxBody(true));
 
             this.Signatures = oldSignatures;
 

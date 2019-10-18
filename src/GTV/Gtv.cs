@@ -1,7 +1,7 @@
-using Chromia.PostchainClient.GTV.Merkle.Proof;
-using Chromia.PostchainClient.GTV.Merkle;
+using Chromia.Postchain.Client.GTV.Merkle.Proof;
+using Chromia.Postchain.Client.GTV.Merkle;
 
-namespace Chromia.PostchainClient.GTV
+namespace Chromia.Postchain.Client.GTV
 {
     public class Gtv
     {

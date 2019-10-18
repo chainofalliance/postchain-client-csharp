@@ -1,7 +1,7 @@
 using Cryptography.ECDSA;
 using System.Threading.Tasks;
 
-namespace Chromia.PostchainClient.GTX
+namespace Chromia.Postchain.Client.GTX
 {
     public class Transaction
     {

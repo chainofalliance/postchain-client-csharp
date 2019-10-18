@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using System;
 
-namespace Chromia.PostchainClient.GTX
+namespace Chromia.Postchain.Client.GTX
 {
     public class GTXClient
     {

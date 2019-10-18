@@ -1,8 +1,8 @@
 using System;
 using Xunit;
-using Chromia.PostchainClient;
+using Chromia.Postchain.Client;
 
-namespace Chromia.PostchainClient.Tests
+namespace Chromia.Postchain.Client.Tests
 {
     public class RestclientTest
     {

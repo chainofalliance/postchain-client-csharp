@@ -2,7 +2,7 @@ using System.Security.Cryptography.Asn1;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Chromia.PostchainClient.GTX.ASN1Messages
+namespace Chromia.Postchain.Client.GTX.ASN1Messages
 {
     [System.Obsolete("Not used any more", true)]
     public class GTXTransaction

@@ -1,7 +1,7 @@
 using Xunit;
 using System.Text;
 
-namespace Chromia.PostchainClient.Tests.GTX
+namespace Chromia.Postchain.Client.Tests.GTX
 {
     public class UtilTest
     {

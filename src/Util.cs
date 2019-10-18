@@ -1,10 +1,10 @@
 using secp256k1 = Cryptography.ECDSA;
 using System.Collections.Generic;
-using Chromia.PostchainClient.GTX.ASN1Messages;
+using Chromia.Postchain.Client.GTX.ASN1Messages;
 using System;
 using System.Text;
 
-namespace Chromia.PostchainClient
+namespace Chromia.Postchain.Client
 {
     public static class Util
     {

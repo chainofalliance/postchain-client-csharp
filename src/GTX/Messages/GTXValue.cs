@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System;
 
-namespace Chromia.PostchainClient.GTX.ASN1Messages
+namespace Chromia.Postchain.Client.GTX.ASN1Messages
 {    
     public enum GTXValueChoice
     {

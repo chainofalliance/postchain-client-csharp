@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 
-namespace Chromia.PostchainClient.GTV.Merkle
+namespace Chromia.Postchain.Client.GTV.Merkle
 {
 
     public class Path

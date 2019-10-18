@@ -1,4 +1,4 @@
-namespace Chromia.PostchainClient.GTV.Merkle
+namespace Chromia.Postchain.Client.GTV.Merkle
 {
     enum HashPrefix
     {
