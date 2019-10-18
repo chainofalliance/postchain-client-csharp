@@ -5,14 +5,14 @@
 ## Installation
 ### With NuGet:
 ```
-Install-Package PostchainClient -Version 0.3.3
+Install-Package PostchainClient -Version 0.3.4
 ```
 ### With .NET CLI:
 ```
-dotnet add package PostchainClient --version 0.3.3
+dotnet add package PostchainClient --version 0.3.4
 ```
 
-For more information, see https://www.nuget.org/packages/PostchainClient/0.3.3
+For more information, see https://www.nuget.org/packages/PostchainClient/0.3.4
 
 ## Usage
 ```c#
