@@ -259,52 +259,6 @@ namespace Chromia.Postchain.Client.GTX.ASN1Messages
             }
         }
 
-        public static GTXValue Decode(byte[] encodedMessage)
-        {
-            //Since the ASN1 library can't en-/decode CHOICEs, we just skip over the specific octets
-            var gtxValue = new AsnReader(encodedMessage.Skip(2).ToArray(), AsnEncodingRules.BER);
-
-            var gtxValueData = new AsnReader(gtxValue.PeekContentBytes(), AsnEncodingRules.BER);
-
-            var newObject = new GTXValue();
-            switch (gtxValue.PeekTag().TagValue)
-            {
-                case ((int) Asn1TagValues.Null):
-                {
-                    newObject.Choice = GTXValueChoice.Null;
-                    break;
-                }                
-                case ((int) Asn1TagValues.OctetString):
-                {
-                    newObject.ByteArray = gtxValue.ReadOctetString();
-                    newObject.Choice = GTXValueChoice.ByteArray;
-                    break;
-                }
-                case ((int) Asn1TagValues.UTF8String):
-                {
-                    newObject.String = gtxValue.ReadCharacterString(UniversalTagNumber.UTF8String);
-                    newObject.Choice = GTXValueChoice.String;
-                    break;
-                }
-                case ((int) Asn1TagValues.Integer):
-                {
-                    newObject.Integer = (int) gtxValue.ReadInteger();
-                    newObject.Choice = GTXValueChoice.Integer;
-                    break;
-                }
-                case ((int) Asn1TagValues.Sequence):
-                {
-                    throw new System.Exception("Chromia.PostchainClient.GTX.Messages GTXValue.Decode() Asn1TagValues.Sequence (of DictPair or GTXValue) not yet implemented.");
-                }
-                default:
-                {
-                    throw new System.Exception("Chromia.PostchainClient.GTX.Messages GTXValue.Decode() Asn1TagValues.Default case. Unknown tag " + gtxValue.PeekTag() + " (" + gtxValue.PeekTag().TagValue + ")");
-                }
-            }
-
-            return newObject;
-        }
-
         public override string ToString()
         {
             switch (Choice)

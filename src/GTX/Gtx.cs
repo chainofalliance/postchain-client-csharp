@@ -161,6 +161,121 @@ namespace Chromia.Postchain.Client.GTX
             return Util.ByteArrayToString(Gtx.ArgToGTXValue(gtxBody.ToArray()).Encode());
         }
 
+        public static GTXValue Deserialize(byte[] encodedMessage)
+        {
+            if (encodedMessage[0] >> 4 != 0xa)
+            {
+                return new GTXValue();
+            }
+
+            var messageLength = GetLength(encodedMessage);
+            var newObject = new GTXValue();
+            switch (encodedMessage[0] & 0xF)
+            {          
+                case (0x1):
+                {
+                    // ByteArray
+                    if (encodedMessage[3] != 0x04)
+                    {
+                        throw new System.Exception("Chromia.Postchain.Client.GTX Gtx.Deserialize() ByteArray case. Not octet string.");
+                    }
+
+                    int length = encodedMessage[4];
+
+                    newObject.Choice = GTXValueChoice.ByteArray;
+                    newObject.ByteArray = encodedMessage.Skip(4).Take(length).ToArray();
+
+                    break;
+                }
+                case (0x2):
+                {
+                    // String
+                    if (encodedMessage[3] != 0x0c)
+                    {
+                        throw new System.Exception("Chromia.Postchain.Client.GTX Gtx.Deserialize() String case. Not UTF8String.");
+                    }
+
+                    int length = encodedMessage[4];
+
+                    newObject.Choice = GTXValueChoice.String;
+                    newObject.String = System.Text.Encoding.UTF8.GetString(encodedMessage.Skip(4).Take(length).ToArray());
+                    break;
+                }
+                case (0x3):
+                {
+                    // Integer
+                    if (encodedMessage[3] != 0x02)
+                    {
+                        throw new System.Exception("Chromia.Postchain.Client.GTX Gtx.Deserialize() Integer case. Not primitive integer type.");
+                    }
+
+                    int length = encodedMessage[4];
+                    int newInteger = 0;
+                    for (int i = 5; i < length + 5; i++)
+                    {
+                        newInteger = newInteger << 8 | encodedMessage[i];
+                    }
+
+                    newObject.Choice = GTXValueChoice.Integer;
+                    newObject.Integer = newInteger;
+
+                    break;
+                }
+                case (0x4):
+                {
+                    // DictPair
+                    throw new System.Exception("Chromia.Postchain.Client.GTX Gtx.Deserialize() Dict case. Not implemented yet.");
+                    // newObject.Choice = GTXValueChoice.Dict;
+                    // break;
+                } 
+                case (0x5):
+                {
+                    // Array
+                    if (encodedMessage[4] != 0x30)
+                    {
+                        throw new System.Exception("Chromia.Postchain.Client.GTX Gtx.Deserialize() Array case. Not sequence of.");
+                    }
+
+                    int length = GetLength(encodedMessage.Skip(3).ToArray());
+                    
+                    
+                    // ToDo
+
+                    newObject.Choice = GTXValueChoice.Array;
+                    break;
+                }      
+                default:
+                {
+                    throw new System.Exception("Chromia.Postchain.Client.GTX Gtx.Deserialize() Default case. Unknown tag " + (encodedMessage[0] & 0xF).ToString("X1"));
+                }
+            }
+
+            return newObject;
+        }
+
+        private static int GetLength(byte[] encodedMessage)
+        {
+            Console.WriteLine("GetLength:: Length octet = " + encodedMessage[1].ToString("X2"));
+            if ((encodedMessage[1] & 0x80) == 1)
+            {
+                byte octetLength = (byte) (encodedMessage[1] & (~((byte)0x80)));
+                Console.WriteLine("GetLength:: Octet length = " + octetLength.ToString("X2"));
+
+                int length = 0;
+                for (int i = 2; i < octetLength + 2; i++)
+                {
+                    length = length << 8 | encodedMessage[i];
+                }
+
+                Console.WriteLine("GetLength:: length = " + length);
+                return length;
+            }
+            else
+            {
+                return encodedMessage[1];
+            }
+        }
+
         /*
         public static Gtx Deserialize(byte[] gtxBytes)
         {
