@@ -53,16 +53,16 @@ namespace Chromia.Postchain.Client.GTX.ASN1Messages
             return messageWriter.Encode();
         }
 
-        public static DictPair Decode(byte[] encodedMessage)
-        {
-            var dictPair = new AsnReader(encodedMessage, AsnEncodingRules.BER);
-            var dictPairSequence = dictPair.ReadSequence();
+        // public static DictPair Decode(byte[] encodedMessage)
+        // {
+        //     var dictPair = new AsnReader(encodedMessage, AsnEncodingRules.BER);
+        //     var dictPairSequence = dictPair.ReadSequence();
 
-            var newObject = new DictPair();
-            newObject.Name = dictPairSequence.ReadCharacterString(UniversalTagNumber.UTF8String);
-            newObject.Value = GTXValue.Decode(dictPair.PeekContentBytes().ToArray());
+        //     var newObject = new DictPair();
+        //     newObject.Name = dictPairSequence.ReadCharacterString(UniversalTagNumber.UTF8String);
+        //     newObject.Value = GTXValue.Decode(dictPair.PeekContentBytes().ToArray());
 
-            return newObject;
-        }
+        //     return newObject;
+        // }
     }
 }

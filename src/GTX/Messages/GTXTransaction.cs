@@ -81,24 +81,24 @@ namespace Chromia.Postchain.Client.GTX.ASN1Messages
             return messageWriter.Encode();
         }
 
-        public static GTXTransaction Decode(byte[] encodedMessage)
-        {
-            var gtxTransaction = new AsnReader(encodedMessage, AsnEncodingRules.BER);
-            var gtxTransactionSequence = gtxTransaction.ReadSequence();
+        // public static GTXTransaction Decode(byte[] encodedMessage)
+        // {
+        //     var gtxTransaction = new AsnReader(encodedMessage, AsnEncodingRules.BER);
+        //     var gtxTransactionSequence = gtxTransaction.ReadSequence();
 
-            var newObject = new GTXTransaction();
-            newObject.BlockchainID = gtxTransactionSequence.ReadOctetString();
+        //     var newObject = new GTXTransaction();
+        //     newObject.BlockchainID = gtxTransactionSequence.ReadOctetString();
 
-            var operationSequence = gtxTransactionSequence.ReadSequence();
-            newObject.Operations = ASN1Util.SequenceToList<GTXOperation>(operationSequence, GTXOperation.Decode);
+        //     var operationSequence = gtxTransactionSequence.ReadSequence();
+        //     newObject.Operations = ASN1Util.SequenceToList<GTXOperation>(operationSequence, GTXOperation.Decode);
 
-            var signerSequence = gtxTransactionSequence.ReadSequence();
-            newObject.Signers = ASN1Util.SequenceToList<byte[]>(signerSequence, null);
+        //     var signerSequence = gtxTransactionSequence.ReadSequence();
+        //     newObject.Signers = ASN1Util.SequenceToList<byte[]>(signerSequence, null);
 
-            var signatureSequence = gtxTransactionSequence.ReadSequence();
-            newObject.Signatures = ASN1Util.SequenceToList<byte[]>(signatureSequence, null);
+        //     var signatureSequence = gtxTransactionSequence.ReadSequence();
+        //     newObject.Signatures = ASN1Util.SequenceToList<byte[]>(signatureSequence, null);
 
-            return newObject;
-        }
+        //     return newObject;
+        // }
     }
 }

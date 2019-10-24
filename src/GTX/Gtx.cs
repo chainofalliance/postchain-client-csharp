@@ -169,18 +169,19 @@ namespace Chromia.Postchain.Client.GTX
             }
 
             var messageLength = GetLength(encodedMessage);
+            int messageOctetLength = GetOctetLength(encodedMessage);
             var newObject = new GTXValue();
             switch (encodedMessage[0] & 0xF)
             {          
                 case (0x1):
                 {
                     // ByteArray
-                    if (encodedMessage[3] != 0x04)
+                    if (encodedMessage[1+messageOctetLength] != 0x04)
                     {
                         throw new System.Exception("Chromia.Postchain.Client.GTX Gtx.Deserialize() ByteArray case. Not octet string.");
                     }
 
-                    int length = encodedMessage[4];
+                    int length = encodedMessage[3];
 
                     newObject.Choice = GTXValueChoice.ByteArray;
                     newObject.ByteArray = encodedMessage.Skip(4).Take(length).ToArray();
@@ -190,7 +191,7 @@ namespace Chromia.Postchain.Client.GTX
                 case (0x2):
                 {
                     // String
-                    if (encodedMessage[3] != 0x0c)
+                    if (encodedMessage[1+messageOctetLength] != 0x0c)
                     {
                         throw new System.Exception("Chromia.Postchain.Client.GTX Gtx.Deserialize() String case. Not UTF8String.");
                     }
@@ -203,17 +204,18 @@ namespace Chromia.Postchain.Client.GTX
                 }
                 case (0x3):
                 {
+                    Console.WriteLine("DECODE INTEGER");
                     // Integer
-                    if (encodedMessage[3] != 0x02)
+                    if (encodedMessage[1+messageOctetLength] != 0x02)
                     {
                         throw new System.Exception("Chromia.Postchain.Client.GTX Gtx.Deserialize() Integer case. Not primitive integer type.");
                     }
 
-                    int length = encodedMessage[4];
+                    int length = encodedMessage[3];
                     int newInteger = 0;
-                    for (int i = 5; i < length + 5; i++)
+                    for (int i = 4; i < length + 4; i++)
                     {
-                        newInteger = newInteger << 8 | encodedMessage[i];
+                        newInteger = (newInteger << 8) | encodedMessage[i];
                     }
 
                     newObject.Choice = GTXValueChoice.Integer;
@@ -231,17 +233,29 @@ namespace Chromia.Postchain.Client.GTX
                 case (0x5):
                 {
                     // Array
-                    if (encodedMessage[4] != 0x30)
+                    if (encodedMessage[1+messageOctetLength] != 0x30)
                     {
                         throw new System.Exception("Chromia.Postchain.Client.GTX Gtx.Deserialize() Array case. Not sequence of.");
                     }
 
-                    int length = GetLength(encodedMessage.Skip(3).ToArray());
+                    byte[] sequence = encodedMessage.Skip(1+messageOctetLength).ToArray();
+                    int sequenceLength = GetLength(sequence);
+                    int sequenceOctetLength = GetOctetLength(sequence);
                     
-                    
-                    // ToDo
+                    int startIndex = 2 + messageOctetLength + sequenceOctetLength;
 
                     newObject.Choice = GTXValueChoice.Array;
+                    newObject.Array = new List<GTXValue>();
+                    while (startIndex < sequenceLength)
+                    {
+                        byte[] newElement = encodedMessage.Skip(startIndex).ToArray();
+                        int elementLength = GetLength(newElement) + GetOctetLength(newElement) + 1;
+                        newElement = newElement.Take(elementLength).ToArray();
+
+                        newObject.Array.Add(Deserialize(newElement));
+                        startIndex += elementLength;
+                    }
+                    
                     break;
                 }      
                 default:
@@ -255,24 +269,31 @@ namespace Chromia.Postchain.Client.GTX
 
         private static int GetLength(byte[] encodedMessage)
         {
-            Console.WriteLine("GetLength:: Length octet = " + encodedMessage[1].ToString("X2"));
-            if ((encodedMessage[1] & 0x80) == 1)
+            byte octetLength = GetOctetLength(encodedMessage);
+            if (octetLength > 1)
             {
-                byte octetLength = (byte) (encodedMessage[1] & (~((byte)0x80)));
-                Console.WriteLine("GetLength:: Octet length = " + octetLength.ToString("X2"));
-
                 int length = 0;
-                for (int i = 2; i < octetLength + 2; i++)
+                for (int i = 2; i < octetLength + 1; i++)
                 {
                     length = length << 8 | encodedMessage[i];
                 }
-
-                Console.WriteLine("GetLength:: length = " + length);
                 return length;
             }
             else
             {
                 return encodedMessage[1];
+            }
+        }
+
+        private static byte GetOctetLength(byte[] encodedMessage)
+        {
+            if ((encodedMessage[1] & 0x80) != 0)
+            {
+                return (byte) ((encodedMessage[1] & (~((byte)0x80))) + 1);
+            }
+            else
+            {
+                return 1;
             }
         }
 
