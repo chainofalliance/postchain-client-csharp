@@ -167,6 +167,53 @@ namespace Chromia.Postchain.Client.GTX.ASN1Messages
             return trimmedBytes.ToArray();
         }
 
+        public dynamic[] ToDynamicArray()
+        {
+            if (Choice != GTXValueChoice.Array)
+            {
+                throw new Exception("Tried to cast non array choice to dynamic array.");
+            }
+
+            List<dynamic> retArr = new List<dynamic>();
+
+            foreach(var innerGtxValue in Array)
+            {
+                switch (innerGtxValue.Choice)
+                {
+                    case (GTXValueChoice.ByteArray):
+                    {
+                        retArr.Add(innerGtxValue.ByteArray);
+                        break;
+                    }
+                    case (GTXValueChoice.String):
+                    {
+                        retArr.Add(innerGtxValue.String);
+                        break;
+                    }
+                    case (GTXValueChoice.Integer):
+                    {
+                        retArr.Add(innerGtxValue.Integer);
+                        break;
+                    }
+                    case (GTXValueChoice.Array):
+                    {
+                        retArr.Add(innerGtxValue.ToDynamicArray());
+                        break;
+                    }
+                    case (GTXValueChoice.Dict):
+                    {
+                        throw new Exception("Unsupported type Dict.");
+                    }
+                    default:
+                    {
+                        throw new Exception("Unknown GTXValue choice " + innerGtxValue.Choice);
+                    }
+                }
+            }
+
+            return retArr.ToArray();
+        }
+
         [Obsolete("Use ASN1Writer.GetEncodedLength() instead")]
         private static byte GetValueSize(GTXValue gtxValue)
         {
