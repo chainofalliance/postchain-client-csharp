@@ -196,7 +196,7 @@ namespace Chromia.Postchain.Client.GTX
                         throw new System.Exception("Chromia.Postchain.Client.GTX Gtx.Deserialize() String case. Not UTF8String.");
                     }
 
-                    int length = encodedMessage[4];
+                    int length = encodedMessage[1+messageOctetLength+1];
 
                     newObject.Choice = GTXValueChoice.String;
                     newObject.String = System.Text.Encoding.UTF8.GetString(encodedMessage.Skip(4).Take(length).ToArray());
