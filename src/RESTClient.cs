@@ -231,7 +231,7 @@ namespace Chromia.Postchain.Client
             }
             catch (FlurlHttpException e)
             {
-                return JsonConvert.DeserializeObject("{ 'status': 'exception', 'message': '" + e.Message + "' }");
+                return JsonConvert.DeserializeObject("{ '__postchainerror__': true, 'message': '" + e.Message + "' }");
             }
             
         }
