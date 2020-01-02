@@ -53,7 +53,7 @@ namespace Chromia.Postchain.Client.GTX
         ///Commit the Transaction and send it to the blockchain.
         ///</summary>
         ///<returns>Task, which returns null if it was succesful or the error message if not.</returns>
-        public async Task<dynamic> PostAndWaitConfirmation()
+        public async Task<GTX.PostchainErrorControl> PostAndWaitConfirmation()
         {
             return await this.RestClient.PostAndWaitConfirmation(this.GtxObject.Serialize(), this.GetTxRID());
         }

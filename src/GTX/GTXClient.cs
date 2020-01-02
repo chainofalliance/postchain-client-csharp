@@ -1,8 +1,9 @@
+using System;
 using System.Threading.Tasks;
 
 namespace Chromia.Postchain.Client.GTX
 {
-    public struct QueryErrorControl
+    public struct PostchainErrorControl
     {
         public bool Error;
         public string ErrorMessage;
@@ -49,30 +50,41 @@ namespace Chromia.Postchain.Client.GTX
         ///<param name = "queryName">Name of the query to be called.</param>
         ///<param name = "queryObject">List of parameter pairs of query parameter name and its value. For example {"city", "Hamburg"}.</param>
         ///<returns>Task, which returns the query return content.</returns>
-        public async Task<(T content, QueryErrorControl control)> Query<T> (string queryName, params dynamic[] queryObject)
+        public async Task<(T content, PostchainErrorControl control)> Query<T> (string queryName, params dynamic[] queryObject)
         {
             var queryContent = await this.RestApiClient.Query(queryName, queryObject);
 
-            QueryErrorControl queryError = new QueryErrorControl();
+            PostchainErrorControl queryError = new PostchainErrorControl();
             try
             {
                 queryError.Error = queryContent.__postchainerror__;
                 queryError.ErrorMessage = queryContent.message;
+
+                return (default(T), queryError);
             }
             catch
             {
                 queryError.Error = false;
-                queryError.ErrorMessage = "";
+                queryError.ErrorMessage = "";                
             }
 
             T contentObject;
             try
             {
-                contentObject = queryContent.ToObject<T>();
+                if (queryContent.GetType().IsPrimitive || queryContent.GetType().Equals(typeof(String)))
+                {
+                    contentObject = (T) queryContent;
+                }
+                else
+                {
+                    contentObject = queryContent.ToObject<T>();
+                }
             }
-            catch
+            catch (System.Exception e)
             {
                 contentObject = default(T);
+                queryError.Error = true;
+                queryError.ErrorMessage = e.Message;
             }
 
             return (contentObject, queryError);
