@@ -19,10 +19,9 @@ For more information, see https://www.nuget.org/packages/PostchainClient/0.3.4
 using Chromia.PostchainClient;
 using Chromia.PostchainClient.GTX;
 
-// Default RID from eclipse plugin
-const string blockchainRID = "0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF";
+// RID for the rell code below
+const string blockchainRID = "AC651CC730397A6880AD7695E73663720068532D7406F0BA0753C2F65A9AD169";
 
-// Generates a new key pair.
 var keyPair = Util.MakeKeyPair();
 var privKey = keyPair["privKey"];
 var pubKey = keyPair["pubKey"];
@@ -32,49 +31,67 @@ var pubKey = keyPair["pubKey"];
 var rest = new RESTClient("http://localhost:7740", blockchainRID);
 
 // Create an instance of the higher-level gtx client. It will
-// use the rest client instance and it will allow to generate
-// transactions and query data.
+// use the rest client instance
 var gtx = new GTXClient(rest, blockchainRID);
 
 // Start a new request. A request instance is created.
 // The public keys are the keys that must sign the request
 // before sending it to postchain. Can be empty.
+
 var req = gtx.NewTransaction(new byte[][] {pubKey});
 
-// Add operations to transaction
-req.AddOperation("insert_city", "Hamburg", 223232);
+req.AddOperation("insert_city", "Hamburg", 22222);
 req.AddOperation("create_user", pubKey, "Peter");
 
-// Sign transaction with key pair
+// Since transactions with the same operations will result in the same txid,
+// transactions can contain "nop" operations. This is needed to satisfy
+// the unique txid constraint of the postchain. 
+req.AddOperation("nop", new Random().Next());
+
 req.Sign(privKey, pubKey);
 
-// Commit transaction to node. If it fails it returns the 
-// corresponding error message.
 var result = await req.PostAndWaitConfirmation();
-Console.WriteLine("Operation: " + result);
+if (result.Error)
+{
+    Console.WriteLine("Operation failed: " + result.ErrorMessage);
+}
 
+// The expected return type has to be passed to the query function. This
+// also works with complex types (i.e. your own struct as well as lists).
+// The returned tuple will consist of (content, control). The content is of
+// the type you pass the function. The control struct contains an error flag
+// as well as the error message.
+var queryResult = await gtx.Query<int>("get_city", ("name", "Hamburg"));
+if (queryResult.control.Error)
+{
+    Console.WriteLine(queryResult.control.ErrorMessage);
+}
+else
+{
+    int plz = queryResult.content;
+    Console.WriteLine("PLZ Query: " + plz);
+}
 
-// Query data to see if it was inserted correctly
-result = await gtx.Query("get_city", ("name", "Hamburg"));
-Console.WriteLine("Query: " + result);
-
-result = await gtx.Query("get_plz", ("plz", 223232));
-Console.WriteLine("Query2: " + result);
-
-result = await gtx.Query("get_user_name", ("pubkey", pubKey));
-Console.WriteLine("Query3: " + result);
-
-// Query with list as parameter
-// await gtx.Query("get_from_list", ("int_list", (1, 2, 3)));
-
-// Query with tuple of 7 or less items as parameter (only unnamed fields possible)
-// await gtx.Query("get_from_tuple", ("int_tuple", (1, 2)));
+// Same as above with the exception that byte arrays will be returned as strings.
+// To convert it to a byte array, use the util function Util.HexStringToBuffer() 
+// in the Chromia.Postchain.Client.GTX namespace.
+var queryResult2 = await gtx.Query<string>("get_user_pubkey", ("name", "Peter"));
+if (queryResult2.control.Error)
+{
+    Console.WriteLine(queryResult2.control.ErrorMessage);
+}
+else
+{
+    string queryPubkeyString = queryResult2.content;
+    byte[] queryPubkey = Util.HexStringToBuffer(queryPubkeyString);
+    Console.WriteLine("User Query: " + Util.ByteArrayToString(queryPubkey));
+}
 ```
 
 ### Rell file
 ```
-class city { key name; plz: integer; }
-class user {pubkey; name;}
+entity city { key name; plz: integer; }
+entity user {pubkey; name;}
 
 operation insert_city (name, plz: integer) {
     create city (name, plz);
@@ -93,7 +110,7 @@ operation create_user(pubkey, name){
     create user (pubkey,name);
 }
 
-query get_user_name(pubkey){
-    return user @ {pubkey}.name;
+query get_user_pubkey(name){
+    return user @ {name}.pubkey;
 }
 ```
