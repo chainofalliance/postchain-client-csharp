@@ -3,6 +3,35 @@ using Chromia.Postchain.Client.GTX;
 using System;
 using System.Collections.Generic;
 
+public interface FightLog
+{
+    int GetTime();
+    int Type();
+}
+
+public struct Attributes 
+{
+    public int atk;
+    public float chance;
+}
+
+public struct CharacterInfo : FightLog
+{
+    public int id;
+    public string type;
+    public Attributes stats;
+    public List<int> synergyIDs;
+
+    public int GetTime()
+    {
+        return 1337;
+    }
+
+    public int Type()
+    {
+        return id;
+    }
+}
 
 namespace Chromia.Postchain.Client.Tests.GTX
 {
@@ -10,7 +39,7 @@ namespace Chromia.Postchain.Client.Tests.GTX
     {
         [Fact]
         public async void FullClientTest(){
-            const string blockchainRID = "AC651CC730397A6880AD7695E73663720068532D7406F0BA0753C2F65A9AD169";
+            const string blockchainRID = "B6DC3118BED74B81EE83D1E8ED22160DBCB8DBE090B2F151285F4073C15AA3E5";
 
             var keyPair = Util.MakeKeyPair();
             var privKey = keyPair["privKey"];
@@ -19,42 +48,50 @@ namespace Chromia.Postchain.Client.Tests.GTX
             var rest = new RESTClient("http://localhost:7740", blockchainRID);
             var gtx = new GTXClient(rest, blockchainRID);
 
-            var req = gtx.NewTransaction(new byte[][] {pubKey});
+            // var req = gtx.NewTransaction(new byte[][] {pubKey});
 
-            req.AddOperation("insert_city", "Hamburg", 22222);
-            req.AddOperation("create_user", pubKey, "Peter");
-            req.AddOperation("nop", new Random().Next());
+            // req.AddOperation("insert_city", "Hamburg", 22222);
+            // req.AddOperation("create_user", pubKey, "Peter");
+            // req.AddOperation("nop", new Random().Next());
 
-            req.Sign(privKey, pubKey);
+            // req.Sign(privKey, pubKey);
 
-            var result = await req.PostAndWaitConfirmation();
-            if (result.Error)
-            {
-                Console.WriteLine("Operation failed: " + result.ErrorMessage);
-            }
+            // var result = await req.PostAndWaitConfirmation();
+            // if (result.Error)
+            // {
+            //     Console.WriteLine("Operation failed: " + result.ErrorMessage);
+            // }
             
-            var queryResult = await gtx.Query<int>("get_city", ("name", "Hamburg"));
+            var queryResult = await gtx.Query<CharacterInfo>("get_info");
             if (queryResult.control.Error)
             {
                 Console.WriteLine(queryResult.control.ErrorMessage);
             }
             else
             {
-                int plz = queryResult.content;
-                Console.WriteLine("PLZ Query: " + plz);
+                CharacterInfo info = queryResult.content;
+                Console.WriteLine("Query1: " + info.GetTime());
+                Console.WriteLine("Query1: " + info.Type());
+                Console.WriteLine("Query2: " + info.type);
+                Console.WriteLine("Query31: " + info.stats.atk);
+                Console.WriteLine("Query32: " + info.stats.chance);
+                foreach (var i in info.synergyIDs)
+                {
+                    Console.WriteLine("Query4: " + i);
+                }
             }
 
-            var queryResult2 = await gtx.Query<string>("get_user_pubkey", ("name", "Peter"));
-            if (queryResult2.control.Error)
-            {
-                Console.WriteLine(queryResult2.control.ErrorMessage);
-            }
-            else
-            {
-                string queryPubkeyString = queryResult2.content;
-                byte[] queryPubkey = Util.HexStringToBuffer(queryPubkeyString);
-                Console.WriteLine("User Query: " + Util.ByteArrayToString(queryPubkey));
-            }
+            // var queryResult2 = await gtx.Query<string>("get_user_pubkey", ("name", "Peter"));
+            // if (queryResult2.control.Error)
+            // {
+            //     Console.WriteLine(queryResult2.control.ErrorMessage);
+            // }
+            // else
+            // {
+            //     string queryPubkeyString = queryResult2.content;
+            //     byte[] queryPubkey = Util.HexStringToBuffer(queryPubkeyString);
+            //     Console.WriteLine("User Query: " + Util.ByteArrayToString(queryPubkey));
+            // }
         }
     }
 }
