@@ -1,6 +1,6 @@
 # Postchain Client API C#
 
-## Compatible with Postchain 3 / Rell 0.9
+## Compatible with Postchain 3 / Rell 0.10.1
 
 ## Installation
 ### With NuGet:
