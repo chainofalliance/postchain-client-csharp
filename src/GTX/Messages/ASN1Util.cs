@@ -1,7 +1,5 @@
 using System;
 using System.Linq;
-using System.Security.Cryptography.Asn1;
-using System.Collections.Generic;
 
 namespace Chromia.Postchain.Client.GTX.ASN1Messages
 {
@@ -43,40 +41,40 @@ namespace Chromia.Postchain.Client.GTX.ASN1Messages
             return maxAmount;
         }
 
-        public static List<T> SequenceToList<T>(AsnReader sequence, Func<byte[], T> callback)
-        {
-            var returnList = new List<T>();
+        // public static List<T> SequenceToList<T>(AsnReader sequence, Func<byte[], T> callback)
+        // {
+        //     var returnList = new List<T>();
 
-            while (true)
-            {
-                try
-                {
-                    if (sequence.PeekTag().TagValue == (int)Asn1TagValues.Sequence)
-                    {
-                        returnList.Add(callback(sequence.ReadEncodedValue().ToArray().ToArray()));
-                    }
-                    // The "ContextSpecific" AsnTag has the same value as Boolean (1). Thats why we check for the tag string.
-                    else if (sequence.PeekTag().TagClass.ToString() == "ContextSpecific")
-                    {
-                        returnList.Add(callback(sequence.ReadEncodedValue().ToArray()));
-                    }
-                    else if (sequence.PeekTag().TagValue == (int)Asn1TagValues.OctetString)
-                    {
-                        var ret_val = sequence.ReadOctetString();
-                        returnList.Add((T)(object)ret_val);
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-                catch (System.Security.Cryptography.CryptographicException)
-                {
-                    break;
-                }
-            }
+        //     while (true)
+        //     {
+        //         try
+        //         {
+        //             if (sequence.PeekTag().TagValue == (int)Asn1TagValues.Sequence)
+        //             {
+        //                 returnList.Add(callback(sequence.ReadEncodedValue().ToArray().ToArray()));
+        //             }
+        //             // The "ContextSpecific" AsnTag has the same value as Boolean (1). Thats why we check for the tag string.
+        //             else if (sequence.PeekTag().TagClass.ToString() == "ContextSpecific")
+        //             {
+        //                 returnList.Add(callback(sequence.ReadEncodedValue().ToArray()));
+        //             }
+        //             else if (sequence.PeekTag().TagValue == (int)Asn1TagValues.OctetString)
+        //             {
+        //                 var ret_val = sequence.ReadOctetString();
+        //                 returnList.Add((T)(object)ret_val);
+        //             }
+        //             else
+        //             {
+        //                 break;
+        //             }
+        //         }
+        //         catch (System.Security.Cryptography.CryptographicException)
+        //         {
+        //             break;
+        //         }
+        //     }
 
-            return returnList;
-        }
+        //     return returnList;
+        // }
     }
 }

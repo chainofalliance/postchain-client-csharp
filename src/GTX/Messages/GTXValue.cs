@@ -1,7 +1,7 @@
-using System.Security.Cryptography.Asn1;
 using System.Linq;
 using System.Collections.Generic;
 using System;
+using Chromia.Postchain.Client.ASN1;
 
 namespace Chromia.Postchain.Client.GTX.ASN1Messages
 {    
@@ -57,7 +57,7 @@ namespace Chromia.Postchain.Client.GTX.ASN1Messages
 
         public byte[] Encode()
         {
-            var messageWriter = new AsnWriter(AsnEncodingRules.BER);
+            var messageWriter = new AsnWriter();
 
             var choiceSize = 0;
             var choiceConstants = new List<byte>();
@@ -65,7 +65,7 @@ namespace Chromia.Postchain.Client.GTX.ASN1Messages
             {
                 case (GTXValueChoice.Null):
                 {
-                    choiceConstants.Add(0x00);
+                    choiceConstants.Add(0xa0);
                     messageWriter.WriteNull();
                     break;
                 } 
@@ -84,7 +84,7 @@ namespace Chromia.Postchain.Client.GTX.ASN1Messages
                 {
                     choiceConstants.Add(0xa2);
 
-                    messageWriter.WriteCharacterString(UniversalTagNumber.UTF8String, this.String);
+                    messageWriter.WriteUTF8String(this.String);
                     break;
                 }
                 case (GTXValueChoice.Integer):
@@ -310,6 +310,10 @@ namespace Chromia.Postchain.Client.GTX.ASN1Messages
         {
             switch (Choice)
             {
+                case (GTXValueChoice.Null):
+                {
+                    return "null";
+                }
                 case (GTXValueChoice.ByteArray):
                 {
                     return Util.ByteArrayToString(ByteArray);

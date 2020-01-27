@@ -1,4 +1,4 @@
-using System.Security.Cryptography.Asn1;
+using Chromia.Postchain.Client.ASN1;
 
 namespace Chromia.Postchain.Client.GTX.ASN1Messages
 {
@@ -43,10 +43,10 @@ namespace Chromia.Postchain.Client.GTX.ASN1Messages
 
         public byte[] Encode()
         {
-            var messageWriter = new AsnWriter(AsnEncodingRules.BER);
+            var messageWriter = new AsnWriter();
             
             messageWriter.PushSequence();
-            messageWriter.WriteCharacterString(UniversalTagNumber.UTF8String, this.Name);
+            messageWriter.WriteUTF8String(this.Name);
             messageWriter.WriteEncodedValue(Value.Encode());
             messageWriter.PopSequence();
 
