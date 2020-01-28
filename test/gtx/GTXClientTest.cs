@@ -110,22 +110,20 @@ namespace Chromia.Postchain.Client.Tests.GTX
 
             req.AddOperation("NULL", new dynamic[]{null});
             req.AddOperation("STRING", "abc");
-            req.AddOperation("INTEGER", 123);
+            req.AddOperation("INTEGER", 200);
 
             req.Sign(privKey, pubKey);
 
             Console.WriteLine(req.Encode());
         }
 
-        // [Fact]
-        // public void NewASNTest(){
-        //     var writer = new AsnWriter();
+        [Fact]
+        public void NewASNTest(){
+            var writer = new AsnWriter();
 
-        //     writer.PushSequence();
-        //     writer.WriteUTF8String("abc");
-        //     writer.PopSequence();
+            writer.WriteInteger(System.Int32.MaxValue);
 
-        //     Console.WriteLine(Util.ByteArrayToString(writer.Encode()));
-        // }
+            Console.WriteLine(Util.ByteArrayToString(writer.Encode()));
+        }
     }
 }

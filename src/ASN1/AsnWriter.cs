@@ -147,8 +147,14 @@ namespace Chromia.Postchain.Client.ASN1
             {
                 sizeInBytes = sizeInBytes.Reverse().ToArray();
             }
+
+            var sizeInBytesList = sizeInBytes.ToList();
+            if (sizeInBytesList.First() >= 128)
+            {
+                sizeInBytesList.Insert(0, 0x00);
+            }
             
-            return sizeInBytes.ToList();
+            return sizeInBytesList;
         }
     }
 }
