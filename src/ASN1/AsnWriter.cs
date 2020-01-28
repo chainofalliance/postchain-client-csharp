@@ -44,7 +44,7 @@ namespace Chromia.Postchain.Client.ASN1
             buffer.AddRange(content);   // content
         }
 
-        public void WriteInteger(int number)
+        public void WriteInteger(long number)
         {
             var buffer = CurrentWriter()._buffer;
             var content = IntegerToBytes(number);
@@ -139,7 +139,7 @@ namespace Chromia.Postchain.Client.ASN1
             return trimmedBytes.ToArray();
         }
 
-        private List<byte> IntegerToBytes(int integer)
+        private List<byte> IntegerToBytes(long integer)
         {
             var sizeInBytes = TrimByteList(BitConverter.GetBytes(integer));
                 

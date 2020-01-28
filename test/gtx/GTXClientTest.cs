@@ -121,7 +121,7 @@ namespace Chromia.Postchain.Client.Tests.GTX
         public void NewASNTest(){
             var writer = new AsnWriter();
 
-            writer.WriteInteger(System.Int32.MaxValue);
+            writer.WriteInteger(System.Int64.MinValue);
 
             Console.WriteLine(Util.ByteArrayToString(writer.Encode()));
         }
