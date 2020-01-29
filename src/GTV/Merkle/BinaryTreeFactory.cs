@@ -35,7 +35,7 @@ namespace Chromia.Postchain.Client.GTV.Merkle
             {
                 return this.HandlePrimitiveLeaf(leaf, paths); 
             }
-            else if (leaf is int)
+            else if (leaf is int || leaf is long)
             {
                 return this.HandlePrimitiveLeaf(leaf, paths); 
             }
