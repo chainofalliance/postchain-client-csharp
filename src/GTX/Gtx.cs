@@ -43,7 +43,7 @@ namespace Chromia.Postchain.Client.GTX
             {
                 gtxValue.Choice = GTXValueChoice.Null;
             }
-            else if (arg is int)
+            else if (arg is int || arg is long)
             {
                 gtxValue.Choice = GTXValueChoice.Integer;
                 gtxValue.Integer = (int) arg;
