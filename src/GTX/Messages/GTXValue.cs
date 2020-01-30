@@ -20,7 +20,7 @@ namespace Chromia.Postchain.Client.GTX.ASN1Messages
         public GTXValueChoice Choice;
         public byte[] ByteArray;
         public string String;
-        public int Integer;
+        public long Integer;
         public List<DictPair> Dict = null;
         public List<GTXValue> Array = null;
 

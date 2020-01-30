@@ -13,7 +13,7 @@ namespace Chromia.Postchain.Client.GTX.ASN1Messages
         Sequence = 16
     }
 
-    public class ASN1Util
+    public static class ASN1Util
     {
         public static byte[] StringToByteArray(string hex)
         {
@@ -23,7 +23,7 @@ namespace Chromia.Postchain.Client.GTX.ASN1Messages
                             .ToArray();
         }
 
-        public static int GetMaxAmountOfBytesForInteger(int value)
+        public static int GetMaxAmountOfBytesForInteger(long value)
         {
             int maxAmount = 0;
 
@@ -39,6 +39,24 @@ namespace Chromia.Postchain.Client.GTX.ASN1Messages
             }
 
             return maxAmount;
+        }
+
+        public static bool IsNumericType(this object o)
+        {   
+            switch (Type.GetTypeCode(o.GetType()))
+            {
+                case TypeCode.Byte:
+                case TypeCode.SByte:
+                case TypeCode.UInt16:
+                case TypeCode.UInt32:
+                case TypeCode.UInt64:
+                case TypeCode.Int16:
+                case TypeCode.Int32:
+                case TypeCode.Int64:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         // public static List<T> SequenceToList<T>(AsnReader sequence, Func<byte[], T> callback)

@@ -35,7 +35,7 @@ namespace Chromia.Postchain.Client.GTV.Merkle
             {
                 return this.HandlePrimitiveLeaf(leaf, paths); 
             }
-            else if (leaf is int || leaf is long)
+            else if (Chromia.Postchain.Client.GTX.ASN1Messages.ASN1Util.IsNumericType(leaf))
             {
                 return this.HandlePrimitiveLeaf(leaf, paths); 
             }

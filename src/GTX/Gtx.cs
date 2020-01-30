@@ -23,11 +23,14 @@ namespace Chromia.Postchain.Client.GTX
 
         public Gtx AddOperationToGtx(string opName, dynamic[] args)
         {
-           if(this.Signatures.Count != 0)
+            if(this.Signatures.Count != 0)
             {
                 throw new Exception("Cannot add function calls to an already signed gtx");
             }
 
+            if (args is null) {
+                args = new dynamic[]{null};
+            }
             var newOperation = new List<dynamic>(){opName, args};
 
             this.Operations.Add(newOperation.ToArray());
@@ -43,10 +46,17 @@ namespace Chromia.Postchain.Client.GTX
             {
                 gtxValue.Choice = GTXValueChoice.Null;
             }
-            else if (arg is int || arg is long)
+            else if (ASN1Util.IsNumericType(arg))
             {
-                gtxValue.Choice = GTXValueChoice.Integer;
-                gtxValue.Integer = (int) arg;
+                try
+                {
+                    gtxValue.Choice = GTXValueChoice.Integer;
+                    gtxValue.Integer = Convert.ChangeType(arg, typeof(long));
+                }
+                catch
+                {
+                    throw new System.Exception("Chromia.PostchainClient.GTX Gtx.ArgToGTXValue() Integer overflow.");
+                }                
             }
             else if (arg is byte[])
             {
