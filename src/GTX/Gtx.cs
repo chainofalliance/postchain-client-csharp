@@ -214,7 +214,6 @@ namespace Chromia.Postchain.Client.GTX
                 }
                 case (0x3):
                 {
-                    Console.WriteLine("DECODE INTEGER");
                     // Integer
                     if (encodedMessage[1+messageOctetLength] != 0x02)
                     {

@@ -53,7 +53,6 @@ namespace Chromia.Postchain.Client.GTX
         public async Task<(T content, PostchainErrorControl control)> Query<T> (string queryName, params dynamic[] queryObject)
         {
             var queryContent = await this.RestApiClient.Query(queryName, queryObject);
-            Console.WriteLine("t: " + queryContent);
 
             PostchainErrorControl queryError = new PostchainErrorControl();
             try
