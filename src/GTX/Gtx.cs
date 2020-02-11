@@ -68,14 +68,14 @@ namespace Chromia.Postchain.Client.GTX
                 gtxValue.Choice = GTXValueChoice.String;
                 gtxValue.String = (string) arg;
             }
-            else if (arg is dynamic[])
+            else if (arg.GetType().IsArray)
             {
                 gtxValue.Choice = GTXValueChoice.Array;
 
                 gtxValue.Array = new List<GTXValue>();
                 foreach (var subArg in arg)
                 {
-                    gtxValue.Array.Add(ArgToGTXValue(subArg));
+                    gtxValue.Array.Add(ArgToGTXValue((dynamic) subArg));
                 }
             }
             else if (arg is Dictionary<string, dynamic>)
