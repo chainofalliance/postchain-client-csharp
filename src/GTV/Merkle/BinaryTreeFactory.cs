@@ -41,7 +41,7 @@ namespace Chromia.Postchain.Client.GTV.Merkle
             }
             else if (leaf.GetType().IsArray)
             {
-                return this.BuildFromArray(leaf, paths); 
+                return this.BuildFromArray((dynamic[]) leaf, paths); 
             }
             else if (leaf.GetType().IsGenericType && leaf.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))
             {
