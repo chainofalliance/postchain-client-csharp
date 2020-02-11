@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace Chromia.Postchain.Client.GTV.Merkle
@@ -41,7 +43,12 @@ namespace Chromia.Postchain.Client.GTV.Merkle
             }
             else if (leaf.GetType().IsArray)
             {
-                return this.BuildFromArray((dynamic[]) leaf, paths); 
+                List<dynamic> elementList = new List<dynamic>();
+                foreach (var e in leaf)
+                {
+                    elementList.Add(e);
+                }
+                return this.BuildFromArray(elementList.ToArray(), paths); 
             }
             else if (leaf.GetType().IsGenericType && leaf.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))
             {
