@@ -11,13 +11,13 @@ namespace Chromia.Postchain.Client.Tests.GTX
     {
         public GTXClient InitTest()
         {
-            const string blockchainRID = "999FCEC7B0BAE9A28CF5D274BB30C4AE7F44255594BD4B0F796EED04122FA414";
+            const string blockchainRID = "9D83AB17ECF5A021276240C000DA139916DB821826CA698422675B67830F34F1";
 
             var rest = new RESTClient("http://localhost:7740", blockchainRID);
             return new GTXClient(rest, blockchainRID);
         }
 
-        [Fact]
+        //[Fact]
         public async void StringTest(){
             var keyPair = Util.MakeKeyPair();
             var privKey = keyPair["privKey"];
@@ -52,6 +52,12 @@ namespace Chromia.Postchain.Client.Tests.GTX
 
             var req = gtx.NewTransaction(new byte[][] {pubKey});
 
+            req.AddOperation("send_timestamp", -127);
+            req.AddOperation("send_timestamp", -128);
+            req.AddOperation("send_timestamp", -129);
+            req.AddOperation("send_timestamp", -130);
+            req.AddOperation("send_timestamp", -255);
+            req.AddOperation("send_timestamp", -256);
             req.AddOperation("send_timestamp", System.Byte.MinValue);
             req.AddOperation("send_timestamp", System.Byte.MaxValue);
 
@@ -70,12 +76,14 @@ namespace Chromia.Postchain.Client.Tests.GTX
             req.AddOperation("send_timestamp", System.Int32.MinValue);
             req.AddOperation("send_timestamp", System.Int32.MaxValue);
 
-            req.AddOperation("send_timestamp", System.Int64.MinValue + 1);
+            req.AddOperation("send_timestamp", System.Int64.MinValue);
             req.AddOperation("send_timestamp", System.Int64.MaxValue);
 
             req.AddOperation("nop", new Random().Next());
 
             req.Sign(privKey, pubKey);
+
+            Console.WriteLine(req.Encode());
 
             var result = await req.PostAndWaitConfirmation();
             Assert.False(result.Error);

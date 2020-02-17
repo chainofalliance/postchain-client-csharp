@@ -120,19 +120,48 @@ namespace Chromia.Postchain.Client.ASN1
             return lengthBytes;
         }
 
-        private byte[] TrimByteList(byte[] byteList)
+        private byte[] GetByteList(long integer)
         {
-            List<byte> trimmedBytes = new List<byte>();
-            for (int i = byteList.Length - 1; i >= 0; i--)
-            {
-                if (byteList[i] != 0)
-                {
-                    for (int j = 0; j <= i; j++)
-                    {
-                        trimmedBytes.Add(byteList[j]);
-                    }
+            var byteList = BitConverter.GetBytes(integer);
 
-                    break;
+            List<byte> trimmedBytes = new List<byte>();
+            if (integer >= 0)
+            {
+                for (int i = byteList.Length - 1; i >= 0; i--)
+                {
+                    if (byteList[i] != 0)
+                    {
+                        for (int j = 0; j <= i; j++)
+                        {
+                            trimmedBytes.Add(byteList[j]);
+                        }
+
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                for (int i = byteList.Length - 1; i >= 0; i--)
+                {
+                    if (byteList[i] != 0xff)
+                    {
+                        for (int j = 0; j <= i; j++)
+                        {
+                            trimmedBytes.Add(byteList[j]);
+                        }
+
+                        break;
+                    }
+                }
+
+                if (trimmedBytes.Count == 0 || trimmedBytes[trimmedBytes.Count - 1] < 128)
+                {
+                    trimmedBytes.Insert(0, 0xff);
+                    if (integer < 0)
+                    {
+                        trimmedBytes.Reverse();
+                    }
                 }
             }
 
@@ -141,7 +170,7 @@ namespace Chromia.Postchain.Client.ASN1
 
         private List<byte> IntegerToBytes(long integer, bool asLength = false)
         {
-            var sizeInBytes = TrimByteList(BitConverter.GetBytes(integer));
+            var sizeInBytes = GetByteList(integer);
                 
             if (BitConverter.IsLittleEndian)
             {
@@ -153,7 +182,7 @@ namespace Chromia.Postchain.Client.ASN1
             {
                 sizeInBytesList.Add(0x00);
             }
-            else if (!asLength && sizeInBytesList.First() >= 128)
+            else if (!asLength && integer >= 0 && sizeInBytesList.First() >= 128)
             {
                 sizeInBytesList.Insert(0, 0x00);
             }

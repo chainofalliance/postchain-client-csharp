@@ -89,10 +89,9 @@ namespace Chromia.Postchain.Client.GTX.ASN1Messages
                 }
                 case (GTXValueChoice.Integer):
                 {
-                    this.Integer = Math.Abs(this.Integer);
                     choiceConstants.Add(0xa3);
 
-                    messageWriter.WriteInteger(this.Integer);
+                    messageWriter.WriteInteger(this.Integer); 
                     break;
                 }
                 case (GTXValueChoice.Array):
