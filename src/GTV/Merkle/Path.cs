@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 
-namespace Chromia.Postchain.Client.GTV.Merkle
+namespace Chromia.Postchain.Client
 {
 
-    public class Path
+    internal class Path
     {
         public List<PathElement> PathElements;
 
@@ -58,7 +58,7 @@ namespace Chromia.Postchain.Client.GTV.Merkle
 
     }
 
-    public class PathElement
+    internal class PathElement
     {
         public SearchablePathElement Previous;
 
@@ -68,7 +68,7 @@ namespace Chromia.Postchain.Client.GTV.Merkle
         }
     }
 
-    public class PathLeafElement: PathElement
+    internal class PathLeafElement: PathElement
     {
         public PathLeafElement(SearchablePathElement previous): base(previous)
         {
@@ -94,7 +94,7 @@ namespace Chromia.Postchain.Client.GTV.Merkle
 
     }
 
-    public abstract class SearchablePathElement: PathElement
+    internal abstract class SearchablePathElement: PathElement
     {
         public SearchablePathElement(SearchablePathElement previous): base(previous)
         {
@@ -103,7 +103,7 @@ namespace Chromia.Postchain.Client.GTV.Merkle
         public abstract dynamic GetSearchKey();
     }
 
-    public class ArrayPathElement: SearchablePathElement
+    internal class ArrayPathElement: SearchablePathElement
     {
         private int Index;
         public ArrayPathElement(SearchablePathElement previous, int index): base(previous)
@@ -136,12 +136,12 @@ namespace Chromia.Postchain.Client.GTV.Merkle
 
         public override int GetHashCode()
         {
-            return Index;
+            return Index.GetHashCode();
         }
 
     }
 
-    public class DictPathElement: SearchablePathElement
+    internal class DictPathElement: SearchablePathElement
     {
         private dynamic Key;
         public DictPathElement(SearchablePathElement previous, dynamic key): base(previous)
@@ -174,11 +174,11 @@ namespace Chromia.Postchain.Client.GTV.Merkle
 
         public override int GetHashCode()
         {
-            return Key;
+            return Key.GetHashCode();
         }
     }
 
-    public class PathSet
+    internal class PathSet
     {
         private HashSet<Path> Paths;
         public PathSet(Path[] paths)
@@ -317,20 +317,5 @@ namespace Chromia.Postchain.Client.GTV.Merkle
             }
             return new PathSet(retPaths.ToArray());
         }
-    }
-
-    public static class Util
-    {
-        public static void BuildPathFromArray(List<PathElement> arr)
-        {
-        
-            
-        }
-
-        public static void GetTailIfFirstElementIsArrayOfThisIndex()
-        {
-
-        }
-
     }
 }

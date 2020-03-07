@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 
-namespace Chromia.Postchain.Client.GTV.Merkle.Proof
+namespace Chromia.Postchain.Client
 {
-    public class MerkleProofTreeFactory
+    internal class MerkleProofTreeFactory
     {
         public MerkleProofTreeFactory(){}
 
@@ -112,7 +112,7 @@ namespace Chromia.Postchain.Client.GTV.Merkle.Proof
             {
                 return new ProofNodeArrayHead(left, right, this.ExtractSearchablePathElement(node));
             }
-            else if (node is DictHeadNode<Dictionary<string,dynamic>>)
+            else if (node is DictHeadNode<Dictionary<string, dynamic>>)
             {
                 return new ProofNodeDictHead(left, right, this.ExtractSearchablePathElement(node));
             }

@@ -1,7 +1,7 @@
 
-namespace Chromia.Postchain.Client.ASN1 
+namespace Chromia.Postchain.Client
 {
-    public class AsnReader
+    internal class AsnReader
     {
         
     }

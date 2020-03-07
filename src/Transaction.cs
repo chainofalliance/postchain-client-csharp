@@ -1,14 +1,14 @@
 using Cryptography.ECDSA;
 using System.Threading.Tasks;
 
-namespace Chromia.Postchain.Client.GTX
+namespace Chromia.Postchain.Client
 {
     public class Transaction
     {
-        public Gtx GtxObject;
+        internal Gtx GtxObject;
         private RESTClient RestClient;
 
-        public Transaction(Gtx gtx, RESTClient restClient)
+        internal Transaction(Gtx gtx, RESTClient restClient)
         {
             this.GtxObject = gtx;
             this.RestClient = restClient;
@@ -26,7 +26,7 @@ namespace Chromia.Postchain.Client.GTX
 
         public string GetTxRID()
         {
-            return Util.ByteArrayToString(this.GetBufferToSign());
+            return PostchainUtil.ByteArrayToString(this.GetBufferToSign());
         }
 
         public byte[] GetBufferToSign()
@@ -53,7 +53,7 @@ namespace Chromia.Postchain.Client.GTX
         ///Commit the Transaction and send it to the blockchain.
         ///</summary>
         ///<returns>Task, which returns null if it was succesful or the error message if not.</returns>
-        public async Task<GTX.PostchainErrorControl> PostAndWaitConfirmation()
+        public async Task<PostchainErrorControl> PostAndWaitConfirmation()
         {
             return await this.RestClient.PostAndWaitConfirmation(this.GtxObject.Serialize(), this.GetTxRID());
         }

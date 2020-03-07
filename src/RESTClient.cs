@@ -82,7 +82,7 @@ namespace Chromia.Postchain.Client
             }
             else if (queryObject is byte[])
             {
-                return String.Format(@"""{0}""", Util.ByteArrayToString(queryObject));
+                return String.Format(@"""{0}""", PostchainUtil.ByteArrayToString(queryObject));
             }
             else if (queryObject is System.Array)
             {
@@ -120,7 +120,7 @@ namespace Chromia.Postchain.Client
                 }
                 return queryString;
             }
-            else if (queryObject is System.Int32)
+            else if (PostchainUtil.IsNumericType(queryObject))
             {
                 return queryObject.ToString();
             }
@@ -166,7 +166,7 @@ namespace Chromia.Postchain.Client
                 || (openType == typeof(ValueTuple<,,,,,,,>) && IsTuple(tuple.GetGenericArguments()[7]));
         }
 
-        public async Task<GTX.PostchainErrorControl> WaitConfirmation(string txRID)
+        public async Task<PostchainErrorControl> WaitConfirmation(string txRID)
         {
             var status = await this.Status(txRID);
 
@@ -174,9 +174,9 @@ namespace Chromia.Postchain.Client
             switch(statusString)
             {
                 case "confirmed":
-                    return new GTX.PostchainErrorControl() {Error = false, ErrorMessage = ""};
+                    return new PostchainErrorControl() {Error = false, ErrorMessage = ""};
                 case "rejected":
-                    return new GTX.PostchainErrorControl() {Error = true, ErrorMessage = "Message was rejected"};
+                    return new PostchainErrorControl() {Error = true, ErrorMessage = "Message was rejected"};
                 case "unknown":
                     await Task.Delay(511);
                     return await this.WaitConfirmation(txRID);
@@ -184,13 +184,13 @@ namespace Chromia.Postchain.Client
                     await Task.Delay(511);
                     return await this.WaitConfirmation(txRID);
                 case "exception":
-                    return new GTX.PostchainErrorControl() {Error = true, ErrorMessage = "HTTP Exception: " + status.message};
+                    return new PostchainErrorControl() {Error = true, ErrorMessage = "HTTP Exception: " + status.message};
                 default:
-                    return new GTX.PostchainErrorControl() {Error = true, ErrorMessage = "Got unexpected response from server: " + statusString};
+                    return new PostchainErrorControl() {Error = true, ErrorMessage = "Got unexpected response from server: " + statusString};
             }
         }
 
-        public async Task<GTX.PostchainErrorControl> PostAndWaitConfirmation(string serializedTransaction, string txRID)
+        public async Task<PostchainErrorControl> PostAndWaitConfirmation(string serializedTransaction, string txRID)
         {
             await this.PostTransaction(serializedTransaction);
 

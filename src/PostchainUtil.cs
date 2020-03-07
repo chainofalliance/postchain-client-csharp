@@ -1,12 +1,12 @@
 using secp256k1 = Cryptography.ECDSA;
 using System.Collections.Generic;
-using Chromia.Postchain.Client.GTX.ASN1Messages;
 using System;
 using System.Text;
+using System.Linq;
 
 namespace Chromia.Postchain.Client
 {
-    public static class Util
+    public static class PostchainUtil
     {
         public static byte[] Sha256(byte[] buffer)
         {
@@ -31,7 +31,7 @@ namespace Chromia.Postchain.Client
                 throw new Exception("Programmer error. Invalid key length. Expected 32, but got " + privKey.Length);
             }
             
-            return Util.SignDigest(content, privKey);
+            return PostchainUtil.SignDigest(content, privKey);
         }
 
         /**
@@ -78,9 +78,12 @@ namespace Chromia.Postchain.Client
         * @param key: string
         * @returns {Buffer}
         */
-        public static byte[] HexStringToBuffer(string key)
+        public static byte[] HexStringToBuffer(string hex)
         {
-            return ASN1Util.StringToByteArray(key);
+            return Enumerable.Range(0, hex.Length)
+                            .Where(x => x % 2 == 0)
+                            .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
+                            .ToArray();
         }
 
         public static string ByteArrayToString(byte[] ba)
@@ -104,6 +107,42 @@ namespace Chromia.Postchain.Client
             }
             
             return retArr.ToArray();
+        }
+
+        internal static int GetMaxAmountOfBytesForInteger(long value)
+        {
+            int maxAmount = 0;
+
+            if (value == 0)
+            {
+                return 1;
+            }
+
+            while (value > 0)
+            {
+                maxAmount += 1;
+                value >>= 8;
+            }
+
+            return maxAmount;
+        }
+
+        internal static bool IsNumericType(this object o)
+        {   
+            switch (Type.GetTypeCode(o.GetType()))
+            {
+                case TypeCode.Byte:
+                case TypeCode.SByte:
+                case TypeCode.UInt16:
+                case TypeCode.UInt32:
+                case TypeCode.UInt64:
+                case TypeCode.Int16:
+                case TypeCode.Int32:
+                case TypeCode.Int64:
+                    return true;
+                default:
+                    return false;
+            }
         }
     }
 }

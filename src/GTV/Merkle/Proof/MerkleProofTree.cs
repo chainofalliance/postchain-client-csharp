@@ -1,12 +1,12 @@
 using System;
 
-namespace Chromia.Postchain.Client.GTV.Merkle.Proof
+namespace Chromia.Postchain.Client
 {
-    public interface MerkleProofElement
+    internal interface MerkleProofElement
     {
     }
 
-    public class ProofNode: MerkleProofElement
+    internal class ProofNode: MerkleProofElement
     {
         public byte Prefix {get;}
         public MerkleProofElement Left;
@@ -21,7 +21,7 @@ namespace Chromia.Postchain.Client.GTV.Merkle.Proof
 
     }
 
-    public class ProofNodeSimple: ProofNode
+    internal class ProofNodeSimple: ProofNode
     {
 
         public ProofNodeSimple(MerkleProofElement left, MerkleProofElement right): base((byte)HashPrefix.Node, left, right)
@@ -30,7 +30,7 @@ namespace Chromia.Postchain.Client.GTV.Merkle.Proof
 
     }
 
-    public class ProofValueLeaf: MerkleProofElement
+    internal class ProofValueLeaf: MerkleProofElement
     {
         public dynamic Content {get;}
         private SearchablePathElement PathElement;
@@ -42,7 +42,7 @@ namespace Chromia.Postchain.Client.GTV.Merkle.Proof
         }
     }
 
-    public class ProofHashedLeaf: MerkleProofElement
+    internal class ProofHashedLeaf: MerkleProofElement
     {
         public byte[] MerkleHash {get;}
 
@@ -70,7 +70,7 @@ namespace Chromia.Postchain.Client.GTV.Merkle.Proof
         }
     }
 
-    public class ProofNodeArrayHead: ProofNode
+    internal class ProofNodeArrayHead: ProofNode
     {
         private SearchablePathElement PathElem;
         public ProofNodeArrayHead(MerkleProofElement left, MerkleProofElement right, SearchablePathElement pathElem = null): base((byte)HashPrefix.NodeArray, left, right)
@@ -80,7 +80,7 @@ namespace Chromia.Postchain.Client.GTV.Merkle.Proof
 
     }
 
-    public class ProofNodeDictHead: ProofNode
+    internal class ProofNodeDictHead: ProofNode
     {
         private SearchablePathElement PathElem;
         public ProofNodeDictHead(MerkleProofElement left, MerkleProofElement right, SearchablePathElement pathElem = null): base((byte)HashPrefix.NodeDict, left, right)
@@ -89,7 +89,7 @@ namespace Chromia.Postchain.Client.GTV.Merkle.Proof
         }
     }
 
-    public class MerkleProofTree
+    internal class MerkleProofTree
     {
         public MerkleProofElement Root {get;}
 

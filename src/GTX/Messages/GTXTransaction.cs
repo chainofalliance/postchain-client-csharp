@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
-using Chromia.Postchain.Client.ASN1;
 
-namespace Chromia.Postchain.Client.GTX.ASN1Messages
+namespace Chromia.Postchain.Client
 {
     [System.Obsolete("Not used any more", true)]
-    public class GTXTransaction
+    internal class GTXTransaction
     {
         public byte[] BlockchainID;
         public List<GTXOperation> Operations;

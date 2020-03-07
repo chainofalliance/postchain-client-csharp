@@ -1,8 +1,6 @@
-using Chromia.Postchain.Client.ASN1;
-
-namespace Chromia.Postchain.Client.GTX.ASN1Messages
+namespace Chromia.Postchain.Client
 {
-    public class DictPair
+    internal class DictPair
     {
         public string Name;
         public GTXValue Value;

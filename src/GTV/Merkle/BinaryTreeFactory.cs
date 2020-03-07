@@ -2,9 +2,9 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 
-namespace Chromia.Postchain.Client.GTV.Merkle
+namespace Chromia.Postchain.Client
 {
-    public class BinaryTreeFactory
+    internal class BinaryTreeFactory
     {
         public BinaryTreeElement HandleLeaf(dynamic leaf, PathSet paths, bool IsRoot = false)
         {
@@ -52,7 +52,7 @@ namespace Chromia.Postchain.Client.GTV.Merkle
             }
             else if (leaf.GetType().IsGenericType && leaf.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))
             {
-                return this.BuildFromDictionary(leaf, paths); 
+                return this.BuildFromDictionary(leaf, paths);  
             }
             else
             {

@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Chromia.Postchain.Client.GTX
+namespace Chromia.Postchain.Client
 {
     public struct PostchainErrorControl
     {
@@ -77,7 +77,7 @@ namespace Chromia.Postchain.Client.GTX
                 }
                 else
                 {
-                    contentObject = queryContent.ToObject<T>();
+                    contentObject = (T) queryContent.ToObject<T>();
                 }
             }
             catch (System.Exception e)

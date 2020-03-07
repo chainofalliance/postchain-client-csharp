@@ -3,9 +3,19 @@ using System.Linq;
 using System.Collections.Generic;
 using Chromia.Postchain.Client;
 
-namespace Chromia.Postchain.Client.ASN1 
+namespace Chromia.Postchain.Client
 {
-    public class AsnWriter
+    internal enum Asn1TagValues
+    {
+        ContextSpecific = 1,
+        Integer = 2,
+        OctetString = 4,
+        Null = 5,
+        UTF8String = 12,
+        Sequence = 16
+    }
+    
+    internal class AsnWriter
     {
         private List<byte> _buffer;
         private List<AsnWriter> _sequences;
@@ -37,7 +47,7 @@ namespace Chromia.Postchain.Client.ASN1
         public void WriteUTF8String(string characterString)
         {
             var buffer = CurrentWriter()._buffer;
-            var content = Util.StringToByteArray(characterString).ToList();
+            var content = PostchainUtil.StringToByteArray(characterString).ToList();
 
             buffer.Add((byte) 0x0c);                        // tag
             buffer.AddRange(GetLengthBytes(content.Count));      // length 

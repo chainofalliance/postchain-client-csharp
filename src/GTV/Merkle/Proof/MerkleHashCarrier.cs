@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
 
-namespace Chromia.Postchain.Client.GTV.Merkle.Proof
+namespace Chromia.Postchain.Client
 {
-    public class MerkleHashSummary
+    internal class MerkleHashSummary
     {
         public  byte[] MerkleHash {get;}
         

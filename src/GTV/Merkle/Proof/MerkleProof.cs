@@ -1,6 +1,6 @@
-namespace Chromia.Postchain.Client.GTV.Merkle.Proof
+namespace Chromia.Postchain.Client
 {
-    public static class MerkleProof
+    internal static class MerkleProof
     {
         private static BinaryTreeFactory treeFactory = new BinaryTreeFactory();
         private static MerkleProofTreeFactory proofFactory = new MerkleProofTreeFactory();

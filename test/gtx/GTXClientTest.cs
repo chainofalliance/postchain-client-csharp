@@ -1,11 +1,9 @@
 using Xunit;
-using Chromia.Postchain.Client.GTX;
 using System;
 using System.Collections.Generic;
-using Chromia.Postchain.Client.ASN1;
 
 
-namespace Chromia.Postchain.Client.Tests.GTX
+namespace Chromia.Postchain.Client.Tests
 {
     public class GTXClientTest
     {
@@ -19,7 +17,7 @@ namespace Chromia.Postchain.Client.Tests.GTX
 
         //[Fact]
         public async void StringTest(){
-            var keyPair = Util.MakeKeyPair();
+            var keyPair = PostchainUtil.MakeKeyPair();
             var privKey = keyPair["privKey"];
             var pubKey = keyPair["pubKey"];
             
@@ -44,7 +42,7 @@ namespace Chromia.Postchain.Client.Tests.GTX
 
         [Fact]
         public async void IntegerTest(){
-            var keyPair = Util.MakeKeyPair();
+            var keyPair = PostchainUtil.MakeKeyPair();
             var privKey = keyPair["privKey"];
             var pubKey = keyPair["pubKey"];
 

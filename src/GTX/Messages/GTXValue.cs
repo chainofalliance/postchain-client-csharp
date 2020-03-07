@@ -1,11 +1,10 @@
 using System.Linq;
 using System.Collections.Generic;
 using System;
-using Chromia.Postchain.Client.ASN1;
 
-namespace Chromia.Postchain.Client.GTX.ASN1Messages
+namespace Chromia.Postchain.Client
 {    
-    public enum GTXValueChoice
+    internal enum GTXValueChoice
     {
         NotSet = -1,
         Null = 0,
@@ -15,7 +14,7 @@ namespace Chromia.Postchain.Client.GTX.ASN1Messages
         Dict = 4,
         Array = 5
     }
-    public class GTXValue
+    internal class GTXValue
     {
         public GTXValueChoice Choice;
         public byte[] ByteArray;
@@ -240,7 +239,7 @@ namespace Chromia.Postchain.Client.GTX.ASN1Messages
                 }
                 case (GTXValueChoice.Integer):
                 {       
-                    byte size = (byte) (ASN1Util.GetMaxAmountOfBytesForInteger(gtxValue.Integer) + 2);
+                    byte size = (byte) (PostchainUtil.GetMaxAmountOfBytesForInteger(gtxValue.Integer) + 2);
                     if (size > 127)
                     {
                         size += 1;
@@ -315,7 +314,7 @@ namespace Chromia.Postchain.Client.GTX.ASN1Messages
                 }
                 case (GTXValueChoice.ByteArray):
                 {
-                    return Util.ByteArrayToString(ByteArray);
+                    return PostchainUtil.ByteArrayToString(ByteArray);
                 }
                 case (GTXValueChoice.String):
                 {

@@ -1,6 +1,6 @@
-namespace Chromia.Postchain.Client.GTV.Merkle
+namespace Chromia.Postchain.Client
 {
-    enum HashPrefix
+    internal enum HashPrefix
     {
         Node = 0,
         Leaf = 1,
@@ -8,7 +8,7 @@ namespace Chromia.Postchain.Client.GTV.Merkle
         NodeDict = 8
     }
 
-    public abstract class BinaryTreeElement
+    internal abstract class BinaryTreeElement
     {
         public PathElement PathElem {get;set;} = null;
 
@@ -35,7 +35,7 @@ namespace Chromia.Postchain.Client.GTV.Merkle
         public abstract int GetPrefixByte();
     }
 
-    public class Node: BinaryTreeElement
+    internal class Node: BinaryTreeElement
     {
         public BinaryTreeElement Left { get; }
         public BinaryTreeElement Right { get; }
@@ -52,7 +52,7 @@ namespace Chromia.Postchain.Client.GTV.Merkle
         }
     }
 
-    public class SubTreeRootNode<T>: Node
+    internal class SubTreeRootNode<T>: Node
     {
         public T Content {get;}
 
@@ -63,7 +63,7 @@ namespace Chromia.Postchain.Client.GTV.Merkle
         }
     }
 
-    public class Leaf: BinaryTreeElement
+    internal class Leaf: BinaryTreeElement
     {
         public dynamic Content {get;}
 
@@ -90,7 +90,7 @@ namespace Chromia.Postchain.Client.GTV.Merkle
         }
     }
 
-    public class EmptyLeaf: BinaryTreeElement
+    internal class EmptyLeaf: BinaryTreeElement
     {
         public EmptyLeaf(){}
 
@@ -100,7 +100,7 @@ namespace Chromia.Postchain.Client.GTV.Merkle
         }
     }
 
-    public class BinaryTree
+    internal class BinaryTree
     {
         public BinaryTreeElement Root {get;}
 
@@ -136,7 +136,7 @@ namespace Chromia.Postchain.Client.GTV.Merkle
         }
     }
 
-    public class ArrayHeadNode<T>: SubTreeRootNode<T>
+    internal class ArrayHeadNode<T>: SubTreeRootNode<T>
     {
         private int Size;
         public ArrayHeadNode(BinaryTreeElement left, BinaryTreeElement right, T content, int size, PathElement pathElem = null) : base(left, right, content, pathElem)
@@ -150,7 +150,7 @@ namespace Chromia.Postchain.Client.GTV.Merkle
         }
     }
 
-    public class DictHeadNode<T>: SubTreeRootNode<T>
+    internal class DictHeadNode<T>: SubTreeRootNode<T>
     {
         private int Size;
 

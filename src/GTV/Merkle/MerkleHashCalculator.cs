@@ -1,19 +1,17 @@
 using System;
 using System.Collections.Generic;
-using Chromia.Postchain.Client.GTX;
-using Chromia.Postchain.Client.GTX.ASN1Messages;
 
-namespace Chromia.Postchain.Client.GTV.Merkle
+namespace Chromia.Postchain.Client
 {
-    public class CryptoSystem
+    internal class CryptoSystem
     {
         public byte[] Digest(byte[] buffer)
         {
-            return Chromia.Postchain.Client.Util.Sha256(buffer);
+            return Chromia.Postchain.Client.PostchainUtil.Sha256(buffer);
         }
     }
 
-    public class MerkleHashCalculator
+    internal class MerkleHashCalculator
     {
         private CryptoSystem CryptoSystem;
 

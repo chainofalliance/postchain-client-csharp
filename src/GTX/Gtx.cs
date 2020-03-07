@@ -1,12 +1,11 @@
 using System.Linq;
 using System;
-using Chromia.Postchain.Client.GTX.ASN1Messages;
 using System.Collections.Generic;
 
-namespace Chromia.Postchain.Client.GTX
+namespace Chromia.Postchain.Client
 {
 
-    public class Gtx
+    internal class Gtx
     {
         private string BlockchainID;
         private List<dynamic> Operations;
@@ -34,7 +33,7 @@ namespace Chromia.Postchain.Client.GTX
             var newOperation = new List<dynamic>(){opName, args};
 
             this.Operations.Add(newOperation.ToArray());
-   
+
             return this;
         }
 
@@ -46,7 +45,7 @@ namespace Chromia.Postchain.Client.GTX
             {
                 gtxValue.Choice = GTXValueChoice.Null;
             }
-            else if (ASN1Util.IsNumericType(arg))
+            else if (PostchainUtil.IsNumericType(arg))
             {
                 try
                 {
@@ -112,7 +111,7 @@ namespace Chromia.Postchain.Client.GTX
         public void Sign(byte[] privKey, byte[] pubKey)
         {
             byte[] bufferToSign = this.GetBufferToSign();
-            var signature = Util.Sign(bufferToSign, privKey);
+            var signature = PostchainUtil.Sign(bufferToSign, privKey);
             
             this.AddSignature(pubKey, signature);
         }
@@ -122,7 +121,7 @@ namespace Chromia.Postchain.Client.GTX
             var oldSignatures = this.Signatures;
             this.Signatures.Clear();
 
-            var encodedBuffer = Chromia.Postchain.Client.GTV.Gtv.Hash(GetGtvTxBody(true));
+            var encodedBuffer = Gtv.Hash(GetGtvTxBody(true));
 
             this.Signatures = oldSignatures;
 
@@ -132,7 +131,7 @@ namespace Chromia.Postchain.Client.GTX
         private dynamic[] GetGtvTxBody(bool asHexString = false)
         {
             var body = new List<dynamic>();
-            body.Add(Util.HexStringToBuffer(this.BlockchainID));
+            body.Add(PostchainUtil.HexStringToBuffer(this.BlockchainID));
             body.Add(this.Operations.ToArray());
             body.Add(this.Signers.ToArray());
 
@@ -168,7 +167,7 @@ namespace Chromia.Postchain.Client.GTX
             gtxBody.Add(GetGtvTxBody());
             gtxBody.Add(this.Signatures.ToArray());
             
-            return Util.ByteArrayToString(Gtx.ArgToGTXValue(gtxBody.ToArray()).Encode());
+            return PostchainUtil.ByteArrayToString(Gtx.ArgToGTXValue(gtxBody.ToArray()).Encode());
         }
 
         public static GTXValue Deserialize(byte[] encodedMessage)
