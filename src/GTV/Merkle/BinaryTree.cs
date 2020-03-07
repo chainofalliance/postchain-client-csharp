@@ -65,9 +65,9 @@ namespace Chromia.Postchain.Client
 
     internal class Leaf: BinaryTreeElement
     {
-        public dynamic Content {get;}
+        public object Content {get;}
 
-        public Leaf(dynamic content, PathElement pathElem = null)
+        public Leaf(object content, PathElement pathElem = null)
         {
             this.Content = content;
 

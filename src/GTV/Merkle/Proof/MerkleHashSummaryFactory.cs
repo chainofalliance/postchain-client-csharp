@@ -11,7 +11,7 @@ namespace Chromia.Postchain.Client
             this.ProofFactory = proofFactory;
         }
 
-        public MerkleHashSummary CalculateMerkleRoot(dynamic value, MerkleHashCalculator calculator)
+        public MerkleHashSummary CalculateMerkleRoot(object value, MerkleHashCalculator calculator)
         {
             var binaryTree = this.TreeFactory.Build(value);
             var proofTree = this.ProofFactory.BuildFromBinaryTree(binaryTree, calculator);
@@ -66,7 +66,7 @@ namespace Chromia.Postchain.Client
             }
         }
 
-        public MerkleProofTree BuildProofTree(dynamic value, MerkleHashCalculator calculator)
+        public MerkleProofTree BuildProofTree(object value, MerkleHashCalculator calculator)
         {
             var root = this.TreeFactory.Build(value);
 

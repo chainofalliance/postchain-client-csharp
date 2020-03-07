@@ -32,10 +32,10 @@ namespace Chromia.Postchain.Client
 
     internal class ProofValueLeaf: MerkleProofElement
     {
-        public dynamic Content {get;}
+        public object Content {get;}
         private SearchablePathElement PathElement;
 
-        public ProofValueLeaf(dynamic content, SearchablePathElement pathElem)
+        public ProofValueLeaf(object content, SearchablePathElement pathElem)
         {
             this.Content = content;
             this.PathElement = pathElem;

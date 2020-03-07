@@ -41,14 +41,14 @@ namespace Chromia.Postchain.Client
                     return new ProofHashedLeaf(hash);
                 }
             }
-            else if (currentElement is SubTreeRootNode<dynamic>)
+            else if (currentElement is SubTreeRootNode<object>)
             {
                 var pathElem = currentElement.PathElem;
                 if (!(pathElem is null))
                 {
                     if (pathElem is PathLeafElement)
                     {
-                        var treeNodeElement = (SubTreeRootNode<dynamic>) currentElement;
+                        var treeNodeElement = (SubTreeRootNode<object>) currentElement;
                         return new ProofValueLeaf(treeNodeElement.Content, pathElem.Previous);
                     }
                     else
@@ -108,11 +108,11 @@ namespace Chromia.Postchain.Client
 
         public ProofNode BuildNodeOfCorrectType(Node node, MerkleProofElement left, MerkleProofElement right)
         {
-            if (node is ArrayHeadNode<dynamic[]>)
+            if (node is ArrayHeadNode<object[]>)
             {
                 return new ProofNodeArrayHead(left, right, this.ExtractSearchablePathElement(node));
             }
-            else if (node is DictHeadNode<Dictionary<string, dynamic>>)
+            else if (node is DictHeadNode<Dictionary<string, object>>)
             {
                 return new ProofNodeDictHead(left, right, this.ExtractSearchablePathElement(node));
             }

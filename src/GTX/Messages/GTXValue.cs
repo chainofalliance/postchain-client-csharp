@@ -149,7 +149,7 @@ namespace Chromia.Postchain.Client
         private static byte[] TrimByteList(byte[] byteList)
         {
             List<byte> trimmedBytes = new List<byte>();
-            for (int i = byteList.Length - 1; i >= 0; i--)// List<byte>(sizeInBytes.Reverse()))
+            for (int i = byteList.Length - 1; i >= 0; i--)
             {
                 if (byteList[i] != 0)
                 {
@@ -165,14 +165,14 @@ namespace Chromia.Postchain.Client
             return trimmedBytes.ToArray();
         }
 
-        public dynamic[] ToDynamicArray()
+        public object[] ToObjectArray()
         {
             if (Choice != GTXValueChoice.Array)
             {
-                throw new Exception("Tried to cast non array choice to dynamic array.");
+                throw new Exception("Tried to cast non array choice to object array.");
             }
 
-            List<dynamic> retArr = new List<dynamic>();
+            List<object> retArr = new List<object>();
 
             foreach(var innerGtxValue in Array)
             {
@@ -195,7 +195,7 @@ namespace Chromia.Postchain.Client
                     }
                     case (GTXValueChoice.Array):
                     {
-                        retArr.Add(innerGtxValue.ToDynamicArray());
+                        retArr.Add(innerGtxValue.ToObjectArray());
                         break;
                     }
                     case (GTXValueChoice.Dict):
