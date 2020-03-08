@@ -109,6 +109,16 @@ namespace Chromia.Postchain.Client
             return retArr.ToArray();
         }
 
+        public static GTXValue DeserializeGTX(byte[] encodedMessage)
+        {
+            return Gtx.Deserialize(encodedMessage);
+        }
+
+        public static byte[] HashGTV(object content)
+        {
+            return Gtv.Hash(content);
+        }
+
         internal static int GetMaxAmountOfBytesForInteger(long value)
         {
             int maxAmount = 0;

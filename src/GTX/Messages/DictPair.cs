@@ -1,6 +1,6 @@
 namespace Chromia.Postchain.Client
 {
-    internal class DictPair
+    public class DictPair
     {
         public string Name;
         public GTXValue Value;

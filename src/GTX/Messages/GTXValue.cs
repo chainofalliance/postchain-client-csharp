@@ -4,7 +4,7 @@ using System;
 
 namespace Chromia.Postchain.Client
 {    
-    internal enum GTXValueChoice
+    public enum GTXValueChoice
     {
         NotSet = -1,
         Null = 0,
@@ -14,7 +14,7 @@ namespace Chromia.Postchain.Client
         Dict = 4,
         Array = 5
     }
-    internal class GTXValue
+    public class GTXValue
     {
         public GTXValueChoice Choice;
         public byte[] ByteArray;
