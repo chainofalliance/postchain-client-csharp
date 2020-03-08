@@ -71,7 +71,7 @@ namespace Chromia.Postchain.Client
                 gtxValue.Array = new List<GTXValue>();
                 foreach (var subArg in array)
                 {
-                    gtxValue.Array.Add(ArgToGTXValue((dynamic) subArg));
+                    gtxValue.Array.Add(ArgToGTXValue((object) subArg));
                 }
             }
             else if (arg is Dictionary<string, object>)
@@ -125,7 +125,7 @@ namespace Chromia.Postchain.Client
             return encodedBuffer;
         }
 
-        private dynamic[] GetGtvTxBody(bool asHexString = false)
+        private object[] GetGtvTxBody(bool asHexString = false)
         {
             var body = new List<object>();
             body.Add(PostchainUtil.HexStringToBuffer(this.BlockchainID));

@@ -50,56 +50,34 @@ namespace Chromia.Postchain.Client
         ///<param name = "queryName">Name of the query to be called.</param>
         ///<param name = "queryObject">List of parameter pairs of query parameter name and its value. For example {"city", "Hamburg"}.</param>
         ///<returns>Task, which returns the query return content.</returns>
-        public async Task<(T content, PostchainErrorControl control)> Query<T> (string queryName, params dynamic[] queryObject)
+        public async Task<(T content, PostchainErrorControl control)> Query<T> (string queryName, params (string name, object content)[] queryObject)
         {
             var queryContent = await this.RestApiClient.Query(queryName, queryObject);
 
             PostchainErrorControl queryError = new PostchainErrorControl();
-            try
+            if (queryContent is HTTPStatusResponse)
             {
-                queryError.Error = queryContent.__postchainerror__;
-                queryError.ErrorMessage = queryContent.message;
+                var response = queryContent as HTTPStatusResponse;
+
+                queryError.Error = true;
+                queryError.ErrorMessage = response.message;
 
                 return (default(T), queryError);
             }
-            catch
+            else
             {
-                queryError.Error = false;
-                queryError.ErrorMessage = "";                
-            }
-
-            T contentObject;
-            try
-            {
-                if (queryContent.GetType().IsPrimitive || queryContent.GetType().Equals(typeof(String)))
+                if (queryContent is T)
                 {
-                    contentObject = (T) queryContent;
+                    return ((T) queryContent, queryError);
                 }
                 else
                 {
-                    contentObject = (T) queryContent.ToObject<T>();
+                    queryError.Error = true;
+                    queryError.ErrorMessage = "Can not cast query return to type";
+
+                    return (default(T), queryError);
                 }
             }
-            catch (System.Exception e)
-            {
-                contentObject = default(T);
-                queryError.Error = true;
-                queryError.ErrorMessage = e.Message;
-            }
-
-            return (contentObject, queryError);
-        } 
-
-        /*
-        [Obsolete]
-        public Transaction TransactionFromRawTransaction(byte[] rawTransaction)
-        {
-            Gtx gtx = Gtx.Deserialize(rawTransaction);
-
-            Transaction req = new Transaction(gtx, this.RestApiClient);
-
-            return req;
         }
-        */
     }
 }

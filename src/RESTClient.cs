@@ -1,15 +1,25 @@
 ﻿using System;
-using System.Threading.Tasks;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Collections.Generic;
+#if UNITYBUILD
+using UnityEngine.Networking;
+#else
 using Flurl;
 using Flurl.Http;
+#endif
 using Newtonsoft.Json;
 
 namespace Chromia.Postchain.Client
 {
-    internal class HTTPResponse
+    internal class HTTPStatusResponse
     {
+        public HTTPStatusResponse(string status, string message)
+        {
+            this.status = status;
+            this.message = message;
+        }
+
         public string status = "";
         public string message = "";
     }
@@ -37,123 +47,31 @@ namespace Chromia.Postchain.Client
             return await Post(this.UrlBase, "tx/" + this.BlockchainRID, jsonString);
         }
 
-        private async Task<HTTPResponse> Status(string messageHash)
+        private async Task<HTTPStatusResponse> Status(string messageHash)
         {
             ValidateMessageHash(messageHash);
             return await Get(this.UrlBase, "tx/" + this.BlockchainRID + "/" + messageHash + "/status");
         }
 
-        public async Task<dynamic> Query(string queryName, params dynamic[] queryObject)
+        public async Task<object> Query(string queryName, (string name, object content)[] queryObject)
         {
-            string queryString = BuildQuery(queryObject);
-            queryString = AppendQueryName(queryName, queryString);
+            var queryDict = QueryToDict(queryName, queryObject);
+            string queryString = JsonConvert.SerializeObject(queryDict); // BuildQuery(queryObject);
 
             return await Post(this.UrlBase, "query/" + this.BlockchainRID, queryString);
         }
 
-        private string AppendQueryName(string queryName, string queryString)
+        private Dictionary<string, object> QueryToDict(string queryName, (string name, object content)[] queryObject)
         {
-            if (!String.IsNullOrEmpty(queryString))
-            {
-                queryString = queryString.Remove(queryString.Length - 1);
-                queryString += String.Format(@", ""type"": ""{0}""", queryName);
-                return queryString + " }";
-            }
-            else
-            {
-                return String.Format(@"{{""type"": ""{0}""}}", queryName);
-            }
-        }
+            var queryDict = new Dictionary<string, object>();
 
-        private static string BuildQuery(dynamic queryObject, int layer = 0)
-        {
-            if (IsTuple(queryObject.GetType()))
+            queryDict.Add("type", queryName);
+            foreach (var entry in queryObject)
             {
-                if (layer < 2)
-                {
-                    return String.Format(@"""{0}"": {1}", queryObject.Item1, BuildQuery(queryObject.Item2, layer + 1));
-                }
-                else
-                {
-                    string queryString = "[";
-                    var queryItems = ToEnumerable(queryObject);
-                    foreach (var queryItem in queryItems)
-                    {
-                        queryString += BuildQuery(queryItem, layer + 1) + ", ";
-                    }
-                    queryString = queryString.Remove(queryString.Length - 2) + "]";
-                    return queryString;
-                }
+                queryDict.Add(entry.name, entry.content);
             }
-            else if (queryObject is byte[])
-            {
-                return String.Format(@"""{0}""", PostchainUtil.ByteArrayToString(queryObject));
-            }
-            else if (queryObject is System.Array)
-            {
-                if (layer == 0 && queryObject.Length == 0)
-                {
-                    return "";
-                }
-                else if(layer != 0 && queryObject.Length == 0)
-                {
-                    return "[]";
-                }
-                
-                string queryString  = "";
-                if(layer == 0)
-                {
-                    queryString = "{";
-                }
-                else 
-                {
-                    queryString = "[";
-                }
 
-                foreach (var subQueryParam in queryObject)
-                {
-                    queryString += BuildQuery(subQueryParam, layer + 1) + ", ";
-                }
-
-                if(layer == 0)
-                {
-                    queryString = queryString.Remove(queryString.Length - 2) + "}";
-                }
-                else 
-                {
-                    queryString = queryString.Remove(queryString.Length - 2) + "]";
-                }
-                return queryString;
-            }
-            else if (PostchainUtil.IsNumericType(queryObject))
-            {
-                return queryObject.ToString();
-            }
-            else if (queryObject is string)
-            {
-                return String.Format(@"""{0}""", (string) queryObject);
-            }
-            else
-            {
-                throw new Exception("Unknown query data type " + queryObject.GetType());
-            }
-        }
-
-        private static IEnumerable<object> ToEnumerable(object tuple)
-        {
-            if (IsTuple(tuple.GetType()))
-            {
-                foreach (var prop in tuple.GetType()
-                    .GetFields()
-                    .Where(x => x.Name.StartsWith("Item")))
-                {
-                    yield return prop.GetValue(tuple);
-                }
-            }
-            else
-            {
-                throw new ArgumentException("Not a tuple!");
-            }
+            return queryDict;
         }
 
         public static bool IsTuple(Type tuple)
@@ -206,7 +124,45 @@ namespace Chromia.Postchain.Client
             return await this.WaitConfirmation(txRID);
         }
 
-        private async Task<HTTPResponse> Get(string urlBase, string path)
+#if UNITYBUILD
+        private async Task<HTTPStatusResponse> Get(string urlBase, string path)
+        {
+            var request = UnityWebRequest.Get(urlBase + path);
+
+            await request.SendWebRequest();
+
+            if (request.isNetworkError)
+            {
+                return new HTTPStatusResponse("exception", request.error);
+            }
+            else
+            {
+                return JsonConvert.DeserializeObject<HTTPStatusResponse>(request.downloadHandler.text);
+            }
+        }
+
+        private async Task<object> Post(string urlBase, string path, string jsonString)
+        {
+            var request = new UnityWebRequest(urlBase + path, "POST");            
+            byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonString);
+
+            request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
+            request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
+            request.SetRequestHeader("Content-Type", "application/json");  
+
+            await request.SendWebRequest();
+
+            if (request.isNetworkError)
+            {
+                return new HTTPStatusResponse("exception", request.error);
+            }
+            else
+            {
+                return JsonConvert.DeserializeObject(request.downloadHandler.text);
+            }
+        }
+#else
+        private async Task<HTTPStatusResponse> Get(string urlBase, string path)
         {
             try
             {
@@ -214,17 +170,16 @@ namespace Chromia.Postchain.Client
 
                 var response = await url.GetAsync();
                 var jsonString = await response.Content.ReadAsStringAsync();
-                var jsonObject = JsonConvert.DeserializeObject<HTTPResponse>(jsonString);
 
-                return jsonObject;
+                return JsonConvert.DeserializeObject<HTTPStatusResponse>(jsonString);
             }
             catch (FlurlHttpException e)
             {
-                return JsonConvert.DeserializeObject<HTTPResponse>("{ 'status': 'exception', 'message': '" + e.Message + "' }");
+                return new HTTPStatusResponse("exception", e.Message);
             }
         }
 
-        private async Task<dynamic> Post(string urlBase, string path, string jsonString)
+        private async Task<object> Post(string urlBase, string path, string jsonString)
         {
             try
             {
@@ -240,10 +195,10 @@ namespace Chromia.Postchain.Client
             }
             catch (FlurlHttpException e)
             {
-                return JsonConvert.DeserializeObject("{ '__postchainerror__': true, 'message': '" + e.Message + "' }");
+                return new HTTPStatusResponse("exception", e.Message);
             }
-            
         }
+#endif
 
         private void ValidateMessageHash(string messageHash)
         {

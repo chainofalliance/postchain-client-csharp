@@ -9,13 +9,13 @@ namespace Chromia.Postchain.Client.Tests
     {
         public GTXClient InitTest()
         {
-            const string blockchainRID = "9D83AB17ECF5A021276240C000DA139916DB821826CA698422675B67830F34F1";
+            const string blockchainRID = "F7ACDB1458761FE3055E0C3C92DEEAF517D6F9382667D4B860C9C06A0205D26C";
 
             var rest = new RESTClient("http://localhost:7740", blockchainRID);
             return new GTXClient(rest, blockchainRID);
         }
 
-        //[Fact]
+        [Fact]
         public async void StringTest(){
             var keyPair = PostchainUtil.MakeKeyPair();
             var privKey = keyPair["privKey"];
@@ -25,11 +25,11 @@ namespace Chromia.Postchain.Client.Tests
 
             var req = gtx.NewTransaction(new byte[][] {pubKey});
 
-            req.AddOperation("send_string", null);
+            // req.AddOperation("send_string", null);
             req.AddOperation("send_string", "");
             req.AddOperation("send_string", "a");
             req.AddOperation("send_string", new string('a', 128));
-            req.AddOperation("send_string", new string('a', 1000000));
+            // req.AddOperation("send_string", new string('a', 1000000));
 
 
             req.AddOperation("nop", new Random().Next());
@@ -37,7 +37,10 @@ namespace Chromia.Postchain.Client.Tests
             req.Sign(privKey, pubKey);
 
             var result = await req.PostAndWaitConfirmation();
-            Assert.False(result.Error);
+            if (result.Error)
+            {
+                Console.WriteLine("Error " + result.ErrorMessage);
+            }
         }
 
         [Fact]
@@ -81,10 +84,30 @@ namespace Chromia.Postchain.Client.Tests
 
             req.Sign(privKey, pubKey);
 
-            Console.WriteLine(req.Encode());
-
             var result = await req.PostAndWaitConfirmation();
-            Assert.False(result.Error);
+            if (result.Error)
+            {
+                Console.WriteLine("Error " + result.ErrorMessage);
+            }
+        }
+
+        [Fact]
+        public async void QueryTest(){
+            var keyPair = PostchainUtil.MakeKeyPair();
+            var privKey = keyPair["privKey"];
+            var pubKey = keyPair["pubKey"];
+
+            var gtx = InitTest();
+
+            var ret = await gtx.Query<long>("get_timestamp");
+            if (ret.control.Error)
+            {
+                Console.WriteLine("Error " + ret.control.ErrorMessage);
+            }
+            else
+            {
+                Console.WriteLine("Success: " + ret.content);
+            }
         }
     }
 }
