@@ -44,7 +44,7 @@ namespace Chromia.Postchain.Client
         {
             string jsonString = String.Format(@"{{""tx"": ""{0}""}}", serializedTransaction);
             
-            return await Post(this.UrlBase, "tx/" + this.BlockchainRID, jsonString);
+            return await Post<HTTPStatusResponse>(this.UrlBase, "tx/" + this.BlockchainRID, jsonString);
         }
 
         private async Task<HTTPStatusResponse> Status(string messageHash)
@@ -53,12 +53,12 @@ namespace Chromia.Postchain.Client
             return await Get(this.UrlBase, "tx/" + this.BlockchainRID + "/" + messageHash + "/status");
         }
 
-        public async Task<object> Query(string queryName, (string name, object content)[] queryObject)
+        public async Task<object> Query<T>(string queryName, (string name, object content)[] queryObject)
         {
             var queryDict = QueryToDict(queryName, queryObject);
             string queryString = JsonConvert.SerializeObject(queryDict); // BuildQuery(queryObject);
 
-            return await Post(this.UrlBase, "query/" + this.BlockchainRID, queryString);
+            return await Post<T>(this.UrlBase, "query/" + this.BlockchainRID, queryString);
         }
 
         private Dictionary<string, object> QueryToDict(string queryName, (string name, object content)[] queryObject)
@@ -141,7 +141,7 @@ namespace Chromia.Postchain.Client
             }
         }
 
-        private async Task<object> Post(string urlBase, string path, string jsonString)
+        private async Task<object> Post<T>(string urlBase, string path, string jsonString)
         {
             var request = new UnityWebRequest(urlBase + path, "POST");            
             byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonString);
@@ -158,7 +158,7 @@ namespace Chromia.Postchain.Client
             }
             else
             {
-                return JsonConvert.DeserializeObject(request.downloadHandler.text);
+                return JsonConvert.DeserializeObject<T>(request.downloadHandler.text);
             }
         }
 #else
@@ -179,7 +179,7 @@ namespace Chromia.Postchain.Client
             }
         }
 
-        private async Task<object> Post(string urlBase, string path, string jsonString)
+        private async Task<object> Post<T>(string urlBase, string path, string jsonString)
         {
             try
             {
@@ -189,7 +189,7 @@ namespace Chromia.Postchain.Client
                 var response = await url.PostJsonAsync(requestObject);
                 
                 var responseString = await response.Content.ReadAsStringAsync();
-                var jsonObject = JsonConvert.DeserializeObject(responseString);
+                var jsonObject = JsonConvert.DeserializeObject<T>(responseString);
 
                 return jsonObject;
             }

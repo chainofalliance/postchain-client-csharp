@@ -52,7 +52,7 @@ namespace Chromia.Postchain.Client
         ///<returns>Task, which returns the query return content.</returns>
         public async Task<(T content, PostchainErrorControl control)> Query<T> (string queryName, params (string name, object content)[] queryObject)
         {
-            var queryContent = await this.RestApiClient.Query(queryName, queryObject);
+            var queryContent = await this.RestApiClient.Query<T>(queryName, queryObject);
 
             PostchainErrorControl queryError = new PostchainErrorControl();
             if (queryContent is HTTPStatusResponse)
