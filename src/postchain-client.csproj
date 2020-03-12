@@ -12,6 +12,7 @@
 
   <PropertyGroup>
     <Unity>false</Unity>
+    <UnityJson>false</UnityJson>
   </PropertyGroup>
   
   <PropertyGroup>
@@ -22,9 +23,14 @@
     <PackageReference Include="Cryptography.ECDSA.Secp256k1" Version="1.1.2" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(Unity)' == 'false'">
-    <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
-    <PackageReference Include="Flurl.Http" Version="2.4.2" />
+  <ItemGroup Condition="'$(ExternalJson)' == 'false'">
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(ExternalJson)' == 'true'">
+    <Reference Include="Newtonsoft.Json"  Version="12.0.3">
+      <HintPath>../libs/Newtonsoft.Json.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup Condition="'$(Unity)' == 'true'">
