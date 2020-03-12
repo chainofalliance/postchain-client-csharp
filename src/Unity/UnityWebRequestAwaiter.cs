@@ -4,38 +4,40 @@ using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Networking;
 
-
-public class UnityWebRequestAwaiter : INotifyCompletion
+namespace Chromia.Postchain.Client
 {
-	private UnityWebRequestAsyncOperation asyncOp;
-	private Action continuation;
-
-	public UnityWebRequestAwaiter(UnityWebRequestAsyncOperation asyncOp)
+	internal class UnityWebRequestAwaiter : INotifyCompletion
 	{
-		this.asyncOp = asyncOp;
-		asyncOp.completed += OnRequestCompleted;
+		private UnityWebRequestAsyncOperation asyncOp;
+		private Action continuation;
+
+		public UnityWebRequestAwaiter(UnityWebRequestAsyncOperation asyncOp)
+		{
+			this.asyncOp = asyncOp;
+			asyncOp.completed += OnRequestCompleted;
+		}
+
+		public bool IsCompleted { get { return asyncOp.isDone; } }
+
+		public void GetResult() { }
+
+		public void OnCompleted(Action continuation)
+		{
+			this.continuation = continuation;
+		}
+
+		private void OnRequestCompleted(UnityEngine.AsyncOperation obj)
+		{
+			continuation();
+		}
 	}
 
-	public bool IsCompleted { get { return asyncOp.isDone; } }
-
-	public void GetResult() { }
-
-	public void OnCompleted(Action continuation)
+	internal static class ExtensionMethods
 	{
-		this.continuation = continuation;
-	}
-
-	private void OnRequestCompleted(UnityEngine.AsyncOperation obj)
-	{
-		continuation();
-	}
-}
-
-public static class ExtensionMethods
-{
-	public static UnityWebRequestAwaiter GetAwaiter(this UnityWebRequestAsyncOperation asyncOp)
-	{
-		return new UnityWebRequestAwaiter(asyncOp);
+		public static UnityWebRequestAwaiter GetAwaiter(this UnityWebRequestAsyncOperation asyncOp)
+		{
+			return new UnityWebRequestAwaiter(asyncOp);
+		}
 	}
 }
 #endif
