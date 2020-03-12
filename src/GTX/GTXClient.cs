@@ -3,8 +3,20 @@ using System.Threading.Tasks;
 
 namespace Chromia.Postchain.Client
 {
-    public struct PostchainErrorControl
+    public class PostchainErrorControl
     {
+        public PostchainErrorControl()
+        {
+            Error = false;
+            ErrorMessage = "";
+        }
+
+        public PostchainErrorControl(bool error, string message)
+        {
+            Error = error;
+            ErrorMessage = message;
+        }
+
         public bool Error;
         public string ErrorMessage;
     }
@@ -12,17 +24,15 @@ namespace Chromia.Postchain.Client
     public class GTXClient
     {
         private RESTClient RestApiClient;
-        private string BlockchainRID;
 
         ///<summary>
         ///Create new GTXClient object.
         ///</summary>
         ///<param name = "restApiClient">Initialized RESTCLient.</param>
         ///<param name = "blockchainRID">RID of blockchain.</param>
-        public GTXClient(RESTClient restApiClient, string blockchainRID)
+        public GTXClient(RESTClient restApiClient)
         {
             this.RestApiClient = restApiClient;
-            this.BlockchainRID = blockchainRID;
         }
 
         ///<summary>
@@ -32,7 +42,7 @@ namespace Chromia.Postchain.Client
         ///<returns>New Transaction object.</returns>
         public Transaction NewTransaction(byte[][] signers)
         {
-            Gtx newGtx = new Gtx(this.BlockchainRID);
+            Gtx newGtx = new Gtx(RestApiClient.BlockchainRID);
 
             foreach(byte[] signer in signers)
             {
@@ -54,28 +64,21 @@ namespace Chromia.Postchain.Client
         {
             var queryContent = await this.RestApiClient.Query<T>(queryName, queryObject);
 
-            PostchainErrorControl queryError = new PostchainErrorControl();
             if (queryContent is HTTPStatusResponse)
             {
                 var response = queryContent as HTTPStatusResponse;
 
-                queryError.Error = true;
-                queryError.ErrorMessage = response.message;
-
-                return (default(T), queryError);
+                return (default(T), new PostchainErrorControl(true, response.message));
             }
             else
             {
                 if (queryContent is T)
                 {
-                    return ((T) queryContent, queryError);
+                    return ((T) queryContent, new PostchainErrorControl());
                 }
                 else
                 {
-                    queryError.Error = true;
-                    queryError.ErrorMessage = "Can not cast query return to type";
-
-                    return (default(T), queryError);
+                    return (default(T), new PostchainErrorControl(true, "Can not cast query return to type"));
                 }
             }
         }

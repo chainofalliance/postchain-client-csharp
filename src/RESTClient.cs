@@ -1,14 +1,14 @@
 ﻿using System;
-using System.Linq;
+using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+
 #if UNITYBUILD
 using UnityEngine.Networking;
 #else
-using Flurl;
-using Flurl.Http;
+using System.IO;
+using System.Net;
 #endif
-using Newtonsoft.Json;
 
 namespace Chromia.Postchain.Client
 {
@@ -26,39 +26,58 @@ namespace Chromia.Postchain.Client
 
     public class RESTClient
     {
-        private string UrlBase;
-        private string BlockchainRID;
+        public string BlockchainRID {get; private set;}
+        private string _urlBase;
 
         ///<summary>
         ///Create new RESTClient object.
         ///</summary>
         ///<param name = "urlBase">URL to rest server.</param>
         ///<param name = "blockchainRID">RID of blockchain.</param>
-        public RESTClient(string urlBase, string blockchainRID)
+        public RESTClient(string urlBase, string blockchainRID = null)
         {
-            this.UrlBase = urlBase;
-            this.BlockchainRID = blockchainRID;
+            BlockchainRID = blockchainRID;
+            _urlBase = urlBase;
         }
 
         public async Task<object> PostTransaction(string serializedTransaction)
         {
             string jsonString = String.Format(@"{{""tx"": ""{0}""}}", serializedTransaction);
             
-            return await Post<HTTPStatusResponse>(this.UrlBase, "tx/" + this.BlockchainRID, jsonString);
+            return await Post<HTTPStatusResponse>(this._urlBase, "tx/" + this.BlockchainRID, jsonString);
+        }
+
+        public async Task<PostchainErrorControl> InitializeBRIDFromChainID(int chainID)
+        {
+            var brid = await Get<string>(this._urlBase, "brid/iid_" + chainID, true);            
+            if (brid is HTTPStatusResponse)
+            {
+                return new PostchainErrorControl(true, ((HTTPStatusResponse) brid).message);
+            }
+            else if (brid is string)
+            {
+                this.BlockchainRID = (string) brid;
+
+                return new PostchainErrorControl();
+            }
+            else
+            {
+                return new PostchainErrorControl(true, "Unknown query return type " + brid.GetType().ToString());
+            }
         }
 
         private async Task<HTTPStatusResponse> Status(string messageHash)
         {
             ValidateMessageHash(messageHash);
-            return await Get(this.UrlBase, "tx/" + this.BlockchainRID + "/" + messageHash + "/status");
+            return (HTTPStatusResponse) await Get<HTTPStatusResponse>(this._urlBase, "tx/" + this.BlockchainRID + "/" + messageHash + "/status");
         }
 
         public async Task<object> Query<T>(string queryName, (string name, object content)[] queryObject)
         {
             var queryDict = QueryToDict(queryName, queryObject);
-            string queryString = JsonConvert.SerializeObject(queryDict); // BuildQuery(queryObject);
+            string queryString = JsonConvert.SerializeObject(queryDict);
 
-            return await Post<T>(this.UrlBase, "query/" + this.BlockchainRID, queryString);
+            return await Post<T>(this._urlBase, "query/" + this.BlockchainRID, queryString);
         }
 
         private Dictionary<string, object> QueryToDict(string queryName, (string name, object content)[] queryObject)
@@ -103,17 +122,17 @@ namespace Chromia.Postchain.Client
             switch(response.status)
             {
                 case "confirmed":
-                    return new PostchainErrorControl() {Error = false, ErrorMessage = ""};
+                    return new PostchainErrorControl(false, "");
                 case "rejected":
                 case "unknown":
-                    return new PostchainErrorControl() {Error = true, ErrorMessage = "Message was rejected"};
+                    return new PostchainErrorControl(true, "Message was rejected");
                 case "waiting":
                     await Task.Delay(511);
                     return await this.WaitConfirmation(txRID);
                 case "exception":
-                    return new PostchainErrorControl() {Error = true, ErrorMessage = "HTTP Exception: " + response.message};
+                    return new PostchainErrorControl(true, "HTTP Exception: " + response.message);
                 default:
-                    return new PostchainErrorControl() {Error = true, ErrorMessage = "Got unexpected response from server: " + response.status};
+                    return new PostchainErrorControl(true, "Got unexpected response from server: " + response.status);
             }
         }
 
@@ -125,19 +144,26 @@ namespace Chromia.Postchain.Client
         }
 
 #if UNITYBUILD
-        private async Task<HTTPStatusResponse> Get(string urlBase, string path)
+        private async Task<object> Get<T>(string urlBase, string path, bool raw = false)
         {
             var request = UnityWebRequest.Get(urlBase + path);
 
             await request.SendWebRequest();
 
-            if (request.isNetworkError)
+            if (request.isNetworkError || request.isHttpError)
             {
                 return new HTTPStatusResponse("exception", request.error);
             }
             else
             {
-                return JsonConvert.DeserializeObject<HTTPStatusResponse>(request.downloadHandler.text);
+                if (raw)
+                {
+                    return request.downloadHandler.text;
+                }
+                else
+                {
+                    return JsonConvert.DeserializeObject<T>(request.downloadHandler.text);
+                }
             }
         }
 
@@ -150,9 +176,12 @@ namespace Chromia.Postchain.Client
             request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
             request.SetRequestHeader("Content-Type", "application/json");  
 
+            UnityEngine.Debug.Log("Before request");
             await request.SendWebRequest();
+            UnityEngine.Debug.Log("After request");
+            UnityEngine.Debug.Log("Status " + request.isDone);
 
-            if (request.isNetworkError)
+            if (request.isNetworkError || request.isHttpError)
             {
                 return new HTTPStatusResponse("exception", request.error);
             }
@@ -162,18 +191,30 @@ namespace Chromia.Postchain.Client
             }
         }
 #else
-        private async Task<HTTPStatusResponse> Get(string urlBase, string path)
+        private async Task<object> Get<T>(string urlBase, string path, bool raw = false)
         {
             try
             {
-                var url = Url.Combine(urlBase, path);
+                HttpWebRequest request = (HttpWebRequest) WebRequest.Create(urlBase + path);
 
-                var response = await url.GetAsync();
-                var jsonString = await response.Content.ReadAsStringAsync();
+                var responseText = "";
+                using(HttpWebResponse response = (HttpWebResponse) await request.GetResponseAsync())
+                using(Stream stream = response.GetResponseStream())
+                using(StreamReader reader = new StreamReader(stream))
+                {
+                    responseText = await reader.ReadToEndAsync();
+                }
 
-                return JsonConvert.DeserializeObject<HTTPStatusResponse>(jsonString);
+                if (raw)
+                {
+                    return responseText;
+                }
+                else
+                {
+                    return JsonConvert.DeserializeObject<T>(responseText);
+                }
             }
-            catch (FlurlHttpException e)
+            catch (Exception e)
             {
                 return new HTTPStatusResponse("exception", e.Message);
             }
@@ -183,17 +224,25 @@ namespace Chromia.Postchain.Client
         {
             try
             {
-                var url = Url.Combine(urlBase, path);
+                var request = (HttpWebRequest) WebRequest.Create(urlBase + path);
+                request.ContentType = "application/json";
+                request.Method = "POST";
 
-                var requestObject =  JsonConvert.DeserializeObject<object>(jsonString);
-                var response = await url.PostJsonAsync(requestObject);
-                
-                var responseString = await response.Content.ReadAsStringAsync();
-                var jsonObject = JsonConvert.DeserializeObject<T>(responseString);
+                using (var streamWriter = new StreamWriter(request.GetRequestStream()))
+                {
+                    streamWriter.Write(jsonString);
+                }
 
-                return jsonObject;
+                var responseString = "";
+                using (var response = (HttpWebResponse) await request.GetResponseAsync())
+                using (var streamReader = new StreamReader(response.GetResponseStream()))
+                {
+                    responseString = await streamReader.ReadToEndAsync();
+                }
+
+                return JsonConvert.DeserializeObject<T>(responseString);
             }
-            catch (FlurlHttpException e)
+            catch (Exception e)
             {
                 return new HTTPStatusResponse("exception", e.Message);
             }

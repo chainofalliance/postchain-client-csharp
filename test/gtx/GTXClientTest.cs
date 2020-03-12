@@ -11,11 +11,11 @@ namespace Chromia.Postchain.Client.Tests
         {
             const string blockchainRID = "F7ACDB1458761FE3055E0C3C92DEEAF517D6F9382667D4B860C9C06A0205D26C";
 
-            var rest = new RESTClient("http://localhost:7740", blockchainRID);
-            return new GTXClient(rest, blockchainRID);
+            var rest = new RESTClient("http://localhost:7740/", blockchainRID);
+            return new GTXClient(rest);
         }
 
-        [Fact]
+        // [Fact]
         public async void StringTest(){
             var keyPair = PostchainUtil.MakeKeyPair();
             var privKey = keyPair["privKey"];
@@ -43,7 +43,7 @@ namespace Chromia.Postchain.Client.Tests
             }
         }
 
-        [Fact]
+        // [Fact]
         public async void IntegerTest(){
             var keyPair = PostchainUtil.MakeKeyPair();
             var privKey = keyPair["privKey"];
@@ -91,7 +91,7 @@ namespace Chromia.Postchain.Client.Tests
             }
         }
 
-        [Fact]
+        // [Fact]
         public async void QueryTest(){
             var keyPair = PostchainUtil.MakeKeyPair();
             var privKey = keyPair["privKey"];
@@ -107,6 +107,21 @@ namespace Chromia.Postchain.Client.Tests
             else
             {
                 Console.WriteLine("Success: " + ret.content);
+            }
+        }
+
+        [Fact]
+        public async void ChainIDTest(){
+            var rest = new RESTClient("http://localhost:7740/");
+
+            var ret = await rest.InitializeBRIDFromChainID(0);
+            if (ret.Error)
+            {
+                Console.WriteLine(ret.ErrorMessage);
+            }
+            else
+            {
+                Console.WriteLine("Success");
             }
         }
     }
