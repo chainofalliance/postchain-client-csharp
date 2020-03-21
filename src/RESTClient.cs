@@ -87,7 +87,14 @@ namespace Chromia.Postchain.Client
             queryDict.Add("type", queryName);
             foreach (var entry in queryObject)
             {
-                queryDict.Add(entry.name, entry.content);
+                if (entry.content is byte[])
+                {
+                    queryDict.Add(entry.name, PostchainUtil.ByteArrayToString((byte[]) entry.content));
+                }
+                else
+                {
+                    queryDict.Add(entry.name, entry.content);
+                }
             }
 
             return queryDict;
