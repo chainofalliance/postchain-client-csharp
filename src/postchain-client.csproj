@@ -12,7 +12,7 @@
 
   <PropertyGroup>
     <Unity>false</Unity>
-    <UnityJson>false</UnityJson>
+    <ExternalJson>false</ExternalJson>
   </PropertyGroup>
   
   <PropertyGroup>
@@ -28,13 +28,13 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(ExternalJson)' == 'true'">
-    <Reference Include="Newtonsoft.Json"  Version="12.0.3">
+    <Reference Include="Newtonsoft.Json" Version="12.0.3">
       <HintPath>../libs/Newtonsoft.Json.dll</HintPath>
     </Reference>
   </ItemGroup>
 
   <ItemGroup Condition="'$(Unity)' == 'true'">
-    <Reference Include="Newtonsoft.Json">
+    <Reference Include="Newtonsoft.Json" Version="12.0.3">
       <HintPath>../libs/Newtonsoft.Json.dll</HintPath>
     </Reference>
     
