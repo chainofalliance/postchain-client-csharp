@@ -14,6 +14,10 @@ dotnet add package PostchainClient --version 0.4.0
 
 For more information, see https://www.nuget.org/packages/PostchainClient/0.4.0
 
+### From Unity Asset Store
+
+Still in review, future link https://assetstore.unity.com/packages/slug/165153
+
 ## Usage
 ```c#
 using Chromia.PostchainClient;
