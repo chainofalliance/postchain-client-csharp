@@ -14,31 +14,6 @@ namespace Chromia.Postchain.Client
             this.RestClient = restClient;
         }
 
-        public void Sign(byte[] privKey, byte[] pubKey)
-        {
-            byte[] pub = pubKey;
-            if(pubKey == null)
-            {
-                pub = Secp256K1Manager.GetPublicKey(privKey, true);
-            }
-            this.GtxObject.Sign(privKey, pub);
-        }
-
-        public string GetTxRID()
-        {
-            return PostchainUtil.ByteArrayToString(this.GetBufferToSign());
-        }
-
-        public byte[] GetBufferToSign()
-        {
-            return this.GtxObject.GetBufferToSign();
-        }
-        
-        private void AddSignature(byte[] pubKey, byte[] signature)
-        {
-            this.GtxObject.AddSignature(pubKey, signature);
-        }
-
         ///<summary>
         ///Add an operation to the Transaction.
         ///</summary>
@@ -58,14 +33,39 @@ namespace Chromia.Postchain.Client
             return await this.RestClient.PostAndWaitConfirmation(this.GtxObject.Serialize(), this.GetTxRID());
         }
 
-        public async void Send()
+        public void Sign(byte[] privKey, byte[] pubKey)
+        {
+            byte[] pub = pubKey;
+            if(pubKey == null)
+            {
+                pub = Secp256K1Manager.GetPublicKey(privKey, true);
+            }
+            this.GtxObject.Sign(privKey, pub);
+        }
+        
+        private string GetTxRID()
+        {
+            return PostchainUtil.ByteArrayToString(this.GetBufferToSign());
+        }
+
+        private byte[] GetBufferToSign()
+        {
+            return this.GtxObject.GetBufferToSign();
+        }
+        
+        private void AddSignature(byte[] pubKey, byte[] signature)
+        {
+            this.GtxObject.AddSignature(pubKey, signature);
+        }
+
+        private async void Send()
         {
             var gtxBytes = this.GtxObject.Serialize();
             await this.RestClient.PostTransaction(gtxBytes);
             this.GtxObject = null;
         }
 
-        public string Encode()
+        private string Encode()
         {
             return this.GtxObject.Serialize();
         }

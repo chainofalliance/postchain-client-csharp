@@ -27,7 +27,19 @@ namespace Chromia.Postchain.Client
     public class RESTClient
     {
         public string BlockchainRID {get; private set;}
+        public int RequestTimeout {
+            get => _requestTimout;
+            set
+            {
+                if (value >= 0 || value == System.Threading.Timeout.Infinite)
+                {
+                    _requestTimout = value;
+                }
+            }
+        }
+
         private string _urlBase;
+        private int _requestTimout = 1000;
 
         ///<summary>
         ///Create new RESTClient object.
@@ -38,13 +50,6 @@ namespace Chromia.Postchain.Client
         {
             BlockchainRID = blockchainRID;
             _urlBase = urlBase;
-        }
-
-        public async Task<object> PostTransaction(string serializedTransaction)
-        {
-            string jsonString = String.Format(@"{{""tx"": ""{0}""}}", serializedTransaction);
-            
-            return await Post<HTTPStatusResponse>(this._urlBase, "tx/" + this.BlockchainRID, jsonString);
         }
 
         public async Task<PostchainErrorControl> InitializeBRIDFromChainID(int chainID)
@@ -66,18 +71,32 @@ namespace Chromia.Postchain.Client
             }
         }
 
-        private async Task<HTTPStatusResponse> Status(string messageHash)
+        internal async Task<object> PostTransaction(string serializedTransaction)
         {
-            ValidateMessageHash(messageHash);
-            return (HTTPStatusResponse) await Get<HTTPStatusResponse>(this._urlBase, "tx/" + this.BlockchainRID + "/" + messageHash + "/status");
+            string jsonString = String.Format(@"{{""tx"": ""{0}""}}", serializedTransaction);
+            
+            return await Post<HTTPStatusResponse>(this._urlBase, "tx/" + this.BlockchainRID, jsonString);
         }
 
-        public async Task<object> Query<T>(string queryName, (string name, object content)[] queryObject)
+        internal async Task<PostchainErrorControl> PostAndWaitConfirmation(string serializedTransaction, string txRID)
+        {
+            await this.PostTransaction(serializedTransaction);
+
+            return await this.WaitConfirmation(txRID);
+        }
+
+        internal async Task<object> Query<T>(string queryName, (string name, object content)[] queryObject)
         {
             var queryDict = QueryToDict(queryName, queryObject);
             string queryString = JsonConvert.SerializeObject(queryDict);
 
             return await Post<T>(this._urlBase, "query/" + this.BlockchainRID, queryString);
+        }
+
+        private async Task<HTTPStatusResponse> Status(string messageHash)
+        {
+            ValidateMessageHash(messageHash);
+            return (HTTPStatusResponse) await Get<HTTPStatusResponse>(this._urlBase, "tx/" + this.BlockchainRID + "/" + messageHash + "/status");
         }
 
         private Dictionary<string, object> QueryToDict(string queryName, (string name, object content)[] queryObject)
@@ -100,7 +119,7 @@ namespace Chromia.Postchain.Client
             return queryDict;
         }
 
-        public static bool IsTuple(Type tuple)
+        private static bool IsTuple(Type tuple)
         {
             if (!tuple.IsGenericType)
                 return false;
@@ -115,7 +134,7 @@ namespace Chromia.Postchain.Client
                 || (openType == typeof(ValueTuple<,,,,,,,>) && IsTuple(tuple.GetGenericArguments()[7]));
         }
 
-        public async Task<PostchainErrorControl> WaitConfirmation(string txRID)
+        private async Task<PostchainErrorControl> WaitConfirmation(string txRID)
         {
             var response = await this.Status(txRID);
 
@@ -141,13 +160,6 @@ namespace Chromia.Postchain.Client
                 default:
                     return new PostchainErrorControl(true, "Got unexpected response from server: " + response.status);
             }
-        }
-
-        public async Task<PostchainErrorControl> PostAndWaitConfirmation(string serializedTransaction, string txRID)
-        {
-            await this.PostTransaction(serializedTransaction);
-
-            return await this.WaitConfirmation(txRID);
         }
 
 #if UNITYBUILD
@@ -203,6 +215,7 @@ namespace Chromia.Postchain.Client
             try
             {
                 HttpWebRequest request = (HttpWebRequest) WebRequest.Create(urlBase + path);
+                request.Timeout = RequestTimeout;
 
                 var responseText = "";
                 using(HttpWebResponse response = (HttpWebResponse) await request.GetResponseAsync())
@@ -234,6 +247,7 @@ namespace Chromia.Postchain.Client
                 var request = (HttpWebRequest) WebRequest.Create(urlBase + path);
                 request.ContentType = "application/json";
                 request.Method = "POST";
+                request.Timeout = RequestTimeout;
 
                 using (var streamWriter = new StreamWriter(request.GetRequestStream()))
                 {

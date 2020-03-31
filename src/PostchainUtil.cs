@@ -40,7 +40,7 @@ namespace Chromia.Postchain.Client
         *
         * @return the signature
         */
-        public static byte[] SignDigest(byte[] digestBuffer, byte[] privKey)
+        private static byte[] SignDigest(byte[] digestBuffer, byte[] privKey)
         {
             var recoveryID = 0;
             return secp256k1.Secp256K1Manager.SignCompact(digestBuffer, privKey, out recoveryID);
