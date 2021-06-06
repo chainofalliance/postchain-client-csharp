@@ -15,7 +15,7 @@ namespace Chromia.Postchain.Client.Tests
             return new GTXClient(rest);
         }
 
-        // [Fact]
+        [Fact]
         public async void StringTest(){
             var keyPair = PostchainUtil.MakeKeyPair();
             var privKey = keyPair["privKey"];
@@ -27,9 +27,12 @@ namespace Chromia.Postchain.Client.Tests
 
             // req.AddOperation("send_string", null);
             req.AddOperation("send_string", "");
-            req.AddOperation("send_string", "a");
-            req.AddOperation("send_string", new string('a', 128));
-            // req.AddOperation("send_string", new string('a', 1000000));
+            req.AddOperation("send_string", "Swedish: Åå Ää Öö");
+            req.AddOperation("send_string", "Danish/Norway: Ææ Øø Åå");
+            req.AddOperation("send_string", "German/Finish: Ää Öö Üü");
+            req.AddOperation("send_string", "Greek lower: αβγδϵζηθικλμνξοπρστυϕχψω");
+            req.AddOperation("send_string", "Greek upper: ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ");
+            req.AddOperation("send_string", "Russian: АаБбВвГгДдЕеЁёЖжЗзИиЙйКкЛлМмНнОоПпСсТтУуФфХхЦцЧчШшЩщЪъЫыЬьЭэЮюЯя");
 
 
             req.AddOperation("nop", new Random().Next());
@@ -125,7 +128,7 @@ namespace Chromia.Postchain.Client.Tests
             }
         }
 
-        [Fact]
+        // [Fact]
         public async void DemoTest()
         {
             var keyPair = PostchainUtil.MakeKeyPair();

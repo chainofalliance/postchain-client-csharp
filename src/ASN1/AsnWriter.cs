@@ -47,8 +47,8 @@ namespace Chromia.Postchain.Client
         public void WriteUTF8String(string characterString)
         {
             var buffer = CurrentWriter()._buffer;
-            var content = PostchainUtil.StringToByteArray(characterString).ToList();
-
+            var content = System.Text.Encoding.UTF8.GetBytes(characterString).ToList();
+            
             buffer.Add((byte) 0x0c);                        // tag
             buffer.AddRange(GetLengthBytes(content.Count));      // length 
             buffer.AddRange(content);   // content
