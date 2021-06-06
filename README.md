@@ -4,13 +4,14 @@
 
 ## Changelog
 
-### 0.4.1
+### 0.4.2
+- Add icon to package
 
+### 0.4.1
 - Update to .NET 5
 - Fix bug where strings with UTF-8 characters could not be sent
 
 ### 0.4.0
-
 First stable release
 
 ## Installation

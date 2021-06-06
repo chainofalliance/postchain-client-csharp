@@ -4,10 +4,11 @@
     <TargetFramework>net5.0</TargetFramework>
     <PackageId>PostchainClient</PackageId>
     <AssemblyName>Postchain.Client</AssemblyName>
-    <Version>0.4.1</Version>
+    <Version>0.4.2</Version>
     <Authors>Simon Sorgenfrei and Dennis Kirsch</Authors>
     <RepositoryUrl>https://github.com/Cherden/postchain-client</RepositoryUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -20,6 +21,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="..\doc\icon.png" Pack="true" PackagePath=""/>
     <PackageReference Include="Cryptography.ECDSA.Secp256k1" Version="1.1.2" />
   </ItemGroup>
 
