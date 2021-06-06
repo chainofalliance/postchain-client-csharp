@@ -2,6 +2,17 @@
 
 ## Compatible with Postchain 3.1.0 / Rell 0.10.2
 
+## Changelog
+
+### 0.4.1
+
+- Update to .NET 5
+- Fix bug where strings with UTF-8 characters could not be sent
+
+### 0.4.0
+
+First stable release
+
 ## Installation
 ### With NuGet:
 ```
