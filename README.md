@@ -17,14 +17,14 @@ First stable release
 ## Installation
 ### With NuGet:
 ```
-Install-Package PostchainClient -Version 0.4.0
+Install-Package PostchainClient -Version 0.4.2
 ```
 ### With .NET CLI:
 ```
-dotnet add package PostchainClient --version 0.4.0
+dotnet add package PostchainClient --version 0.4.2
 ```
 
-For more information, see https://www.nuget.org/packages/PostchainClient/0.4.0
+For more information, see https://www.nuget.org/packages/PostchainClient/0.4.2
 
 ### From Unity Asset Store
 
