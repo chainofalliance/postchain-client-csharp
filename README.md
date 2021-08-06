@@ -1,6 +1,6 @@
 # Postchain Client API C#
 
-## Compatible with Postchain 3.3.0 / Rell 0.10.4
+## Compatible with Postchain 3.3.0 / Rell 0.10.5
 
 ## Changelog
 
