@@ -4,6 +4,9 @@
 
 ## Changelog
 
+### 0.4.3
+- Fix error message for failed transactions
+
 ### 0.4.2
 - Add icon to package
 
@@ -17,14 +20,14 @@ First stable release
 ## Installation
 ### With NuGet:
 ```
-Install-Package PostchainClient -Version 0.4.2
+Install-Package PostchainClient -Version 0.4.3
 ```
 ### With .NET CLI:
 ```
-dotnet add package PostchainClient --version 0.4.2
+dotnet add package PostchainClient --version 0.4.3
 ```
 
-For more information, see https://www.nuget.org/packages/PostchainClient/0.4.2
+For more information, see https://www.nuget.org/packages/PostchainClient/0.4.3
 
 ### From Unity Asset Store
 

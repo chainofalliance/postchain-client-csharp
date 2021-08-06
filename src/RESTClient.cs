@@ -14,14 +14,14 @@ namespace Chromia.Postchain.Client
 {
     internal class HTTPStatusResponse
     {
-        public HTTPStatusResponse(string status, string message)
+        public HTTPStatusResponse(string status, string rejectReason)
         {
             this.status = status;
-            this.message = message;
+            this.rejectReason = rejectReason;
         }
 
         public string status = "";
-        public string message = "";
+        public string rejectReason = "";
     }
 
     public class RESTClient
@@ -57,7 +57,7 @@ namespace Chromia.Postchain.Client
             var brid = await Get<string>(this._urlBase, "brid/iid_" + chainID, true);            
             if (brid is HTTPStatusResponse)
             {
-                return new PostchainErrorControl(true, ((HTTPStatusResponse) brid).message);
+                return new PostchainErrorControl(true, ((HTTPStatusResponse) brid).rejectReason);
             }
             else if (brid is string)
             {
@@ -138,25 +138,20 @@ namespace Chromia.Postchain.Client
         {
             var response = await this.Status(txRID);
 
-            foreach(System.ComponentModel.PropertyDescriptor descriptor in System.ComponentModel.TypeDescriptor.GetProperties(response))
-            {
-                string name=descriptor.Name;
-                object value=descriptor.GetValue(response);
-                Console.WriteLine("{0}={1}",name,value);
-            }
-
+            Console.WriteLine("status: " + response.status);
+            Console.WriteLine("reject reason: " + response.rejectReason);
             switch(response.status)
             {
                 case "confirmed":
                     return new PostchainErrorControl(false, "");
                 case "rejected":
                 case "unknown":
-                    return new PostchainErrorControl(true, "Message was rejected");
+                    return new PostchainErrorControl(true, response.rejectReason);
                 case "waiting":
                     await Task.Delay(511);
                     return await this.WaitConfirmation(txRID);
                 case "exception":
-                    return new PostchainErrorControl(true, "HTTP Exception: " + response.message);
+                    return new PostchainErrorControl(true, "HTTP Exception: " + response.rejectReason);
                 default:
                     return new PostchainErrorControl(true, "Got unexpected response from server: " + response.status);
             }

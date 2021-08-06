@@ -16,6 +16,30 @@ namespace Chromia.Postchain.Client.Tests
         }
 
         [Fact]
+        public async void StringTest2(){
+            var keyPair = PostchainUtil.MakeKeyPair();
+            var privKey = keyPair["privKey"];
+            var pubKey = keyPair["pubKey"];
+            
+            var gtx = await InitTest();
+
+            var req = gtx.NewTransaction(new byte[][] {pubKey});
+
+            // req.AddOperation("send_string", null);
+            req.AddOperation("send_string", "error message");
+
+            req.AddOperation("nop", new Random().Next());
+
+            req.Sign(privKey, pubKey);
+
+            var result = await req.PostAndWaitConfirmation();
+            if (result.Error)
+            {
+                Console.WriteLine("Error " + result.ErrorMessage);
+            }
+        }
+
+        // [Fact]
         public async void StringTest(){
             var keyPair = PostchainUtil.MakeKeyPair();
             var privKey = keyPair["privKey"];

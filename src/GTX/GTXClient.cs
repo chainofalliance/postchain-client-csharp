@@ -68,7 +68,7 @@ namespace Chromia.Postchain.Client
             {
                 var response = queryContent as HTTPStatusResponse;
 
-                return (default(T), new PostchainErrorControl(true, response.message));
+                return (default(T), new PostchainErrorControl(true, response.rejectReason));
             }
             else
             {

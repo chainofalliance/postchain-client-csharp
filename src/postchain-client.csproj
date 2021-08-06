@@ -4,7 +4,7 @@
     <TargetFramework>net5.0</TargetFramework>
     <PackageId>PostchainClient</PackageId>
     <AssemblyName>Postchain.Client</AssemblyName>
-    <Version>0.4.2</Version>
+    <Version>0.4.3</Version>
     <Authors>Simon Sorgenfrei and Dennis Kirsch</Authors>
     <RepositoryUrl>https://github.com/Cherden/postchain-client</RepositoryUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
