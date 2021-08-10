@@ -1,5 +1,6 @@
 using Xunit;
 
+using Chromia.Postchain.Client.API;
 
 namespace Chromia.Postchain.Client.Tests
 {

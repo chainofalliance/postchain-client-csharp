@@ -2,6 +2,7 @@ using Xunit;
 using System;
 using System.Threading.Tasks;
 
+using Chromia.Postchain.Client.API;
 
 namespace Chromia.Postchain.Client.Tests
 {

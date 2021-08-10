@@ -134,8 +134,6 @@ namespace Chromia.Postchain.Client.API
         {
             var response = await this.Status(txRID);
 
-            Console.WriteLine("status: " + response.status);
-            Console.WriteLine("reject reason: " + response.rejectReason);
             switch(response.status)
             {
                 case "confirmed":
