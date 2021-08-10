@@ -4,6 +4,15 @@
 
 ## Changelog
 
+### 0.5.0
+- Extract core functionalities and bundle them in own [repository](https://github.com/chainofalliance/postchain-client-core)
+    - This prepares the seperation of native C# library and Unity plugin
+- Refactor file structure
+- Move API to own namespace `Chromia.Postchain.Client.API`
+
+<details>
+<summary>Previous...</summary>
+
 ### 0.4.3
 - Fix error message for failed transactions
 
@@ -16,26 +25,24 @@
 
 ### 0.4.0
 First stable release
+</details>
 
 ## Installation
 ### With NuGet:
 ```
-Install-Package PostchainClient -Version 0.4.3
+Install-Package PostchainClient -Version 0.5.0
 ```
 ### With .NET CLI:
 ```
-dotnet add package PostchainClient --version 0.4.3
+dotnet add package PostchainClient --version 0.5.0
 ```
 
-For more information, see https://www.nuget.org/packages/PostchainClient/0.4.3
-
-### From Unity Asset Store
-
-https://assetstore.unity.com/packages/slug/165153
+For more information, see https://www.nuget.org/packages/PostchainClient/0.5.0
 
 ## Usage
 ```c#
-using Chromia.PostchainClient;
+using Chromia.Postchain.Client;
+using Chromia.Postchain.Client.API;
 
 
 var keyPair = PostchainUtil.MakeKeyPair();

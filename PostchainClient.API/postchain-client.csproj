@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <PackageId>PostchainClient</PackageId>
+    <AssemblyName>Postchain.Client</AssemblyName>
+    <Version>0.5.0</Version>
+    <Authors>Simon Sorgenfrei and Dennis Kirsch</Authors>
+    <RepositoryUrl>https://github.com/Cherden/postchain-client</RepositoryUrl>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\"/>
+    <None Include="..\doc\icon.png" Pack="true" PackagePath=""/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\postchain-client-core-c#\PostchainClient\PostchainClient.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
+
+</Project>

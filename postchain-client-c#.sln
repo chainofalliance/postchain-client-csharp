@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "postchain-client", "src\postchain-client.csproj", "{25EEB63D-B859-4AD8-8B82-73B81C5D5AEC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "postchain-client", "PostchainClient.API\postchain-client.csproj", "{25EEB63D-B859-4AD8-8B82-73B81C5D5AEC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "postchain-client-test", "test\postchain-client-test.csproj", "{E2932563-F5B6-45E4-865D-89B3E4340AE1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "postchain-client-test", "PostchainClient.API.Tests\postchain-client-test.csproj", "{E2932563-F5B6-45E4-865D-89B3E4340AE1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

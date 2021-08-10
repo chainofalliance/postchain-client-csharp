@@ -1,7 +1,6 @@
-using System;
 using System.Threading.Tasks;
 
-namespace Chromia.Postchain.Client
+namespace Chromia.Postchain.Client.API
 {
     public class PostchainErrorControl
     {

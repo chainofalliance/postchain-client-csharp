@@ -3,14 +3,10 @@ using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
-#if UNITYBUILD
-using UnityEngine.Networking;
-#else
 using System.IO;
 using System.Net;
-#endif
 
-namespace Chromia.Postchain.Client
+namespace Chromia.Postchain.Client.API
 {
     internal class HTTPStatusResponse
     {
@@ -157,54 +153,6 @@ namespace Chromia.Postchain.Client
             }
         }
 
-#if UNITYBUILD
-        private async Task<object> Get<T>(string urlBase, string path, bool raw = false)
-        {
-            var request = UnityWebRequest.Get(urlBase + path);
-
-            await request.SendWebRequest();
-
-            if (request.isNetworkError || request.isHttpError)
-            {
-                return new HTTPStatusResponse("exception", request.error);
-            }
-            else
-            {
-                if (raw)
-                {
-                    return request.downloadHandler.text;
-                }
-                else
-                {
-                    return JsonConvert.DeserializeObject<T>(request.downloadHandler.text);
-                }
-            }
-        }
-
-        private async Task<object> Post<T>(string urlBase, string path, string jsonString)
-        {
-            var request = new UnityWebRequest(urlBase + path, "POST");            
-            byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonString);
-
-            request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
-            request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
-            request.SetRequestHeader("Content-Type", "application/json");  
-
-            UnityEngine.Debug.Log("Before request");
-            await request.SendWebRequest();
-            UnityEngine.Debug.Log("After request");
-            UnityEngine.Debug.Log("Status " + request.isDone);
-
-            if (request.isNetworkError || request.isHttpError)
-            {
-                return new HTTPStatusResponse("exception", request.error);
-            }
-            else
-            {
-                return JsonConvert.DeserializeObject<T>(request.downloadHandler.text);
-            }
-        }
-#else
         private async Task<object> Get<T>(string urlBase, string path, bool raw = false)
         {
             try
@@ -263,7 +211,6 @@ namespace Chromia.Postchain.Client
                 return new HTTPStatusResponse("exception", e.Message);
             }
         }
-#endif
 
         private void ValidateMessageHash(string messageHash)
         {
