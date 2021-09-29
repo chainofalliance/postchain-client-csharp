@@ -1,7 +1,7 @@
 using Cryptography.ECDSA;
 using System.Threading.Tasks;
 
-namespace Chromia.Postchain.Client.API
+namespace Chromia.Postchain.Client
 {
     public class Transaction
     {
@@ -36,13 +36,13 @@ namespace Chromia.Postchain.Client.API
         public void Sign(byte[] privKey, byte[] pubKey)
         {
             byte[] pub = pubKey;
-            if(pubKey == null)
+            if (pubKey == null)
             {
                 pub = Secp256K1Manager.GetPublicKey(privKey, true);
             }
             this.GtxObject.Sign(privKey, pub);
         }
-        
+
         private string GetTxRID()
         {
             return PostchainUtil.ByteArrayToString(this.GetBufferToSign());
@@ -52,7 +52,7 @@ namespace Chromia.Postchain.Client.API
         {
             return this.GtxObject.GetBufferToSign();
         }
-        
+
         private void AddSignature(byte[] pubKey, byte[] signature)
         {
             this.GtxObject.AddSignature(pubKey, signature);

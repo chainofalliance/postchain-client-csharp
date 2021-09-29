@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PostchainClient.API\postchain-client.csproj" />
+    <ProjectReference Include="..\PostchainClient\postchain-client.csproj" />
   </ItemGroup>
 
 </Project>

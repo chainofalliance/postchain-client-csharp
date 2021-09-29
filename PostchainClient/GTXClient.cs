@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace Chromia.Postchain.Client.API
+namespace Chromia.Postchain.Client
 {
     public class PostchainErrorControl
     {
@@ -43,13 +43,13 @@ namespace Chromia.Postchain.Client.API
         {
             Gtx newGtx = new Gtx(RestApiClient.BlockchainRID);
 
-            foreach(byte[] signer in signers)
+            foreach (byte[] signer in signers)
             {
                 newGtx.AddSignerToGtx(signer);
             }
 
             Transaction req = new Transaction(newGtx, this.RestApiClient);
-            
+
             return req;
         }
 
@@ -59,7 +59,7 @@ namespace Chromia.Postchain.Client.API
         ///<param name = "queryName">Name of the query to be called.</param>
         ///<param name = "queryObject">List of parameter pairs of query parameter name and its value. For example {"city", "Hamburg"}.</param>
         ///<returns>Task, which returns the query return content.</returns>
-        public async Task<(T content, PostchainErrorControl control)> Query<T> (string queryName, params (string name, object content)[] queryObject)
+        public async Task<(T content, PostchainErrorControl control)> Query<T>(string queryName, params (string name, object content)[] queryObject)
         {
             var queryContent = await this.RestApiClient.Query<T>(queryName, queryObject);
 
@@ -73,7 +73,7 @@ namespace Chromia.Postchain.Client.API
             {
                 if (queryContent is T)
                 {
-                    return ((T) queryContent, new PostchainErrorControl());
+                    return ((T)queryContent, new PostchainErrorControl());
                 }
                 else
                 {

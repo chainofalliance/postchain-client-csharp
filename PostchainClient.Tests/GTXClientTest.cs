@@ -2,12 +2,14 @@ using Xunit;
 using System;
 using System.Threading.Tasks;
 
-using Chromia.Postchain.Client.API;
+using Chromia.Postchain.Client;
 
 namespace Chromia.Postchain.Client.Tests
 {
     public class GTXClientTest
     {
+        // private class FactAttribute : Attribute { } // Comment out this line to run this test
+
         async public Task<GTXClient> InitTest()
         {
             var rest = new RESTClient("http://localhost:7740/");
@@ -16,18 +18,17 @@ namespace Chromia.Postchain.Client.Tests
         }
 
         [Fact]
-        public async void StringTest2(){
+        public async void StringErrorTest()
+        {
             var keyPair = PostchainUtil.MakeKeyPair();
             var privKey = keyPair["privKey"];
             var pubKey = keyPair["pubKey"];
-            
+
             var gtx = await InitTest();
 
-            var req = gtx.NewTransaction(new byte[][] {pubKey});
+            var req = gtx.NewTransaction(new byte[][] { pubKey });
 
-            // req.AddOperation("send_string", null);
-            req.AddOperation("send_string", "error message");
-
+            req.AddOperation("send_string", "");
             req.AddOperation("nop", new Random().Next());
 
             req.Sign(privKey, pubKey);
@@ -35,22 +36,21 @@ namespace Chromia.Postchain.Client.Tests
             var result = await req.PostAndWaitConfirmation();
             if (result.Error)
             {
-                Console.WriteLine("Error " + result.ErrorMessage);
+                Console.WriteLine("StringErrorTest error: " + result.ErrorMessage);
             }
         }
 
-        // [Fact]
-        public async void StringTest(){
+        [Fact]
+        public async void StringTest()
+        {
             var keyPair = PostchainUtil.MakeKeyPair();
             var privKey = keyPair["privKey"];
             var pubKey = keyPair["pubKey"];
-            
+
             var gtx = await InitTest();
 
-            var req = gtx.NewTransaction(new byte[][] {pubKey});
+            var req = gtx.NewTransaction(new byte[][] { pubKey });
 
-            // req.AddOperation("send_string", null);
-            req.AddOperation("send_string", "");
             req.AddOperation("send_string", "Swedish: Åå Ää Öö");
             req.AddOperation("send_string", "Danish/Norway: Ææ Øø Åå");
             req.AddOperation("send_string", "German/Finish: Ää Öö Üü");
@@ -66,19 +66,20 @@ namespace Chromia.Postchain.Client.Tests
             var result = await req.PostAndWaitConfirmation();
             if (result.Error)
             {
-                Console.WriteLine("Error " + result.ErrorMessage);
+                Console.WriteLine("StringTest error: " + result.ErrorMessage);
             }
         }
 
-        // [Fact]
-        public async void IntegerTest(){
+        [Fact]
+        public async void IntegerTest()
+        {
             var keyPair = PostchainUtil.MakeKeyPair();
             var privKey = keyPair["privKey"];
             var pubKey = keyPair["pubKey"];
 
             var gtx = await InitTest();
 
-            var req = gtx.NewTransaction(new byte[][] {pubKey});
+            var req = gtx.NewTransaction(new byte[][] { pubKey });
 
             req.AddOperation("send_timestamp", -127);
             req.AddOperation("send_timestamp", -128);
@@ -114,12 +115,13 @@ namespace Chromia.Postchain.Client.Tests
             var result = await req.PostAndWaitConfirmation();
             if (result.Error)
             {
-                Console.WriteLine("Error " + result.ErrorMessage);
+                Console.WriteLine("IntegerTest error: " + result.ErrorMessage);
             }
         }
 
-        // [Fact]
-        public async void QueryTest(){
+        [Fact]
+        public async void QueryTest()
+        {
             var keyPair = PostchainUtil.MakeKeyPair();
             var privKey = keyPair["privKey"];
             var pubKey = keyPair["pubKey"];
@@ -129,30 +131,31 @@ namespace Chromia.Postchain.Client.Tests
             var ret = await gtx.Query<long>("get_timestamp");
             if (ret.control.Error)
             {
-                Console.WriteLine("Error " + ret.control.ErrorMessage);
+                Console.WriteLine("QueryTest error: " + ret.control.ErrorMessage);
             }
             else
             {
-                Console.WriteLine("Success: " + ret.content);
+                Console.WriteLine("QueryTest success: " + ret.content);
             }
         }
 
-        // [Fact]
-        public async void ChainIDTest(){
+        [Fact]
+        public async void ChainIDTest()
+        {
             var rest = new RESTClient("http://localhost:7740/");
 
             var ret = await rest.InitializeBRIDFromChainID(0);
             if (ret.Error)
             {
-                Console.WriteLine(ret.ErrorMessage);
+                Console.WriteLine("ChainIDTest error: " + ret.ErrorMessage);
             }
             else
             {
-                Console.WriteLine("Success");
+                Console.WriteLine("ChainIDTest success");
             }
         }
 
-        // [Fact]
+        [Fact]
         public async void DemoTest()
         {
             var keyPair = PostchainUtil.MakeKeyPair();
@@ -169,7 +172,7 @@ namespace Chromia.Postchain.Client.Tests
             var initResult = await rest.InitializeBRIDFromChainID(0);
             if (initResult.Error)
             {
-                Console.WriteLine("Cannot connect to blockchain!");
+                Console.WriteLine("DemoTest: Cannot connect to blockchain!");
                 return;
             }
 
@@ -180,8 +183,7 @@ namespace Chromia.Postchain.Client.Tests
             // Start a new request. A request instance is created.
             // The public keys are the keys that must sign the request
             // before sending it to postchain. Can be empty.
-
-            var req = gtx.NewTransaction(new byte[][] {pubKey});
+            var req = gtx.NewTransaction(new byte[][] { pubKey });
 
             req.AddOperation("insert_city", "Hamburg", 22222);
             req.AddOperation("create_user", pubKey, "Peter");
@@ -196,7 +198,7 @@ namespace Chromia.Postchain.Client.Tests
             var result = await req.PostAndWaitConfirmation();
             if (result.Error)
             {
-                Console.WriteLine("Operation failed: " + result.ErrorMessage);
+                Console.WriteLine("DemoTest Operation failed: " + result.ErrorMessage);
             }
 
             // The expected return type has to be passed to the query function. This
@@ -207,12 +209,12 @@ namespace Chromia.Postchain.Client.Tests
             var queryResult = await gtx.Query<int>("get_city", ("name", "Hamburg"));
             if (queryResult.control.Error)
             {
-                Console.WriteLine(queryResult.control.ErrorMessage);
+                Console.WriteLine("DemoTest city query error: " + queryResult.control.ErrorMessage);
             }
             else
             {
                 int plz = queryResult.content;
-                Console.WriteLine("ZIP Query: " + plz);
+                Console.WriteLine("DemoTest ZIP Query: " + plz);
             }
 
             // Same as above with the exception that byte arrays will be returned as strings.
@@ -221,13 +223,13 @@ namespace Chromia.Postchain.Client.Tests
             var queryResult2 = await gtx.Query<string>("get_user_pubkey", ("name", "Peter"));
             if (queryResult2.control.Error)
             {
-                Console.WriteLine(queryResult2.control.ErrorMessage);
+                Console.WriteLine("DemoTest userquery error: " + queryResult2.control.ErrorMessage);
             }
             else
             {
                 string queryPubkeyString = queryResult2.content;
                 byte[] queryPubkey = PostchainUtil.HexStringToBuffer(queryPubkeyString);
-                Console.WriteLine("User Query: " + PostchainUtil.ByteArrayToString(queryPubkey));
+                Console.WriteLine("DemoTest User Query: " + PostchainUtil.ByteArrayToString(queryPubkey));
             }
         }
     }

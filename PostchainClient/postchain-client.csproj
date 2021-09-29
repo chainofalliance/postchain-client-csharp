@@ -6,12 +6,12 @@
     <AssemblyName>Postchain.Client</AssemblyName>
     <Version>0.5.0-beta</Version>
     <Authors>Simon Sorgenfrei and Dennis Kirsch</Authors>
-    <RepositoryUrl>https://github.com/Cherden/postchain-client</RepositoryUrl>
+    <RepositoryUrl>https://github.com/chainofalliance/postchain-client-csharp</RepositoryUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Description>Native C# API that encapsulates the PostchainClient core.</Description>
-    <PackageTags>Blockchain;Chromia;Chromaway;Postchain Client;Postchain</PackageTags>
+    <Description>Native PostchainClient C# API for Chromia Blockchain.</Description>
+    <PackageTags>Blockchain;Smart Contract;Chromia;Chromaway;Postchain Client;Postchain</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="PostchainClient.Core" Version="0.1.1" />
+    <PackageReference Include="Cryptography.ECDSA.Secp256k1" Version="1.1.3" />
   </ItemGroup>
 
 </Project>

@@ -1,14 +1,13 @@
 # Postchain Client API C#
 
-## Compatible with Postchain 3.3.0 / Rell 0.10.5
+## Compatible with Postchain 3.3.3 / Rell 0.10.7
 
 ## Changelog
 
 ### 0.5.0
-- Extract core functionalities and bundle them in own [repository](https://github.com/chainofalliance/postchain-client-core)
-    - This prepares the seperation of native C# library and Unity plugin
+- Add `Gtx.Decode` to deserialize raw transactions.
 - Refactor file structure
-- Move API to own namespace `Chromia.Postchain.Client.API`
+- Refactor tests
 
 <details>
 <summary>Previous...</summary>
@@ -42,7 +41,6 @@ For more information, see https://www.nuget.org/packages/PostchainClient/0.5.0
 ## Usage
 ```c#
 using Chromia.Postchain.Client;
-using Chromia.Postchain.Client.API;
 
 
 var keyPair = PostchainUtil.MakeKeyPair();
@@ -121,27 +119,26 @@ else
 ```
 
 ### Rell file
+
 ```
 entity city { key name; zip: integer; }
-entity user {pubkey; name;}
+entity user { pubkey; name; }
 
 operation insert_city (name, zip: integer) {
     create city (name, zip);
-}
-
-query get_city(name){
-    return city @ {name}.zip;
-}
-
-query get_zip(zip: integer){
-    return city @ {zip}.name;
 }
 
 operation create_user(pubkey, name){
     create user (pubkey,name);
 }
 
-query get_user_pubkey(name){
-    return user @ {name}.pubkey;
-}
+query get_city(name) = city @ {name}.zip;
+
+query get_zip(zip: integer) = city @ {zip}.name;
+
+query get_user_pubkey(name) = user @ {name}.pubkey;
 ```
+
+## Testing
+
+Run the Rell project in PostchainClient.Tests.Blockchain and execute `dotnet test` after.
