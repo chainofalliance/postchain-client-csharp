@@ -4,7 +4,8 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 
 using System.IO;
-using System.Net;
+using System.Net.Http;
+using System.Text;
 
 namespace Chromia.Postchain.Client
 {
@@ -37,6 +38,7 @@ namespace Chromia.Postchain.Client
 
         private string _urlBase;
         private int _requestTimout = 1000;
+        private HttpClient _httpClient;
 
         ///<summary>
         ///Create new RESTClient object.
@@ -47,6 +49,7 @@ namespace Chromia.Postchain.Client
         {
             BlockchainRID = blockchainRID;
             _urlBase = urlBase;
+            _httpClient = new HttpClient();
         }
 
         public async Task<PostchainErrorControl> InitializeBRIDFromChainID(int chainID)
@@ -152,29 +155,29 @@ namespace Chromia.Postchain.Client
             }
         }
 
+        private async Task<object> ParseResponse<T>(HttpResponseMessage response, bool raw = false)
+        {
+            response.EnsureSuccessStatusCode();
+            
+            var contentStream = await response.Content.ReadAsStreamAsync();
+
+            using (var streamReader = new StreamReader(contentStream))
+            using (var jsonReader = new JsonTextReader(streamReader))
+            {
+                var responseText = await streamReader.ReadToEndAsync();
+
+                if (raw) return responseText;
+
+                return JsonConvert.DeserializeObject<T>(responseText);
+            }
+        }
+
         private async Task<object> Get<T>(string urlBase, string path, bool raw = false)
         {
             try
             {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(urlBase + path);
-                request.Timeout = RequestTimeout;
-
-                var responseText = "";
-                using (HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync())
-                using (Stream stream = response.GetResponseStream())
-                using (StreamReader reader = new StreamReader(stream))
-                {
-                    responseText = await reader.ReadToEndAsync();
-                }
-
-                if (raw)
-                {
-                    return responseText;
-                }
-                else
-                {
-                    return JsonConvert.DeserializeObject<T>(responseText);
-                }
+                var response = await _httpClient.GetAsync(urlBase + path);
+                return await ParseResponse<T>(response, raw);
             }
             catch (Exception e)
             {
@@ -186,24 +189,8 @@ namespace Chromia.Postchain.Client
         {
             try
             {
-                var request = (HttpWebRequest)WebRequest.Create(urlBase + path);
-                request.ContentType = "application/json";
-                request.Method = "POST";
-                request.Timeout = RequestTimeout;
-
-                using (var streamWriter = new StreamWriter(request.GetRequestStream()))
-                {
-                    streamWriter.Write(jsonString);
-                }
-
-                var responseString = "";
-                using (var response = (HttpWebResponse)await request.GetResponseAsync())
-                using (var streamReader = new StreamReader(response.GetResponseStream()))
-                {
-                    responseString = await streamReader.ReadToEndAsync();
-                }
-
-                return JsonConvert.DeserializeObject<T>(responseString);
+                var response = await _httpClient.PostAsync(urlBase + path, new StringContent(jsonString, Encoding.UTF8, "application/json"));
+                return await ParseResponse<T>(response);
             }
             catch (Exception e)
             {
