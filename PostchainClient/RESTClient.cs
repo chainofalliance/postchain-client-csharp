@@ -162,7 +162,6 @@ namespace Chromia.Postchain.Client
             var contentStream = await response.Content.ReadAsStreamAsync();
 
             using (var streamReader = new StreamReader(contentStream))
-            using (var jsonReader = new JsonTextReader(streamReader))
             {
                 var responseText = await streamReader.ReadToEndAsync();
 
