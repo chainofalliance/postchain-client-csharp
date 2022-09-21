@@ -25,3 +25,17 @@ query get_zip(zip: integer) = city @ {zip}.name;
 query get_timestamp() = integer.MAX_VALUE;
 
 query get_user_pubkey(name) = user @ {name}.pubkey;
+
+struct my_struct {
+  a: text;
+  b: text;
+}
+
+query my_query(my_struct) {
+	print(my_struct);
+	return my_struct;
+}
+
+query ret_null() {
+	return null;
+}
