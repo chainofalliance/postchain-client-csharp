@@ -32,6 +32,7 @@ namespace Chromia.Postchain.Client
         public GTXClient(RESTClient restApiClient)
         {
             this.RestApiClient = restApiClient;
+            System.Console.WriteLine("TEST");
         }
 
         ///<summary>
@@ -74,6 +75,10 @@ namespace Chromia.Postchain.Client
                 if (queryContent is T)
                 {
                     return ((T)queryContent, new PostchainErrorControl());
+                }
+                else if (queryContent is null)
+                {
+                    return (default(T), new PostchainErrorControl());
                 }
                 else
                 {

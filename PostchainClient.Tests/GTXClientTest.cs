@@ -34,10 +34,7 @@ namespace Chromia.Postchain.Client.Tests
             req.Sign(privKey, pubKey);
 
             var result = await req.PostAndWaitConfirmation();
-            if (result.Error)
-            {
-                Console.WriteLine("StringErrorTest error: " + result.ErrorMessage);
-            }
+            Assert.True(result.Error);
         }
 
         [Fact]
@@ -68,6 +65,7 @@ namespace Chromia.Postchain.Client.Tests
             {
                 Console.WriteLine("StringTest error: " + result.ErrorMessage);
             }
+            Assert.False(result.Error);
         }
 
         [Fact]
@@ -117,6 +115,7 @@ namespace Chromia.Postchain.Client.Tests
             {
                 Console.WriteLine("IntegerTest error: " + result.ErrorMessage);
             }
+            Assert.False(result.Error);
         }
 
         [Fact]
@@ -137,6 +136,42 @@ namespace Chromia.Postchain.Client.Tests
             {
                 Console.WriteLine("QueryTest success: " + ret.content);
             }
+            Assert.False(ret.control.Error);
+        }
+
+        [Fact]
+        public async void StructQueryTest()
+        {
+            var keyPair = PostchainUtil.MakeKeyPair();
+            var privKey = keyPair["privKey"];
+            var pubKey = keyPair["pubKey"];
+
+            var gtx = await InitTest();
+
+            var ret = await gtx.Query<object>("my_query", ("my_struct", new object[] { "abcdef", "abcdef" }));
+            if (ret.control.Error)
+            {
+                Console.WriteLine("QueryTest error: " + ret.control.ErrorMessage);
+            }
+            else
+            {
+                Console.WriteLine("QueryTest success: " + ret.content);
+            }
+            Assert.False(ret.control.Error);
+        }
+
+        [Fact]
+        public async void NullQueryTest()
+        {
+            var keyPair = PostchainUtil.MakeKeyPair();
+            var privKey = keyPair["privKey"];
+            var pubKey = keyPair["pubKey"];
+
+            var gtx = await InitTest();
+
+            var ret = await gtx.Query<object>("ret_null");
+            Assert.False(ret.control.Error);
+            Assert.Null(ret.content);
         }
 
         [Fact]
@@ -149,10 +184,7 @@ namespace Chromia.Postchain.Client.Tests
             {
                 Console.WriteLine("ChainIDTest error: " + ret.ErrorMessage);
             }
-            else
-            {
-                Console.WriteLine("ChainIDTest success");
-            }
+            Assert.False(ret.Error);
         }
 
         [Fact]
@@ -175,6 +207,7 @@ namespace Chromia.Postchain.Client.Tests
                 Console.WriteLine("DemoTest: Cannot connect to blockchain!");
                 return;
             }
+            Assert.False(initResult.Error);
 
             // Create an instance of the higher-level gtx client. It will
             // use the rest client instance
@@ -200,6 +233,7 @@ namespace Chromia.Postchain.Client.Tests
             {
                 Console.WriteLine("DemoTest Operation failed: " + result.ErrorMessage);
             }
+            Assert.False(result.Error);
 
             // The expected return type has to be passed to the query function. This
             // also works with complex types (i.e. your own struct as well as lists).
@@ -216,6 +250,7 @@ namespace Chromia.Postchain.Client.Tests
                 int plz = queryResult.content;
                 Console.WriteLine("DemoTest ZIP Query: " + plz);
             }
+            Assert.False(queryResult.control.Error);
 
             // Same as above with the exception that byte arrays will be returned as strings.
             // To convert it to a byte array, use the util function Util.HexStringToBuffer() 
@@ -231,6 +266,7 @@ namespace Chromia.Postchain.Client.Tests
                 byte[] queryPubkey = PostchainUtil.HexStringToBuffer(queryPubkeyString);
                 Console.WriteLine("DemoTest User Query: " + PostchainUtil.ByteArrayToString(queryPubkey));
             }
+            Assert.False(queryResult2.control.Error);
         }
     }
 }
