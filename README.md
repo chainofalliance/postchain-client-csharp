@@ -1,16 +1,19 @@
 # Postchain Client API C#
 
-## Compatible with Postchain 3.3.3 / Rell 0.10.7
+## Compatible with Postchain 3.5.0 / Rell 0.10.9
 
 ## Changelog
+
+### 0.5.1
+- Add support to return `null` in queries.
+
+<details>
+<summary>Previous...</summary>
 
 ### 0.5.0
 - Add `Gtx.Decode` to deserialize raw transactions.
 - Refactor file structure
 - Refactor tests
-
-<details>
-<summary>Previous...</summary>
 
 ### 0.4.3
 - Fix error message for failed transactions
@@ -29,14 +32,14 @@ First stable release
 ## Installation
 ### With NuGet:
 ```
-Install-Package PostchainClient -Version 0.5.0
+Install-Package PostchainClient -Version 0.5.1
 ```
 ### With .NET CLI:
 ```
-dotnet add package PostchainClient --version 0.5.0
+dotnet add package PostchainClient --version 0.5.1
 ```
 
-For more information, see https://www.nuget.org/packages/PostchainClient/0.5.0
+For more information, see https://www.nuget.org/packages/PostchainClient/0.5.1
 
 ## Usage
 ```c#
