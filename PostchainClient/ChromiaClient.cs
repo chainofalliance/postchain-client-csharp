@@ -37,7 +37,7 @@ namespace Chromia
             else if (nodeUrls.Count == 0)
                 throw new ArgumentOutOfRangeException(nameof(nodeUrls));
 
-            _restClient = new(nodeUrls.Select(n => new Uri(n)).ToList(), blockchainRID);
+            _restClient = new RestClient(nodeUrls.Select(n => new Uri(n)).ToList(), blockchainRID);
         }
 
         #region Static
@@ -76,7 +76,7 @@ namespace Chromia
 
             var convertedNodes = directoryNodeUrls.Select(n => new Uri(n)).ToList();
             var nodes = await RestClient.GetNodesFromDirectory(convertedNodes, blockchainRID);
-            return new(nodes, blockchainRID);
+            return new ChromiaClient(nodes, blockchainRID);
         }
 
         /// <inheritdoc cref="CreateFromDirectory(List{string}, Buffer)"/>
@@ -112,7 +112,7 @@ namespace Chromia
         public async static Task<ChromiaClient> Create(List<string> nodeUrls, Buffer blockchainRID)
         {
             await Task.FromResult(0);
-            return new(nodeUrls, blockchainRID);
+            return new ChromiaClient(nodeUrls, blockchainRID);
         }
 
         /// <inheritdoc cref="Create(List{string}, Buffer)"/>
@@ -318,7 +318,11 @@ namespace Chromia
             catch (TransportException e)
             {
                 if (e.StatusCode == 409)
-                    return new(tx.TransactionRID, TransactionReceipt.ResponseStatus.DoubleTx, "tx with hash already exists");
+                    return new TransactionReceipt(
+                        tx.TransactionRID,
+                        TransactionReceipt.ResponseStatus.DoubleTx,
+                        "tx with hash already exists"
+                    );
                 else
                     throw e;
             }

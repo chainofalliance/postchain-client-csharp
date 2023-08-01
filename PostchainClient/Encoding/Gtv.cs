@@ -363,7 +363,7 @@ namespace Chromia.Encoding
 
         public override void Decode(AsnReader reader)
         {
-            Value = new();
+            Value = new Dictionary<string, IGtv>();
             var dict = reader.ReadSequence(Asn1Choice.Dict);
             while (dict.HasData)
             {

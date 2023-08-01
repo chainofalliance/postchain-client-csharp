@@ -127,11 +127,11 @@ namespace Chromia
             HashSet<SignatureProvider> signatureProviders
         )
         {
-            operations ??= new();
-            signers ??= new();
-            signatureProviders ??= new();
+            operations ??= new List<Operation>();
+            signers ??= new HashSet<Buffer>();
+            signatureProviders ??= new HashSet<SignatureProvider>();
 
-            return new(blockchainRID, operations, signers, signatureProviders);
+            return new Transaction(blockchainRID, operations, signers, signatureProviders);
         }
 
         /// <summary>
@@ -448,7 +448,7 @@ namespace Chromia
                 var signatures = tx.GetSignatures(preSigned);
                 var signedHash = tx.Encode(signatures);
 
-                return new(
+                return new Signed(
                     tx._blockchainRID,
                     tx.TransactionRID(),
                     signedHash,
@@ -471,8 +471,8 @@ namespace Chromia
 
                 var blockchainRID = (Buffer)body[0];
                 var operations = (body[1] as object[]).Select(o => Operation.Decode(o as object[])).ToList();
-                var signers = (body[2] as object[])?.Select(s => (Buffer)s).ToHashSet() ?? new();
-                var signatures = (obj[1] as object[])?.Select(s => (Buffer)s).ToList() ?? new();
+                var signers = (body[2] as object[])?.Select(s => (Buffer)s).ToHashSet() ?? new HashSet<Buffer>();
+                var signatures = (obj[1] as object[])?.Select(s => (Buffer)s).ToList() ?? new List<Buffer>();
 
 
                 return new Signed(

@@ -205,7 +205,7 @@ namespace Chromia
             var compactSignature = new byte[Secp256k1.SIGNATURE_LENGTH];
             crypto.SignatureParseCompact(compactSignature, signature);
 
-            return new(PubKey, Buffer.From(compactSignature));
+            return new Signature(PubKey, Buffer.From(compactSignature));
         }
 
         /// <summary>

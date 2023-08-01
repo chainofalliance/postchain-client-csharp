@@ -21,7 +21,7 @@ namespace Chromia
         /// </summary>
         public readonly List<object> Parameters;
 
-        private static readonly Random _random = new();
+        private static readonly Random _random = new Random();
         private static readonly string _nopName = "nop";
 
         /// <summary>

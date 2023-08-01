@@ -9,7 +9,7 @@ namespace Chromia.Transport
     /// </summary>
     public class DefaultTransport : ITransport
     {
-        private readonly HttpClient _httpClient = new();
+        private readonly HttpClient _httpClient = new HttpClient();
 
         public async Task<Buffer> Get(Uri uri)
         {

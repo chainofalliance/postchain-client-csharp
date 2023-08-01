@@ -33,12 +33,12 @@ namespace Chromia.Transport
         private int _attemptInterval = 500;
 
         private static ITransport _transport = new DefaultTransport();
-        private static readonly Random _random = new();
+        private static readonly Random _random = new Random();
 
         private Uri BaseUri => _nodeUrls[_random.Next(_nodeUrls.Count)];
-        private Uri QueryUri => new(BaseUri, $"query_gtv/{_blockchainRID.Parse()}");
-        private Uri TxUri => new(BaseUri, $"tx/{_blockchainRID.Parse()}");
-        private Uri TxStatusUri(Buffer transactionRID) => new(BaseUri, $"tx/{_blockchainRID.Parse()}/{transactionRID.Parse()}/status");
+        private Uri QueryUri => new Uri(BaseUri, $"query_gtv/{_blockchainRID.Parse()}");
+        private Uri TxUri => new Uri(BaseUri, $"tx/{_blockchainRID.Parse()}");
+        private Uri TxStatusUri(Buffer transactionRID) => new Uri(BaseUri, $"tx/{_blockchainRID.Parse()}/{transactionRID.Parse()}/status");
 
         public RestClient(List<Uri> nodeUrl, Buffer blockchainRID) 
         {

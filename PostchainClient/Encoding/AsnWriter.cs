@@ -23,8 +23,8 @@ namespace Chromia.Encoding
             }
         }
 
-        private readonly List<byte> _buffer = new();
-        private readonly List<Sequence> _sequences = new();
+        private readonly List<byte> _buffer = new List<byte>();
+        private readonly List<Sequence> _sequences = new List<Sequence>();
 
         public void WriteNull()
         {
@@ -72,8 +72,8 @@ namespace Chromia.Encoding
             var buffer = CurrentWriter()._buffer;
             var content = System.Text.Encoding.UTF8.GetBytes(characterString).ToList();
             var contentSize = GetLengthBytes(content.Count);
-            if(!skipChoice)
-            { 
+            if (!skipChoice)
+            {
                 var contentByteSize = content.Count + contentSize.Count + 1;
 
                 buffer.Add((byte)Asn1Choice.String);
@@ -120,7 +120,7 @@ namespace Chromia.Encoding
 
         public void PushSequence(Asn1Choice choice)
         {
-            _sequences.Add(new(choice));
+            _sequences.Add(new Sequence(choice));
         }
 
         public void PopSequence()
@@ -134,7 +134,7 @@ namespace Chromia.Encoding
 
             if (sequence.Choice != Asn1Choice.None)
             {
-                var contentByteSize = content.Length + contentSize.Count + 1; 
+                var contentByteSize = content.Length + contentSize.Count + 1;
 
                 buffer.Add((byte)sequence.Choice);
                 buffer.AddRange(GetLengthBytes(contentByteSize));
@@ -181,15 +181,15 @@ namespace Chromia.Encoding
             var lengthBytes = new List<byte>();
             if (length < 128)
             {
-                lengthBytes.Add((byte) length);
+                lengthBytes.Add((byte)length);
             }
             else
             {
                 var sizeInBytes = LongToBytes(length, true);
-                
-                var sizeLength = (byte) sizeInBytes.Count;
 
-                lengthBytes.Add((byte) (0x80 + sizeLength));
+                var sizeLength = (byte)sizeInBytes.Count;
+
+                lengthBytes.Add((byte)(0x80 + sizeLength));
                 lengthBytes.AddRange(sizeInBytes);
             }
 
@@ -247,7 +247,7 @@ namespace Chromia.Encoding
         private static List<byte> LongToBytes(long integer, bool asLength = false)
         {
             var sizeInBytes = GetByteList(integer);
-                
+
             if (BitConverter.IsLittleEndian)
                 sizeInBytes = sizeInBytes.Reverse().ToArray();
 
