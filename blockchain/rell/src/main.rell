@@ -1,0 +1,59 @@
+module;
+
+entity city { key name; zip: integer; }
+
+struct my_struct {
+  a: text;
+  b: text;
+}
+
+struct my_nested_struct {
+  n: big_integer;
+  my_struct;
+}
+
+operation insert_city(name, zip: integer) {
+    create city (name, zip);
+}
+
+operation reset() {
+    delete city @* {};
+}
+
+query get_city(name) = city @ {name}.zip;
+
+query get_zip(zip: integer) = city @ {zip}.name;
+
+
+query test_string(text) {
+    print("test_string", text);
+    return text;
+}
+
+query test_null() = null;
+
+query test_pubkey(pubkey) {
+    print("test_pubkey", pubkey);
+    return pubkey;
+}
+
+query test_timestamp(timestamp) {
+    print("test_timestamp", timestamp);
+    return timestamp;
+}
+
+query test_bigint(n: big_integer) {
+    print("test_bigint", n);
+    return n;
+}
+
+query test_struct(s: my_struct) {
+    print("test_struct", s);
+    return s;
+}
+
+query test_nested_struct(s: my_nested_struct) {
+    print("test_struct", s);
+    return s;
+}
+

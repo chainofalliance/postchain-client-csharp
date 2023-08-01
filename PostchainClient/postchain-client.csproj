@@ -1,10 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFrameworks>net5.0;net6.0</TargetFrameworks>
     <PackageId>PostchainClient</PackageId>
     <AssemblyName>Postchain.Client</AssemblyName>
-    <Version>0.5.1</Version>
+    <Version>0.6.0</Version>
     <Authors>Simon Sorgenfrei and Dennis Kirsch</Authors>
     <RepositoryUrl>https://github.com/chainofalliance/postchain-client-csharp</RepositoryUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
@@ -12,6 +12,25 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Description>Native PostchainClient C# API for Chromia Blockchain.</Description>
     <PackageTags>Blockchain;Smart Contract;Chromia;Chromaway;Postchain Client;Postchain</PackageTags>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0|AnyCPU'">
+    <WarningsAsErrors>$(WarningsAsErrors);NU1605;NETSDK1138</WarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net5.0|AnyCPU'">
+    <WarningsAsErrors>$(WarningsAsErrors);NU1605;NETSDK1138</WarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0|AnyCPU'">
+    <WarningsAsErrors>$(WarningsAsErrors);NU1605;NETSDK1138</WarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net5.0|AnyCPU'">
+    <WarningsAsErrors>$(WarningsAsErrors);NU1605;NETSDK1138</WarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,9 +38,16 @@
     <None Include="..\doc\icon.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Secp256k1.Native" Version="0.1.23" />
+    <PackageReference Include="Secp256k1.Net" Version="1.2.0" />
+  </ItemGroup>
+    
+  <ItemGroup Condition="'$(TargetFramework)' == 'net5.0' or '$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="Cryptography.ECDSA.Secp256k1" Version="1.1.3" />
+    <PackageReference Include="Secp256k1.Native" Version="0.1.23" />
+    <PackageReference Include="Secp256k1.Net" Version="1.2.0" />
   </ItemGroup>
 
 </Project>

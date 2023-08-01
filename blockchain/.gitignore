@@ -1,0 +1,17 @@
+.env
+.secret*
+.vscode/
+postchain.pid
+logs/
+rell/logs/
+rell/postchain-node/
+rell/target
+rell/rell_test_grep.xml
+data
+build
+
+# Node
+node_modules/
+
+#Imported modules
+rell/src/lib

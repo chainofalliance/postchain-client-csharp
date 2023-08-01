@@ -1,0 +1,4 @@
+blockchains:
+  CSharpTest:
+    module: main
+

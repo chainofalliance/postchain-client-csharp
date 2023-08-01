@@ -1,73 +1,534 @@
-using Cryptography.ECDSA;
-using System.Threading.Tasks;
+﻿using Chromia.Encoding;
+using Newtonsoft.Json;
+using System;
+using System.Buffers;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Serialization;
+using static Chromia.TransactionReceipt;
+using static Chromia.Transport.RestClient;
 
-namespace Chromia.Postchain.Client
+namespace Chromia
 {
+    /// <summary>
+    /// Status of a transaction in the blockchain network.
+    /// </summary>
+    public readonly struct TransactionStatusResponse
+    {
+        [JsonProperty("status")]
+        public readonly ResponseStatus Status;
+        [JsonProperty("rejectReason")]
+        public readonly string RejectReason;
+    }
+
+    /// <summary>
+    /// Receipt for a transaction containing its status.
+    /// </summary>
+    public readonly struct TransactionReceipt
+    {
+        public enum ResponseStatus
+        {
+            [EnumMember(Value = "confirmed")]
+            Confirmed,
+            [EnumMember(Value = "rejected")]
+            Rejected,
+            [EnumMember(Value = "unknown")]
+            Unknown,
+            [EnumMember(Value = "waiting")]
+            Waiting,
+            [EnumMember(Value = "timeout")]
+            Timeout,
+            [EnumMember(Value = "double_tx")]
+            DoubleTx
+        }
+
+        /// <summary>
+        /// The last known status of the transaction in the network.
+        /// </summary>
+        public readonly ResponseStatus Status;
+
+        /// <summary>
+        /// Contains the reason why the transaction was rejected in case 
+        /// <see cref="Status"/> is set to <see cref="ResponseStatus.Rejected"/>.
+        /// Empty otherwise.
+        /// </summary>
+        public readonly string RejectReason;
+
+        /// <summary>
+        /// The transaction hash.
+        /// </summary>
+        public readonly Buffer TransactionRID;
+
+
+        internal TransactionReceipt(Buffer transactionRID, TransactionStatusResponse response, bool isTimeout)
+        {
+            Status = isTimeout ? ResponseStatus.Timeout : response.Status;
+            RejectReason = response.RejectReason;
+            TransactionRID = transactionRID;
+        }
+
+        internal TransactionReceipt(Buffer transactionRID, ResponseStatus status, string message)
+        {
+            Status = status;
+            RejectReason = message;
+            TransactionRID = transactionRID;
+        }
+    }
+
+    /// <summary>
+    /// Contains information about a Chromia transaction.
+    /// </summary>
     public class Transaction
     {
-        internal Gtx GtxObject;
-        private RESTClient RestClient;
+        /// <summary>
+        /// The transaction hash.
+        /// </summary>
+        public Buffer TransactionRID() => Gtv.Hash(GetBody());
 
-        internal Transaction(Gtx gtx, RESTClient restClient)
+        private Buffer _blockchainRID;
+        private readonly List<Operation> _operations;
+        private readonly HashSet<Buffer> _signers;
+        private readonly HashSet<SignatureProvider> _signatureProviders;
+
+
+        /// <summary>
+        /// Builds a new empty transaction.
+        /// </summary>
+        /// <returns>The empty <see cref="Transaction"/>.</returns>
+        public static Transaction Build()
         {
-            this.GtxObject = gtx;
-            this.RestClient = restClient;
+            return Build(Buffer.Empty(), null, null, null);
         }
 
-        ///<summary>
-        ///Add an operation to the Transaction.
-        ///</summary>
-        ///<param name = "name">Name of the operation.</param>
-        ///<param name = "args">Array of object parameters. For example {"Hamburg", 42}</param>
-        public void AddOperation(string name, params object[] args)
+        /// <summary>
+        /// Builds a new empty transaction.
+        /// </summary>
+        /// <param name="blockchainRID">The RID of the blockchain.</param>
+        /// <returns>The empty <see cref="Transaction"/>.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static Transaction Build(Buffer blockchainRID)
         {
-            this.GtxObject.AddOperationToGtx(name, args);
+            return Build(blockchainRID, null, null, null);
         }
 
-        ///<summary>
-        ///Commit the Transaction and send it to the blockchain.
-        ///</summary>
-        ///<returns>Task, which returns null if it was succesful or the error message if not.</returns>
-        public async Task<PostchainErrorControl> PostAndWaitConfirmation()
+        /// <summary>
+        /// Builds a new transaction.
+        /// </summary>
+        /// <param name="blockchainRID">The RID of the blockchain.</param>
+        /// <param name="operations">The operations to be added to the transaction.</param>
+        /// <param name="signers">The signers that need to sign the transaction.</param>
+        /// <param name="signatureProviders">The <see cref="SignatureProvider"/> that sign the transaction.</param>
+        /// <returns>The new <see cref="Transaction"/>.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static Transaction Build(
+            Buffer blockchainRID,
+            List<Operation> operations,
+            HashSet<Buffer> signers,
+            HashSet<SignatureProvider> signatureProviders
+        )
         {
-            return await this.RestClient.PostAndWaitConfirmation(this.GtxObject.Serialize(), this.GetTxRID());
+            operations ??= new();
+            signers ??= new();
+            signatureProviders ??= new();
+
+            return new(blockchainRID, operations, signers, signatureProviders);
         }
 
-        public void Sign(byte[] privKey, byte[] pubKey)
+        /// <summary>
+        /// Decodes a buffer to a signed transaction.
+        /// </summary>
+        /// <param name="buffer">The buffer to decode.</param>
+        /// <returns>The decoded <see cref="Signed"/> object.</returns>
+        /// <exception cref="ChromiaException"></exception>
+        public static Signed Decode(Buffer buffer)
         {
-            byte[] pub = pubKey;
-            if (pubKey == null)
+            return Signed.From(buffer);
+        }
+
+        public static void EnsureRID(Buffer transactionRID)
+        {
+            if (transactionRID.Length != 64)
+                throw new ArgumentOutOfRangeException(nameof(transactionRID), "must be 64 bytes");
+        }
+
+        private Transaction(
+            Buffer blockchainRID,
+            List<Operation> operations,
+            HashSet<Buffer> signers,
+            HashSet<SignatureProvider> signatureProviders
+        )
+        {
+            if (!blockchainRID.IsEmpty && blockchainRID.Length != 32)
+                throw new ArgumentOutOfRangeException(nameof(blockchainRID), "has to be empty or 32 bytes");
+
+            _blockchainRID = blockchainRID;
+            _operations = operations;
+            _signers = signers;
+            _signatureProviders = signatureProviders;
+        }
+
+        /// <summary>
+        /// Sets the blockchain RID of the transaction.
+        /// </summary>
+        /// <param name="blockchainRID">The RID of the blockchain to set.</param>
+        /// <returns>This object.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public Transaction SetBlockchainRID(Buffer blockchainRID)
+        {
+            EnsureBlockchainRID(blockchainRID);
+
+            _blockchainRID = blockchainRID;
+            return this;
+        }
+
+        /// <summary>
+        /// Adds an <see cref="Operation"/> to the transaction.
+        /// </summary>
+        /// <param name="operation">The operation to add to the transaction.</param>
+        /// <returns>This object.</returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public Transaction AddOperation(Operation operation)
+        {
+            if (operation == null)
+                throw new ArgumentNullException(nameof(operation));
+
+            _operations.Add(operation);
+            return this;
+        }
+
+        /// <summary>
+        /// Adds multiple <see cref="Operation"/> to the transaction.
+        /// </summary>
+        /// <param name="operations">The operations to add to the transaction.</param>
+        /// <returns>This object.</returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public Transaction AddOperations(List<Operation> operations)
+        {
+            if (operations == null)
+                throw new ArgumentNullException(nameof(operations));
+
+            operations.ForEach(o => AddOperation(o));
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a "no-operation" <see cref="Operation"/> to the transaction.
+        /// </summary>
+        /// <returns>This object.</returns>
+        public Transaction AddNop()
+        {
+            if (_operations.Find(o => o.Equals(Operation.Nop())) == null)
+                AddOperation(Operation.Nop());
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a public key as signer to the transaction.
+        /// </summary>
+        /// <param name="signer">The public key to add as signer to the transaction.</param>
+        /// <returns>This object.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public Transaction AddSigner(Buffer signer)
+        {
+            KeyPair.EnsurePublicKey(signer);
+
+            _signers.Add(signer);
+            return this;
+        }
+
+        /// <summary>
+        /// Adds multiple public keys as signers to the transaction.
+        /// </summary>
+        /// <param name="signers">The public keys to add as signers to the transaction.</param>
+        /// <returns>This object.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        /// <exception cref="ArgumentNullException"></exception>
+        public Transaction AddSigners(HashSet<Buffer> signers)
+        {
+            if (signers == null)
+                throw new ArgumentNullException(nameof(signers));
+
+            foreach (var signer in signers)
+                AddSigner(signer);
+
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a <see cref="SignatureProvider"/> to the transaction
+        /// and the public key of the provider as a signer.
+        /// </summary>
+        /// <param name="signatureProvider">The <see cref="SignatureProvider"/> to add to the transaction.</param>
+        /// <returns>This object.</returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public Transaction AddSignatureProvider(SignatureProvider signatureProvider)
+        {
+            if (signatureProvider == null)
+                throw new ArgumentNullException(nameof(signatureProvider));
+
+            AddSigner(signatureProvider.PubKey);
+            _signatureProviders.Add(signatureProvider);
+            return this;
+        }
+
+        /// <summary>
+        /// Signs the transaction with the given signature provider.
+        /// Does <b>not</b> add the public key as a signer before signing. 
+        /// </summary>
+        /// <param name="signatureProvider">The <see cref="SignatureProvider"/> to sign the transaction.</param>
+        /// <returns>The <see cref="Signature"/> created by the provider.</returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public Signature Sign(SignatureProvider signatureProvider)
+        {
+            if (signatureProvider == null)
+                throw new ArgumentNullException(nameof(signatureProvider));
+
+            return signatureProvider.Sign(GetBufferToSign());
+        }
+
+        /// <summary>
+        /// Signs the transaction. Accepts signatures as a parameter that
+        /// were created beforehand.
+        /// </summary>
+        /// <param name="preSigned">Signature that were created beforehand. May be null or empty.</param>
+        /// <returns>The <see cref="Signed"/> transaction.</returns>
+        /// <exception cref="ChromiaException"></exception>
+        public Signed Sign(List<Signature> preSigned = null)
+        {
+            return Signed.From(this, preSigned);
+        }
+
+        /// <summary>
+        /// Signs the transaction. Accepts a signature as a parameter that
+        /// was created beforehand.
+        /// </summary>
+        /// <param name="preSigned">Signature that was created beforehand.</param>
+        /// <returns>The <see cref="Signed"/> transaction.</returns>
+        /// <exception cref="ChromiaException"></exception>
+        public Signed Sign(Signature preSigned)
+        {
+            return Signed.From(this, new List<Signature>() { preSigned });
+        }
+
+        private Buffer Encode(List<Signature> signatures = null)
+        {
+            var tx = new object[]
             {
-                pub = Secp256K1Manager.GetPublicKey(privKey, true);
+                GetBody(),
+                signatures == null ? Array.Empty<Buffer>() : signatures.Select(s => s.Hash).ToArray()
+            };
+
+            return Gtv.Encode(tx);
+        }
+
+        private List<Signature> GetSignatures(List<Signature> preSigned)
+        {
+            var buffer = GetBufferToSign();
+
+            var signatures = new List<Signature>();
+            var signedPubkeys = new List<Buffer>();
+            if (preSigned != null)
+            {
+                foreach (var preSig in preSigned)
+                {
+                    if (!SignatureProvider.Verify(preSig, buffer))
+                        throw new InvalidOperationException($"signature from \"{preSig.PubKey}\" invalid");
+
+                    signedPubkeys.Add(preSig.PubKey);
+                    signatures.Add(preSig);
+                }
             }
-            this.GtxObject.Sign(privKey, pub);
+
+            var providers = _signatureProviders.ToList();
+            foreach (var pubkey in _signers.Except(signedPubkeys))
+            {
+                var provider = providers.Find(s => s.PubKey == pubkey);
+                if (provider == null)
+                    throw new InvalidOperationException($"signature for \"{pubkey}\" not found");
+
+                signatures.Add(provider.Sign(buffer));
+            }
+
+            return signatures;
         }
 
-        private string GetTxRID()
+        private Buffer GetBufferToSign()
         {
-            return PostchainUtil.ByteArrayToString(this.GetBufferToSign());
+            return Gtv.Hash(GetBody());
         }
 
-        private byte[] GetBufferToSign()
+        private object GetBody()
         {
-            return this.GtxObject.GetBufferToSign();
+            if (_blockchainRID.IsEmpty)
+                throw new InvalidOperationException($"blockchain rid not set");
+
+            var tx = new object[]
+            {
+                _blockchainRID.Bytes,
+                _operations.Select(o => o.GetBody()).ToArray(),
+                _signers.Select(s => (object)s).ToArray()
+            };
+
+            return tx;
         }
 
-        private void AddSignature(byte[] pubKey, byte[] signature)
+        public override bool Equals(object obj)
         {
-            this.GtxObject.AddSignature(pubKey, signature);
+            if ((obj == null) || !GetType().Equals(obj.GetType()))
+            {
+                return false;
+            }
+            else
+            {
+                var b = (Transaction)obj;
+                return TransactionRID() == b.TransactionRID()
+                    && _signers.SequenceEqual(b._signers);
+            }
         }
 
-        private async void Send()
+        public override int GetHashCode()
         {
-            var gtxBytes = this.GtxObject.Serialize();
-            await this.RestClient.PostTransaction(gtxBytes);
-            this.GtxObject = null;
+            return TransactionRID().GetHashCode();
         }
 
-        private string Encode()
+        public override string ToString()
         {
-            return this.GtxObject.Serialize();
+            return $"Tx \"0x{TransactionRID().Parse()}\"";
+        }
+
+        /// <summary>
+        /// Contains information about a signed Chromia transaction.
+        /// </summary>
+        public readonly struct Signed
+        {
+            /// <summary>
+            /// The blockchain RID the transaction is valid for.
+            /// </summary>
+            public readonly Buffer BlockchainRID;
+
+            /// <summary>
+            /// The transaction hash.
+            /// </summary>
+            public readonly Buffer TransactionRID;
+
+            /// <summary>
+            /// The transaction body.
+            /// </summary>
+            public readonly Buffer SignedHash;
+
+            /// <summary>
+            /// List of <see cref="Operation"/> that are included in the transaction.
+            /// </summary>
+            public readonly IReadOnlyCollection<Operation> Operations;
+
+            /// <summary>
+            /// List of signers that signed the transaction.
+            /// </summary>
+            public readonly IReadOnlyCollection<Buffer> Signers;
+
+            /// <summary>
+            /// List of signatures for the transaction.
+            /// </summary>
+            public readonly IReadOnlyCollection<Buffer> Signatures;
+
+            /// <summary>
+            /// Creates a signed transaction out of a transaction.
+            /// Accepts signatures that were created beforehand.
+            /// </summary>
+            /// <param name="tx">The transaction to sign.</param>
+            /// <param name="preSigned">List of signatures for the transaction that were created beforehand.</param>
+            /// <returns>The signed transaction.</returns>
+            /// <exception cref="ChromiaException"></exception>
+            /// <exception cref="ArgumentNullException"></exception>
+            public static Signed From(Transaction tx, List<Signature> preSigned)
+            {
+                if (tx == null)
+                    throw new ArgumentNullException(nameof(tx));
+
+                var signatures = tx.GetSignatures(preSigned);
+                var signedHash = tx.Encode(signatures);
+
+                return new(
+                    tx._blockchainRID,
+                    tx.TransactionRID(),
+                    signedHash,
+                    tx._operations,
+                    signatures.Select(s => s.PubKey).ToHashSet(),
+                    signatures.Select(s => s.Hash).ToList()
+                );
+            }
+
+            /// <summary>
+            /// Decodes a buffer into a signed transaction.
+            /// </summary>
+            /// <param name="buffer">The buffer to decode.</param>
+            /// <returns>The signed transaction.</returns>
+            /// <exception cref="ChromiaException"></exception>
+            public static Signed From(Buffer buffer)
+            {
+                var obj = Gtv.Decode(buffer) as object[];
+                var body = obj[0] as object[];
+
+                var blockchainRID = (Buffer)body[0];
+                var operations = (body[1] as object[]).Select(o => Operation.Decode(o as object[])).ToList();
+                var signers = (body[2] as object[])?.Select(s => (Buffer)s).ToHashSet() ?? new();
+                var signatures = (obj[1] as object[])?.Select(s => (Buffer)s).ToList() ?? new();
+
+
+                return new Signed(
+                    blockchainRID,
+                    Gtv.Hash(body),
+                    buffer,
+                    operations,
+                    signers,
+                    signatures
+                );
+            }
+
+            private Signed(
+                Buffer blockchainRID,
+                Buffer transactionRID,
+                Buffer signedHash,
+                List<Operation> operations,
+                HashSet<Buffer> signers,
+                List<Buffer> signatures
+            )
+            {
+                BlockchainRID = blockchainRID;
+                TransactionRID = transactionRID;
+                SignedHash = signedHash;
+                Operations = operations;
+                Signers = signers;
+                Signatures = signatures;
+            }
+
+            public override bool Equals(object obj)
+            {
+                if ((obj == null) || !GetType().Equals(obj.GetType()))
+                {
+                    return false;
+                }
+                else
+                {
+                    var tx = (Signed)obj;
+                    return SignedHash == tx.SignedHash;
+                }
+            }
+
+            public static bool operator ==(Signed left, Signed right)
+            {
+                return left.Equals(right);
+            }
+
+            public static bool operator !=(Signed left, Signed right)
+            {
+                return !(left == right);
+            }
+
+            public override int GetHashCode()
+            {
+                return SignedHash.GetHashCode();
+            }
         }
     }
 }
