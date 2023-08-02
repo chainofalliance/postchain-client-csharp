@@ -7,6 +7,7 @@ namespace Chromia
     /// </summary>
     public class ChromiaException : ApplicationException
     {
+        /// <inheritdoc/>
         public ChromiaException(string message) : base(message) { }
     }
 
@@ -15,11 +16,29 @@ namespace Chromia
     /// </summary>
     public class TransportException : ChromiaException
     {
+        /// <summary>
+        /// The reason why the request failed.
+        /// </summary>
         public enum ReasonCode
         {
+            /// <summary>
+            /// Any other reason why the request failed. Check <see cref="Exception.Message"/> for details.
+            /// </summary>
             Unknown,
+
+            /// <summary>
+            /// The node returned and http error code. Check <see cref="StatusCode"/> for details.
+            /// </summary>
             HttpError,
+
+            /// <summary>
+            /// The given node url was faulty.
+            /// </summary>
             MalformedUri,
+
+            /// <summary>
+            /// The request timed out.
+            /// </summary>
             Timeout
         }
 
@@ -33,6 +52,7 @@ namespace Chromia
         /// </summary>
         public int StatusCode { get; private set; }
 
+        /// <inheritdoc/>
         public TransportException(ReasonCode reason, string message, int statusCode = -1) : base(message)
         {
             Reason = reason;

@@ -23,8 +23,20 @@ namespace Chromia
         /// The amount of transaction status request retries before giving up.
         /// </summary>
         public int PollingRetries { get { return _restClient.PollingRetries; } }
+
+        /// <summary>
+        /// The interval between each transaction status poll.
+        /// </summary>
         public int PollingInterval { get { return _restClient.PollingInterval; } }
+
+        /// <summary>
+        /// The amount of attempts to request at each endpoint.
+        /// </summary>
         public int AttemptsPerEndpoint { get { return _restClient.AttemptsPerEndpoint; } }
+
+        /// <summary>
+        /// The interval between each request attempt.
+        /// </summary>
         public int AttemptInterval { get { return _restClient.AttemptInterval; } }
 
         private readonly RestClient _restClient;
@@ -58,10 +70,8 @@ namespace Chromia
         /// <summary>
         /// Creates a new <see cref="ChromiaClient"/> by getting the nodes from a directory.
         /// </summary>
-        /// <param name="directoryNodeUrl">The directory node to query.</param>
         /// <param name="directoryNodeUrls">The directory nodes to query.</param>
         /// <param name="blockchainRID">The blockchain RID of the application.</param>
-        /// <param name="blockchainIID">The blockchain IID of the application. Gets resolved to the blockchain RID.</param>
         /// <returns>This new <see cref="ChromiaClient"/>.</returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
@@ -80,18 +90,24 @@ namespace Chromia
         }
 
         /// <inheritdoc cref="CreateFromDirectory(List{string}, Buffer)"/>
+        /// <param name="directoryNodeUrl">The directory node to query.</param>
+        /// <param name="blockchainRID">The blockchain RID of the application.</param>
         public async static Task<ChromiaClient> CreateFromDirectory(string directoryNodeUrl, Buffer blockchainRID)
         {
             return await CreateFromDirectory(new List<string>() { directoryNodeUrl }, blockchainRID);
         }
 
         /// <inheritdoc cref="CreateFromDirectory(List{string}, Buffer)"/>
+        /// <param name="directoryNodeUrl">The directory node to query.</param>
+        /// <param name="blockchainIID">The blockchain IID of the application. Gets resolved to the blockchain RID.</param>
         public async static Task<ChromiaClient> CreateFromDirectory(string directoryNodeUrl, int blockchainIID)
         {
             return await CreateFromDirectory(new List<string>() { directoryNodeUrl }, blockchainIID);
         }
 
         /// <inheritdoc cref="CreateFromDirectory(List{string}, Buffer)"/>
+        /// <param name="directoryNodeUrls">The directory nodes to query.</param>
+        /// <param name="blockchainIID">The blockchain IID of the application. Gets resolved to the blockchain RID.</param>
         public async static Task<ChromiaClient> CreateFromDirectory(List<string> directoryNodeUrls, int blockchainIID)
         {
             var blockchainRID = await GetBlockchainRID(directoryNodeUrls[0], blockchainIID);
@@ -101,10 +117,8 @@ namespace Chromia
         /// <summary>
         /// Creates a new <see cref="ChromiaClient"/> with the given nodes.
         /// </summary>
-        /// <param name="nodeUrl">The node to interact with.</param>
         /// <param name="nodeUrls">The nodes to interact with.</param>
         /// <param name="blockchainRID">The blockchain RID of the application.</param>
-        /// <param name="blockchainIID">The blockchain IID of the application. Gets resolved to the blockchain RID.</param>
         /// <returns>This new <see cref="ChromiaClient"/>.</returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
@@ -116,18 +130,24 @@ namespace Chromia
         }
 
         /// <inheritdoc cref="Create(List{string}, Buffer)"/>
+        /// <param name="nodeUrl">The node to interact with.</param>
+        /// <param name="blockchainRID">The blockchain RID of the application.</param>
         public async static Task<ChromiaClient> Create(string nodeUrl, Buffer blockchainRID)
         {
             return await Create(new List<string>() { nodeUrl }, blockchainRID);
         }
 
         /// <inheritdoc cref="Create(List{string}, Buffer)"/>
+        /// <param name="nodeUrl">The node to interact with.</param>
+        /// <param name="blockchainIID">The blockchain IID of the application. Gets resolved to the blockchain RID.</param>
         public async static Task<ChromiaClient> Create(string nodeUrl, int blockchainIID)
         {
             return await Create(new List<string>() { nodeUrl }, blockchainIID);
         }
 
         /// <inheritdoc cref="Create(List{string}, Buffer)"/>
+        /// <param name="nodeUrls">The nodes to interact with.</param>
+        /// <param name="blockchainIID">The blockchain IID of the application. Gets resolved to the blockchain RID.</param>
         public async static Task<ChromiaClient> Create(List<string> nodeUrls, int blockchainIID)
         {
             var blockchainRID = await GetBlockchainRID(nodeUrls[0], blockchainIID);
@@ -364,6 +384,7 @@ namespace Chromia
         }
 
         /// <inheritdoc cref="Query{T}(string, object)"/>
+        /// <param name="name">The name of the query.</param>
         /// <param name="obj">A gtv serializable object as query parameters.</param>
         public async Task<T> Query<T>(string name, IGtvSerializable obj)
         {

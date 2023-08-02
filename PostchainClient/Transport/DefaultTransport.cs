@@ -11,6 +11,7 @@ namespace Chromia.Transport
     {
         private readonly HttpClient _httpClient = new HttpClient();
 
+        /// <inheritdoc/>
         public async Task<Buffer> Get(Uri uri)
         {
             HttpResponseMessage response;
@@ -26,12 +27,14 @@ namespace Chromia.Transport
             return await VerifyResponse(response);
         }
 
+        /// <inheritdoc/>
         public async Task<Buffer> Post(Uri uri, Buffer content)
         {
             var bytes = new ByteArrayContent(content.Bytes);
             return await Post(uri, bytes);
         }
 
+        /// <inheritdoc/>
         public async Task<Buffer> Post(Uri uri, string content)
         {
             var str = new StringContent(content, System.Text.Encoding.UTF8, "application/json");

@@ -9,7 +9,14 @@ namespace Chromia
     /// </summary>
     public readonly struct KeyPair
     {
+        /// <summary>
+        /// Public key of the keypair.
+        /// </summary>
         public readonly Buffer PubKey;
+
+        /// <summary>
+        /// Privat key of the keypair.
+        /// </summary>
         public readonly Buffer PrivKey;
 
         /// <summary>
@@ -129,6 +136,9 @@ namespace Chromia
     /// </summary>
     public class SignatureProvider
     {
+        /// <summary>
+        /// Public key of the keypair used by the signature provider.
+        /// </summary>
         public Buffer PubKey => _keyPair.PubKey;
         private readonly KeyPair _keyPair;
 

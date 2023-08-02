@@ -15,8 +15,15 @@ namespace Chromia
     /// </summary>
     public readonly struct TransactionStatusResponse
     {
+        /// <summary>
+        /// Response status code from the network.
+        /// </summary>
         [JsonProperty("status")]
         public readonly ResponseStatus Status;
+
+        /// <summary>
+        /// Reason why the transaction failed should <see cref="Status"/> be <see cref="ResponseStatus.Rejected"/>.
+        /// </summary>
         [JsonProperty("rejectReason")]
         public readonly string RejectReason;
     }
@@ -26,18 +33,40 @@ namespace Chromia
     /// </summary>
     public readonly struct TransactionReceipt
     {
+        /// <summary>
+        /// Response status code from the network.
+        /// </summary>
         public enum ResponseStatus
         {
+            /// <summary>
+            /// Transaction was confirmed.
+            /// </summary>
             [EnumMember(Value = "confirmed")]
             Confirmed,
+            /// <summary>
+            /// Transaction was rejected. Check <see cref="RejectReason"/> why.
+            /// </summary>
             [EnumMember(Value = "rejected")]
             Rejected,
+            /// <summary>
+            /// Transaction with that transaction RID doesn't exist in network.
+            /// </summary>
             [EnumMember(Value = "unknown")]
             Unknown,
+            /// <summary>
+            /// Transaction is waiting to be confirmed by network.
+            /// </summary>
             [EnumMember(Value = "waiting")]
             Waiting,
+            /// <summary>
+            /// Waiting for the confirmation of a transaction timed out.
+            /// </summary>
             [EnumMember(Value = "timeout")]
             Timeout,
+            /// <summary>
+            /// The transaction could not be added because a transaction with the
+            /// transaction RID already exists in network.
+            /// </summary>
             [EnumMember(Value = "double_tx")]
             DoubleTx
         }
@@ -145,6 +174,11 @@ namespace Chromia
             return Signed.From(buffer);
         }
 
+        /// <summary>
+        /// Ensures a buffer is a valid transaction RID. Throws an exception if not.
+        /// </summary>
+        /// <param name="transactionRID">The transaction RID to check.</param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         public static void EnsureRID(Buffer transactionRID)
         {
             if (transactionRID.Length != 64)
@@ -372,6 +406,7 @@ namespace Chromia
             return tx;
         }
 
+        /// <inheritdoc/>
         public override bool Equals(object obj)
         {
             if ((obj == null) || !GetType().Equals(obj.GetType()))
@@ -386,11 +421,13 @@ namespace Chromia
             }
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             return TransactionRID().GetHashCode();
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"Tx \"0x{TransactionRID().Parse()}\"";
@@ -502,6 +539,7 @@ namespace Chromia
                 Signatures = signatures;
             }
 
+            /// <inheritdoc/>
             public override bool Equals(object obj)
             {
                 if ((obj == null) || !GetType().Equals(obj.GetType()))
@@ -515,16 +553,19 @@ namespace Chromia
                 }
             }
 
+            /// <inheritdoc/>
             public static bool operator ==(Signed left, Signed right)
             {
                 return left.Equals(right);
             }
 
+            /// <inheritdoc/>
             public static bool operator !=(Signed left, Signed right)
             {
                 return !(left == right);
             }
 
+            /// <inheritdoc/>
             public override int GetHashCode()
             {
                 return SignedHash.GetHashCode();

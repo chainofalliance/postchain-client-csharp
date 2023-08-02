@@ -166,6 +166,7 @@ namespace Chromia
                 return str[..^2];
         }
 
+        /// <inheritdoc/>
         public override bool Equals(object obj)
         {
             if ((obj == null) || !GetType().Equals(obj.GetType()))
@@ -184,6 +185,7 @@ namespace Chromia
             }
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             if (Name == _nopName)
@@ -192,6 +194,7 @@ namespace Chromia
                 return $"{Name.GetHashCode()}{Parameters.GetHashCode()}".GetHashCode();
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"Operation \"{Name}\": {ParametersToString()}";

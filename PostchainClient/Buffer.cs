@@ -152,6 +152,7 @@ namespace Chromia
             return System.Text.Encoding.UTF8.GetString(_bytes);
         }
 
+        /// <inheritdoc />
         public override bool Equals(object obj)
         {
             if (obj == null)
@@ -168,21 +169,25 @@ namespace Chromia
             return Enumerable.SequenceEqual(_bytes, b._bytes);
         }
 
+        /// <inheritdoc />
         public override int GetHashCode()
         {
             return Parse().GetHashCode();
         }
 
+        /// <inheritdoc />
         public override string ToString()
         {
             return $"<Buffer {Parse()}>";
         }
 
+        /// <inheritdoc />
         public static bool operator ==(Buffer left, Buffer right)
         {
             return left.Equals(right);
         }
 
+        /// <inheritdoc />
         public static bool operator !=(Buffer left, Buffer right)
         {
             return !(left == right);
