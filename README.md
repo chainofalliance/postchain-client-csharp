@@ -1,3 +1,122 @@
 # Postchain Client C#
+Postchain Client is a set of predefined functions and utilities offering a convenient and simplified interface for interacting with a decentralized application (dapp) built using the Postchain blockchain framework, also known as Chromia.
 
-# This project moved to https://bitbucket.org/chromawallet/postchain-client-csharp!
+## Usage
+### Native
+The Postchain client can be installed from [nuget](https://www.nuget.org/packages/PostchainClient) or referenced through DLLs from the [releases](https://github.com/chainofalliance/postchain-client-csharp/releases).
+
+### Unity
+The NET Standard 2.1 DLL is compatible and can be imported into Unity. Unpack the contents from the [releases](https://github.com/chainofalliance/postchain-client-csharp/releases) section and add them to the Unity project.
+
+### Unity WebGL
+WebGL is not compatible with `System.Net` used in the DefaultTransport. You may need to implement an own Transport or use `Unity/UnityTransport.cs`. In order to inject it into the client code the following code needs to be executed before a `ChromiaClient` is created.
+```c#
+ChromiaClient.SetTransport(new UnityTransport());
+```
+
+## Initializing the client
+From blockchain RID or blockchain IID (chain id). Also accepts a collection of node urls, where requests get evenly distributed on. Should a request to one node fail, the other nodes will be tried to access.
+```c#
+var blockchainRID = Buffer.From("7d565d92fd15bd1cdac2dc276cbcbc5581349d05a9e94ba919e1155ef4daf8f9");
+
+var client1 = await ChromiaClient.Create("http://localhost:7740", blockchainRID);
+var client2 = await ChromiaClient.Create("http://localhost:7740", 0);
+var client3 = await ChromiaClient.Create(new() {"http://localhost:7740", "http://localhost:7741"}, 0);
+```
+
+Connecting to a network is achieved through the Directory System Chain. `CreateFromDirectory` accepts an array of URLs to system nodes running the directory chain. This directory chain is automatically queried to determine the URLs of the nodes in the network running the target dapp.
+```c#
+var blockchainRID = Buffer.From("7d565d92fd15bd1cdac2dc276cbcbc5581349d05a9e94ba919e1155ef4daf8f9");
+
+var client1 = await ChromiaClient.CreateFromDirectory("http://localhost:7750", blockchainRID);
+var client2 = await ChromiaClient.CreateFromDirectory("http://localhost:7750", 42);
+var client3 = await ChromiaClient.Create(new() {"http://localhost:7750", "http://localhost:7751"}, 0);
+```
+
+## Queries
+Queries return dapp data from the blockchain. They are invoked with typed parameters or an object implementing `IGtvSerializable`. Properties in the query object can be mapped to Rell query parameters through the `JsonProperty` attribute. It automatically parses the data to the given type.
+
+```c#
+struct QueryParams : IGtvSerializable
+{
+    [JsonProperty("zip")]
+    public int Zip;
+}
+
+var response = client.Query<string>("get_city", ("zip", 22222));
+response = client.Query<string>("get_city", new QueryParams(){ Zip = 22222 });
+```
+
+## Transactions
+To send transactions, begin by creating a simple signature provider. The signature provider is used to sign transactions.
+
+```c#
+var signer1 = SignatureProvider.Create(); // creates a new random keypair
+var signer2 = SignatureProvider.Create(Buffer.Repeat('a', 32)); // from private key
+```
+
+Transactions send operations to the node that execute Rell code. Operations can be created dynamically or through the constructor. The parameters can also be passed as a `IGtvSerializable` object. The order of the parameter list has to match the operation in the Rell code. This also applies to the order of the properties in the `IGtvSerializable` object.
+
+```c#
+struct OperationParams : IGtvSerializable
+{
+    public string City;
+    public int Zip;
+}
+
+var op1 = new Operation("insert_city", "hamburg", 22222);
+var op2 = new Operation("insert_city")
+    .AddParameter("hamburg")
+    .AddParameter(22222);
+var op3 = new Operation("insert_city", new OperationParams(){
+    City = "hamburg",
+    Zip = 22222
+});
+```
+
+Transactions can be created dynamically per static method or through the client. Calling the `Sign` method signs the transaction by all added signature providers. A transaction can also be sent unsigned. If at least one signature provider is added to the transactions, `SendTransaction` signs the transaction before sending it. 
+```c#
+var op = new Operation("insert_city", "hamburg", 22222);
+var tx1 = Transaction.Build()
+    .AddOperation(op)
+    .AddSignatureProvider(signer1);
+client.SendTransaction(tx1);
+
+var tx2 = client.TransactionBuilder()
+    .AddOperation(op)
+    .AddSignatureProvider(signer1);
+
+var signedTx = tx2.Sign();
+client.SendTransaction(signedTx);
+```
+
+Some transactions may need to be signed by multiple signers at different locations. The following transaction needs to be signed by two signers. One signer can create a `Signature` and share it with the other signer. They can import the signature and add it to the `Sign` method as a pre-signed signature.
+```c#
+var tx = Transaction.Build()
+    .AddOperation(new Operation("insert_city", "hamburg", 22222))
+    .AddSigner(signer1.PubKey)
+    .AddSigner(signer2.PubKey);
+
+var signature = tx.Sign(signer1);
+
+// signer1 sends the signature.Hash and their pubkey to signer2
+
+var signature = new Signature(signer1.PubKey, Buffer.From("<hash>"))
+tx.AddSignatureProvider(signer2);
+var signedTx = tx.Sign(signature);
+client.SendTransaction(signedTx);
+```
+
+In order to create transactions with the same operations but different transaction RID, a "no-operation" (nop) operation can be added. Alternatively the transaction can be sent as a unique transaction which automatically adds a nop.
+```c#
+var tx = Transaction.Build()
+    .AddOperation(new Operation("insert_city", "hamburg", 22222))
+    .AddNop()
+    .AddSignatureProvider(signer1.PubKey);
+
+client.SendUniqueTransaction(tx);
+```
+
+## Error handling
+
+In general, the client throws exceptions when it runs into error. The code is documented to show all possible exceptions thrown by each method. Logic errors by the client throw `ChromiaException` or its subclass `TransportException`. The `TransportException` contains information about which part of the transport failed and contains http status codes (if applicable).
