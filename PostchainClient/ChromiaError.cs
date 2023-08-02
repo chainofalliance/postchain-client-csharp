@@ -5,7 +5,7 @@ namespace Chromia
     /// <summary>
     /// Base application exception for all Chromia related exceptions.
     /// </summary>
-    class ChromiaException : ApplicationException
+    public class ChromiaException : ApplicationException
     {
         public ChromiaException(string message) : base(message) { }
     }
@@ -13,7 +13,7 @@ namespace Chromia
     /// <summary>
     /// Exception raised for errors in transport layer.
     /// </summary>
-    class TransportException : ChromiaException
+    public class TransportException : ChromiaException
     {
         public enum ReasonCode
         {

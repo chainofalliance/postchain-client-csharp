@@ -38,16 +38,12 @@
     <None Include="..\doc\icon.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  <ItemGroup >
     <PackageReference Include="Secp256k1.Native" Version="0.1.23" />
     <PackageReference Include="Secp256k1.Net" Version="1.2.0" />
-  </ItemGroup>
-    
-  <ItemGroup Condition="'$(TargetFramework)' == 'net5.0' or '$(TargetFramework)' == 'netstandard2.1'">
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="Secp256k1.Native" Version="0.1.23" />
-    <PackageReference Include="Secp256k1.Net" Version="1.2.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" Condition="!('$(TargetFramework)' == 'netstandard2.1')" />
+    <!-- for unity -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" Condition="'$(TargetFramework)' == 'netstandard2.1'"/>
   </ItemGroup>
 
 </Project>

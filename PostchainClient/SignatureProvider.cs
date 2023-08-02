@@ -173,7 +173,7 @@ namespace Chromia
         /// <returns>The generated key pair.</returns>
         public static KeyPair GenerateKeyPair()
         {
-            return new KeyPair();
+            return new KeyPair(KeyPair.GeneratePrivKey());
         }
 
         /// <summary>
