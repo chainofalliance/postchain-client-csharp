@@ -52,9 +52,7 @@ namespace Chromia.Tests.Encoding
         {
             var i = BigInteger.Parse(n);
             var expected = new BigIntegerGtv(i);
-            var t = expected.Encode();
-            Console.WriteLine(t.Parse());
-            var actual = Gtv.DecodeToGtv(t);
+            var actual = Gtv.DecodeToGtv(expected.Encode());
             Assert.Equal(expected, actual);
         }
 

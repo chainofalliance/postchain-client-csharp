@@ -80,7 +80,6 @@ namespace Chromia.Tests.Client
                 .AddSignatureProvider(Signer2);
 
             var response = await Client.SendUniqueTransaction(tx);
-            Console.WriteLine(response.RejectReason);
             Assert.Equal(TransactionReceipt.ResponseStatus.Confirmed, response.Status);
         }
 
