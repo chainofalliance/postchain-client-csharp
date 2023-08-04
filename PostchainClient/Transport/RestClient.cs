@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using static Chromia.TransactionReceipt;
@@ -124,12 +125,16 @@ namespace Chromia.Transport
                 var jToken = JToken.FromObject(jsonObj);
                 if (jToken.Type == JTokenType.Array || jToken.Type == JTokenType.Object)
                     return jToken.ToObject<T>();
+                else if (typeof(T) == typeof(float))
+                    return (T)(object)float.Parse(jToken.ToObject<string>(), CultureInfo.InvariantCulture);
+                else if (typeof(T) == typeof(double))
+                    return (T)(object)double.Parse(jToken.ToObject<string>(), CultureInfo.InvariantCulture);
                 else
                     return (T)jsonObj;
             }
-            catch
+            catch (Exception e)
             {
-                throw new ChromiaException("failed to parse return data");
+                throw new ChromiaException($"failed to parse return data: {e.Message}");
             }
         }
 

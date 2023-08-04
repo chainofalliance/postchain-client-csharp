@@ -79,6 +79,40 @@ namespace Chromia.Tests.Client
             Assert.Equal(expected, actual);
         }
 
+        [Theory]
+        [InlineData((float)Math.PI)]
+        [InlineData(0f)]
+        [InlineData(1f)]
+        [InlineData(-1f)]
+        [InlineData(256f)]
+        [InlineData(-256f)]
+        [InlineData(float.MaxValue)]
+        [InlineData(float.MinValue)]
+        [InlineData(1E-20f)]
+        public async void FloatTest(float f)
+        {
+            var expected = f;
+            var actual = await Client.Query<float>("test_decimal", ("decimal", expected));
+            Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [InlineData(Math.PI)]
+        [InlineData(0d)]
+        [InlineData(1d)]
+        [InlineData(-1d)]
+        [InlineData(256d)]
+        [InlineData(-256d)]
+        [InlineData(double.MaxValue)]
+        [InlineData(double.MinValue)]
+        [InlineData(1E-20d)]
+        public async void DoubleTest(double d)
+        {
+            var expected = d;
+            var actual = await Client.Query<double>("test_decimal", ("decimal", expected));
+            Assert.Equal(expected, actual);
+        }
+
         [Fact]
         public async void StructTest()
         {

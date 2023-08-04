@@ -30,6 +30,11 @@ query test_string(text) {
     return text;
 }
 
+query test_decimal(decimal) {
+    print("test_decimal", decimal);
+    return decimal;
+}
+
 query test_null() = null;
 
 query test_pubkey(pubkey) {

@@ -1,6 +1,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Numerics;
 
@@ -93,8 +94,7 @@ namespace Chromia.Encoding
             else if (obj.Type == JTokenType.String)
                 return new StringGtv((string)obj);
             else if (obj.Type == JTokenType.Float)
-                // TODO check if ok
-                return new StringGtv(obj.ToObject<float>().ToString());
+                return new StringGtv(obj.ToObject<double>().ToString(CultureInfo.InvariantCulture));
             else if (obj.Type == JTokenType.Boolean)
                 return new IntegerGtv(obj.ToObject<bool>() ? 1 : 0);
             else if (obj.Type == JTokenType.Integer)

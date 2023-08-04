@@ -8,7 +8,7 @@ namespace Chromia.Tests
 {
     public class ChromiaClientFixture : IAsyncLifetime
     {
-        public static Buffer TestDappBrid = Buffer.From("8BFFC5F6A9271510237AAF4D04411773D4CDFD7A43834B28D908D6C5F7C64C27");
+        public static Buffer TestDappBrid = Buffer.From("493AB3DCF274B382BCE618C08E5C8D0F5C294C2A6718C28EF9273186A471F819");
         public ChromiaClient Client { get; private set; }
 
         public async Task InitializeAsync()
@@ -24,12 +24,11 @@ namespace Chromia.Tests
     }
     public class ResetableChromiaClientFixture : IAsyncLifetime
     {
-        public static Buffer TestDappBrid = Buffer.From("8BFFC5F6A9271510237AAF4D04411773D4CDFD7A43834B28D908D6C5F7C64C27");
         public ChromiaClient Client { get; private set; }
 
         public async Task InitializeAsync()
         {
-            Client = await ChromiaClient.Create("http://localhost:7740/", TestDappBrid);
+            Client = await ChromiaClient.Create("http://localhost:7740/", ChromiaClientFixture.TestDappBrid);
             Client.SetAttemptsPerEndpoint(1);
             await Client.SendUniqueTransaction(new Operation("reset"));
         }
