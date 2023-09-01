@@ -1,6 +1,6 @@
-﻿using Secp256k1Net;
+﻿using NBitcoin.Secp256k1;
 using System;
-using System.Security.Cryptography;
+using System.Linq;
 
 namespace Chromia
 {
@@ -36,14 +36,10 @@ namespace Chromia
         /// <returns>The <see cref="Buffer"/> containing the private key.</returns>
         public static Buffer GeneratePrivKey()
         {
-            using var crypto = new Secp256k1();
-
-            var privateKey = new byte[Secp256k1.PRIVKEY_LENGTH];
-            var rnd = RandomNumberGenerator.Create();
-            do { rnd.GetBytes(privateKey); }
-            while (!crypto.SecretKeyVerify(privateKey));
-
-            return Buffer.From(privateKey);
+            var rnd = new Random();
+            var valid = "0123456789abcdef";
+            var privKey = Enumerable.Range(0, 64).Aggregate("", (c, _) => c + valid[rnd.Next(valid.Length)]);
+            return Buffer.From(privKey);
         }
 
         /// <summary>
@@ -54,16 +50,8 @@ namespace Chromia
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public static Buffer GetPubKey(Buffer privKey)
         {
-            using var crypto = new Secp256k1();
-
-            EnsurePrivateKey(privKey);
-
-            var pubKey = new byte[Secp256k1.PUBKEY_LENGTH];
-            crypto.PublicKeyCreate(pubKey, privKey.Bytes);
-
-            var parsedPubKey = new byte[Secp256k1.SERIALIZED_COMPRESSED_PUBKEY_LENGTH];
-            crypto.PublicKeySerialize(parsedPubKey, pubKey, Flags.SECP256K1_EC_COMPRESSED);
-            return Buffer.From(parsedPubKey);
+            var privateKey = ECPrivKey.Create(privKey.Bytes);
+            return Buffer.From(privateKey.CreatePubKey().ToBytes());
         }
 
         /// <summary>
@@ -207,15 +195,12 @@ namespace Chromia
         {
             EnsureValidMessage(buffer);
 
-            using var crypto = new Secp256k1();
+            var privKey = ECPrivKey.Create(_keyPair.PrivKey.Bytes);
+            var sig = privKey.SignECDSARFC6979(buffer.Bytes);
+            var compact = new byte[64];
+            sig.WriteCompactToSpan(compact);
 
-            var signature = new byte[Secp256k1.SIGNATURE_LENGTH];
-            crypto.Sign(signature, buffer.Bytes, _keyPair.PrivKey.Bytes);
-
-            var compactSignature = new byte[Secp256k1.SIGNATURE_LENGTH];
-            crypto.SignatureParseCompact(compactSignature, signature);
-
-            return new Signature(PubKey, Buffer.From(compactSignature));
+            return new Signature(PubKey, Buffer.From(compact));
         }
 
         /// <summary>
@@ -229,15 +214,10 @@ namespace Chromia
         {
             EnsureValidMessage(buffer);
 
-            using var crypto = new Secp256k1();
+            var pubKey = ECPubKey.Create(sig.PubKey.Bytes);
 
-            var parsedPubKey = new byte[Secp256k1.PUBKEY_LENGTH];
-            crypto.PublicKeyParse(parsedPubKey, sig.PubKey.Bytes);
-
-            var signature = new byte[Secp256k1.SIGNATURE_LENGTH];
-            crypto.SignatureSerializeCompact(signature, sig.Hash.Bytes);
-
-            return crypto.Verify(signature, buffer.Bytes, parsedPubKey);
+            SecpECDSASignature.TryCreateFromCompact(sig.Hash.Bytes, out var signature);
+            return pubKey.SigVerify(signature, buffer.Bytes);
         }
     }
 }

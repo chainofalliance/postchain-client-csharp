@@ -9,8 +9,7 @@ namespace Chromia.Encoding
     {
         public byte[] Digest(byte[] buffer)
         {
-            using var sha = SHA256.Create();
-            return sha.ComputeHash(buffer);
+            return ChromiaClient.Sha256(buffer);
         }
     }
 
@@ -42,7 +41,7 @@ namespace Chromia.Encoding
 
         public byte[] CalculateLeafHash(object value)
         {
-            var gtv = Gtv.EncodeToGtv(JToken.FromObject(value));
+            var gtv = Gtv.EncodeToGtv(value == null ? null : JToken.FromObject(value));
             
             return CalculateHashOfValueInternal(gtv);
         }

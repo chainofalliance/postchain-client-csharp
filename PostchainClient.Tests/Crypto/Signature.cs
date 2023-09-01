@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using System;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace Chromia.Tests.Crypto
@@ -14,6 +15,14 @@ namespace Chromia.Tests.Crypto
             var buffer = ChromiaClientFixture.TestDappBrid;
             var sig = signer.Sign(buffer);
             Assert.True(SignatureProvider.Verify(sig, buffer));
+        }
+
+        [Fact]
+        public void KeyPairTest()
+        {
+            var privkey = Buffer.From("1234123412341234123412341234123412341234123412341234123412341235");
+            var kp = new KeyPair(privkey);
+            Assert.Equal(privkey, kp.PrivKey);
         }
     }
 }

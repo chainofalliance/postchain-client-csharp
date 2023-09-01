@@ -1,12 +1,7 @@
-using Chromia.Encoding;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Numerics;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
-using static Chromia.Transaction;
 
 namespace Chromia.Tests.Client
 {
