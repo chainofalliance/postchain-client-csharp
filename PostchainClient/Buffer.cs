@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
@@ -53,10 +54,13 @@ namespace Chromia
         /// <param name="hexString">The string containing the bytes to be parsed. May be prefixed by "0x".</param>
         /// <returns>The <see cref="Buffer"/> containing the bytes.</returns>
         /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="ArgumentNullException"></exception>
         public static Buffer From(string hexString)
         {
-            if (hexString == null || hexString.Length % 2 == 1) 
-                throw new ArgumentException("has to contain an even number of characters", nameof(hexString));
+            if (hexString == null)
+                throw new ArgumentNullException(nameof(hexString));
+            else if (hexString.Length % 2 == 1)
+                throw new ArgumentException($"has to contain an even number of characters (got \"{hexString}\" ({hexString.Length}))", nameof(hexString));
 
             hexString = hexString.Trim().Replace("0x", "");
             var bytes = Enumerable.Range(0, hexString.Length)
@@ -115,7 +119,7 @@ namespace Chromia
         /// <returns>The empty <see cref="Buffer"/></returns>
         public static Buffer Empty()
         {
-            return new Buffer();
+            return new Buffer(new byte[0]);
         }
 
         /// <summary>

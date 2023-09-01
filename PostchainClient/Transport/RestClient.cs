@@ -123,14 +123,14 @@ namespace Chromia.Transport
             try
             {
                 var jToken = JToken.FromObject(jsonObj);
-                if (jToken.Type == JTokenType.Array || jToken.Type == JTokenType.Object)
-                    return jToken.ToObject<T>();
-                else if (typeof(T) == typeof(float))
+                if (typeof(T) == typeof(float))
                     return (T)(object)float.Parse(jToken.ToObject<string>(), CultureInfo.InvariantCulture);
                 else if (typeof(T) == typeof(double))
                     return (T)(object)double.Parse(jToken.ToObject<string>(), CultureInfo.InvariantCulture);
-                else
+                else if (typeof(T) == typeof(Buffer))
                     return (T)jsonObj;
+                else
+                    return jToken.ToObject<T>();
             }
             catch (Exception e)
             {
