@@ -3,7 +3,6 @@ version: '3.3'
 services:
   postgres:
     image: postgres:14.1-alpine
-    container_name: postgres
     restart: always
     volumes:
       - postgres:/var/lib/postgresql/data
@@ -15,10 +14,9 @@ services:
 
   blockchain:
     image: "registry.gitlab.com/chromaway/core-tools/chromia-cli/chr:${CHR_CLI_VERSION}"
-    container_name: blockchain
     command: node start
     ports:
-      - 7740:7740
+      - 7750:7740
     depends_on:
       - postgres
     volumes:
