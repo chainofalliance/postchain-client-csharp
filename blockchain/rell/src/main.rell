@@ -42,6 +42,11 @@ query test_pubkey(pubkey) {
     return pubkey;
 }
 
+query test_boolean(boolean) {
+    print("test_boolean", boolean);
+    return boolean;
+}
+
 query test_timestamp(timestamp) {
     print("test_timestamp", timestamp);
     return timestamp;

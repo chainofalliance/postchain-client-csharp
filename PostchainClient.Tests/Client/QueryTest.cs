@@ -1,8 +1,5 @@
-using Chromia.Encoding;
-using Newtonsoft.Json;
 using System;
 using System.Numerics;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -28,11 +25,28 @@ namespace Chromia.Tests.Client
         }
 
         [Fact]
+        public async void EmptyBufferTest()
+        {
+            var expected = Buffer.Empty();
+            var actual = await Client.Query<Buffer>("test_pubkey", ("pubkey", expected));
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
         public async void BufferTest()
         {
             var expected = Signer.PubKey;
             var actual = await Client.Query<Buffer>("test_pubkey", ("pubkey", expected));
             Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async void BooleanTest(bool b)
+        {
+            var actual = await Client.Query<bool>("test_boolean", ("boolean", b));
+            Assert.Equal(b, actual);
         }
 
         [Theory]
