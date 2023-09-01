@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Chromia.Encoding;
 using Chromia.Transport;
 using static Chromia.Transport.RestClient;
+using System.Security.Cryptography;
 
 namespace Chromia
 {
@@ -65,6 +66,46 @@ namespace Chromia
                 throw new ArgumentNullException(nameof(transport));
 
             RestClient.SetTransport(transport);
+        }
+
+        /// <summary>
+        /// Creates an sha256 hash of the given buffer.
+        /// </summary>
+        /// <param name="buffer">The buffer to hash.</param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ObjectDisposedException"></exception>
+        /// <returns>The sha256 hash of the buffer.</returns>
+        public static Buffer Sha256(Buffer buffer)
+        {
+            return Buffer.From(Sha256(buffer.Bytes));
+        }
+
+        /// <inheritdoc cref="Sha256(Buffer)"/>
+        public static byte[] Sha256(byte[] buffer)
+        {
+            using var sha = SHA256.Create();
+            return sha.ComputeHash(buffer);
+        }
+
+        /// <summary>
+        /// Parses the object to gtv and creates the merkle root hash of it.
+        /// </summary>
+        /// <param name="obj">The object to hash.</param>
+        /// <returns>The merkle root hash.</returns>
+        public static Buffer Hash(object obj)
+        {
+            return Gtv.Hash(obj);
+        }
+
+        /// <summary>
+        /// Encodes the given object to a gtv buffer.
+        /// </summary>
+        /// <param name="obj">The object to encode.</param>
+        /// <returns>The gtv encoded object.</returns>
+        /// <exception cref="ChromiaException"></exception>
+        public static Buffer EncodeToGtv(object obj)
+        {
+            return Gtv.Encode(obj);
         }
 
         /// <summary>
