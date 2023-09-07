@@ -39,6 +39,25 @@ namespace Chromia.Tests.Client
         public MyStruct Struct;
     }
 
+    struct MyBigStruct
+    {
+        [JsonProperty("s")]
+        public string String;
+        [JsonProperty("ba")]
+        public Buffer Buffer;
+        [JsonProperty("b")]
+        public bool Bool;
+        [JsonProperty("i")]
+        public int Int;
+        [JsonProperty("l")]
+        public long Long;
+        [JsonProperty("f")]
+        public float Float;
+        [JsonProperty("n")]
+        public BigInteger BigInt;
+
+    }
+
 
     struct CityStruct : IGtvSerializable
     {

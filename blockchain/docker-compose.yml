@@ -14,7 +14,7 @@ services:
 
   blockchain:
     image: "registry.gitlab.com/chromaway/core-tools/chromia-cli/chr:${CHR_CLI_VERSION}"
-    command: node start
+    command: chr node start
     ports:
       - 7750:7740
     depends_on:

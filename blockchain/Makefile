@@ -1,5 +1,5 @@
 PROJECT=csharp_test
-export CHR_CLI_VERSION := 0.8.5
+export CHR_CLI_VERSION := 0.10.0
 
 .PHONY: start
 start:

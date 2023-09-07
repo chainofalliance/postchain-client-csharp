@@ -12,6 +12,17 @@ struct my_nested_struct {
   my_struct;
 }
 
+struct my_big_struct {
+    s: text;
+    ba:  byte_array;
+    b:  boolean;
+    i: integer;
+    l: integer;
+    f: decimal;
+  n: big_integer;
+}
+
+
 operation insert_city(name, zip: integer) {
     create city (name, zip);
 }
@@ -67,3 +78,14 @@ query test_nested_struct(s: my_nested_struct) {
     return s;
 }
 
+query test_big_struct(s: my_big_struct) {
+    print("test_struct", s);
+    return s;
+}
+
+namespace ft3{
+    query get_account_by_id(id: byte_array) {
+        print("ft3.get_account_by_id", id);
+        return id;
+    }
+}

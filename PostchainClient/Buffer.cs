@@ -202,8 +202,8 @@ namespace Chromia
     {
         public override Buffer ReadJson(JsonReader reader, Type objectType, Buffer existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
-            var t = reader.ReadAsString();
-            return Buffer.From(t);
+            byte[] bytes = (byte[])reader.Value;
+            return Buffer.From(bytes);
         }
 
         public override void WriteJson(JsonWriter writer, Buffer value, JsonSerializer serializer)

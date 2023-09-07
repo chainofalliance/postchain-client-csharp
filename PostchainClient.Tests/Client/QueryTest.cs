@@ -1,5 +1,7 @@
+using Newtonsoft.Json;
 using System;
 using System.Numerics;
+using System.Xml.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -177,6 +179,31 @@ namespace Chromia.Tests.Client
             };
             var actual = await Client.Query<MyNestedStruct>("test_nested_struct", ("s", expected));
             Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public async void BigStructTest()
+        {
+            var expected = new MyBigStruct()
+            {
+                Bool = true,
+                Buffer = Client.BlockchainRID,
+                Float = 3.1415f,
+                Int = 42,
+                Long = -42,
+                String = "foo",
+                BigInt = BigInteger.MinusOne
+            };
+            var actual = await Client.Query<MyBigStruct>("test_big_struct", ("s", expected));
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public async void Ft3Test()
+        {
+            var expected = Buffer.From("c42b182e2c6a29d5efa0a38ca337f0226590ebda153da325991fd73d67d3523e");
+            var actual = await Client.Query<object>("ft3.get_account_by_id", ("id", expected));
+            Console.WriteLine(actual);
         }
     }
 }
