@@ -37,9 +37,9 @@ namespace Chromia.Transport
         private static readonly Random _random = new Random();
 
         private Uri BaseUri => _nodeUrls[_random.Next(_nodeUrls.Count)];
-        private Uri QueryUri => new Uri(BaseUri, $"query_gtv/{_blockchainRID.Parse()}");
-        private Uri TxUri => new Uri(BaseUri, $"tx/{_blockchainRID.Parse()}");
-        private Uri TxStatusUri(Buffer transactionRID) => new Uri(BaseUri, $"tx/{_blockchainRID.Parse()}/{transactionRID.Parse()}/status");
+        private Uri QueryUri => new Uri(BaseUri, $"./query_gtv/{_blockchainRID.Parse()}");
+        private Uri TxUri => new Uri(BaseUri, $"./tx/{_blockchainRID.Parse()}");
+        private Uri TxStatusUri(Buffer transactionRID) => new Uri(BaseUri, $"./tx/{_blockchainRID.Parse()}/{transactionRID.Parse()}/status");
 
         public RestClient(List<Uri> nodeUrl, Buffer blockchainRID) 
         {
@@ -55,7 +55,7 @@ namespace Chromia.Transport
 
         public async static Task<Buffer> GetBlockchainRID(Uri nodeUri, int blockchainIID)
         {
-            var uri = new Uri(nodeUri, "brid/iid_" + blockchainIID);
+            var uri = new Uri(nodeUri, "./brid/iid_" + blockchainIID);
             var response = await _transport.Get(uri);
             return Buffer.From(response.ParseUTF8());
         }

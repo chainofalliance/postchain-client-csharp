@@ -50,7 +50,7 @@ namespace Chromia
             else if (nodeUrls.Count == 0)
                 throw new ArgumentOutOfRangeException(nameof(nodeUrls));
 
-            _restClient = new RestClient(nodeUrls.Select(n => new Uri(n)).ToList(), blockchainRID);
+            _restClient = new RestClient(nodeUrls.Select(n => ToUri(n)).ToList(), blockchainRID);
         }
 
         #region Static
@@ -125,7 +125,7 @@ namespace Chromia
             else if (directoryNodeUrls.Count == 0)
                 throw new ArgumentOutOfRangeException(nameof(directoryNodeUrls));
 
-            var convertedNodes = directoryNodeUrls.Select(n => new Uri(n)).ToList();
+            var convertedNodes = directoryNodeUrls.Select(n => ToUri(n)).ToList();
             var nodes = await RestClient.GetNodesFromDirectory(convertedNodes, blockchainRID);
             return new ChromiaClient(nodes, blockchainRID);
         }
@@ -211,7 +211,14 @@ namespace Chromia
             else if (blockchainIID < 0)
                 throw new ArgumentOutOfRangeException(nameof(blockchainIID));
 
-            return await RestClient.GetBlockchainRID(new Uri(nodeUrl), blockchainIID);
+            return await RestClient.GetBlockchainRID(ToUri(nodeUrl), blockchainIID);
+        }
+
+        private static Uri ToUri(string url)
+        {
+            if (!url.EndsWith("/"))
+                url += "/";
+            return new Uri(url);
         }
         #endregion
 
@@ -228,7 +235,7 @@ namespace Chromia
             if (nodeUrl == null)
                 throw new ArgumentNullException(nameof(nodeUrl));
 
-            _restClient.AddNodeUrl(new Uri(nodeUrl));
+            _restClient.AddNodeUrl(ToUri(nodeUrl));
             return this;
         }
 
