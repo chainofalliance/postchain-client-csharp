@@ -142,7 +142,7 @@ namespace Chromia.Transport
         {
             var txObject = new JObject()
             {
-                { "tx", tx.SignedHash.Parse() }
+                { "tx", tx.GtvBody.Parse() }
             };
 
             return RequestWithRetries(Request.PostJson, TxUri, JsonConvert.SerializeObject(txObject));

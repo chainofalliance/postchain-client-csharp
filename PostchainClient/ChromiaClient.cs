@@ -7,6 +7,7 @@ using Chromia.Encoding;
 using Chromia.Transport;
 using static Chromia.Transport.RestClient;
 using System.Security.Cryptography;
+using System.Data.Common;
 
 namespace Chromia
 {
@@ -15,6 +16,11 @@ namespace Chromia
     /// </summary>
     public class ChromiaClient
     {
+        /// <summary>
+        /// The types this client supports as Operation and Query parameters.
+        /// </summary>
+        public static Type[] SupportedTypes => Gtv.SupportedTypes;
+
         /// <summary>
         /// The RID of the blockchain this client communicates with.
         /// </summary>
@@ -106,6 +112,17 @@ namespace Chromia
         public static Buffer EncodeToGtv(object obj)
         {
             return Gtv.Encode(obj);
+        }
+
+        /// <summary>
+        /// Decodes the given gtv buffer to an object.
+        /// </summary>
+        /// <param name="gtv">The gtv buffer to decode.</param>
+        /// <returns>The decoded object.</returns>
+        /// <exception cref="ChromiaException"></exception>
+        public static object DecodeFromGtv(Buffer gtv)
+        {
+            return Gtv.Decode(gtv);
         }
 
         /// <summary>
@@ -379,6 +396,9 @@ namespace Chromia
         /// <exception cref="TransportException"></exception>
         public async Task<TransactionReceipt> SendTransaction(Transaction.Signed tx)
         {
+            if (tx.Signers.Count != tx.Signatures.Count)
+                throw new InvalidOperationException($"unequal amount of signers and signatures");
+
             try
             {
                 await _restClient.SendTransaction(tx);
@@ -443,6 +463,10 @@ namespace Chromia
         /// <inheritdoc cref="Query{T}(string, object)"/>
         public async Task<T> Query<T>(string name, params (string name, object content)[] parameters)
         {
+            foreach (var item in parameters)
+                if (!Gtv.IsOfValidType(item.content))
+                    throw new ArgumentException(nameof(parameters), "unsupported data type for " + item.content);
+
             var parameterDict = parameters.ToDictionary(p => p.name, p => p.content);
             return await Query<T>(name, parameterDict);
         }

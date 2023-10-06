@@ -19,12 +19,26 @@ struct my_big_struct {
     i: integer;
     l: integer;
     f: decimal;
-  n: big_integer;
+    n: big_integer;
+    e: my_enum;
 }
 
+enum my_enum {
+    V1,
+    V2,
+}
 
 operation insert_city(name, zip: integer) {
     create city (name, zip);
+}
+
+operation test_map(m: map<text, integer>) {
+    print(m);
+}
+
+query test_map2(m: map<text, integer>) {
+    print(m);
+    return m;
 }
 
 operation reset() {
@@ -74,13 +88,18 @@ query test_struct(s: my_struct) {
 }
 
 query test_nested_struct(s: my_nested_struct) {
-    print("test_struct", s);
+    print("test_nested_struct", s);
     return s;
 }
 
 query test_big_struct(s: my_big_struct) {
-    print("test_struct", s);
+    print("test_big_struct", s);
     return s;
+}
+
+query test_enum(e: my_enum) {
+    print("test_enum", e);
+    return e;
 }
 
 namespace ft3{

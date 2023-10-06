@@ -1,6 +1,7 @@
 ﻿using Chromia.Encoding;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -37,16 +38,6 @@ namespace Chromia
         /// Creates a new operation.
         /// </summary>
         /// <param name="name">The name of the operation.</param>
-        /// <param name="gtv">The parameters of the operation in gtv serializable format.</param>
-        /// <exception cref="ArgumentNullException"></exception>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public Operation(string name, IGtvSerializable gtv)
-            : this(name, JObject.FromObject(gtv).Values().Select(v => v.ToObject<object>()).ToList()) { }
-
-        /// <summary>
-        /// Creates a new operation.
-        /// </summary>
-        /// <param name="name">The name of the operation.</param>
         /// <param name="args">The parameters of the operation.</param>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
@@ -69,6 +60,10 @@ namespace Chromia
             else if (name.Length == 0)
                 throw new ArgumentOutOfRangeException(nameof(name), "cannot be empty");
 
+            foreach (var item in args)
+                if (!Gtv.IsOfValidType(item))
+                    throw new ArgumentException(nameof(args), "unsupported data type for " + item);
+
             Name = name;
             Parameters = args;
         }
@@ -80,6 +75,9 @@ namespace Chromia
         /// <returns>This object.</returns>
         public Operation AddParameter(object parameter)
         {
+            if (!Gtv.IsOfValidType(parameter))
+                throw new ArgumentException(nameof(parameter), "unsupported data type for " + parameter);
+
             Parameters.Add(parameter);
             return this;
         }
@@ -99,8 +97,29 @@ namespace Chromia
             return new object[]
             {
                 Name,
-                Parameters.ToArray()
+                ParamterBody()
             };
+        }
+
+        internal object[] ParamterBody()
+        {
+            var parameters = new List<object>();
+            foreach (var param in Parameters)
+            {
+                switch (param)
+                {
+                    case IDictionary p:
+                        parameters.Add(p.ToGtv());
+                        break;
+                    case ICollection p:
+                        parameters.Add(p.ToGtv());
+                        break;
+                    default:
+                        parameters.Add(param);
+                        break;
+                }
+            }
+            return parameters.ToArray();
         }
 
         /// <summary>

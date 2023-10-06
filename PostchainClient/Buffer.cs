@@ -119,7 +119,7 @@ namespace Chromia
         /// <returns>The empty <see cref="Buffer"/></returns>
         public static Buffer Empty()
         {
-            return new Buffer(new byte[0]);
+            return new Buffer(Array.Empty<byte>());
         }
 
         /// <summary>
@@ -192,24 +192,66 @@ namespace Chromia
         }
 
         /// <inheritdoc />
+        public static bool operator ==(Buffer left, string right)
+        {
+            return left.Equals(From(right));
+        }
+
+        /// <inheritdoc />
+        public static bool operator ==(string left, Buffer right)
+        {
+            return right == left;
+        }
+
+        /// <inheritdoc />
         public static bool operator !=(Buffer left, Buffer right)
         {
             return !(left == right);
         }
+
+        /// <inheritdoc />
+        public static bool operator !=(Buffer left, string right)
+        {
+            return !(left == right);
+        }
+
+        /// <inheritdoc />
+        public static bool operator !=(string left, Buffer right)
+        {
+            return !(left == right);
+        }
+
+        /// <inheritdoc />
+        public static implicit operator string(Buffer b) {
+            return b.Parse();
+        }
+
+        /// <inheritdoc />
+        public static implicit operator Buffer(string s)
+        {
+            return s == null ? Empty() : From(s);
+        }
     }
 
-    internal class BufferConverter : JsonConverter<Buffer>
+    public class BufferConverter : JsonConverter<Buffer>
     {
+        public BufferConverter()
+        {
+
+        }
+
         public override Buffer ReadJson(JsonReader reader, Type objectType, Buffer existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
-            byte[] bytes = (byte[])reader.Value;
-            return Buffer.From(bytes);
+            var val = reader.Value;
+            if (reader.TokenType == JsonToken.String)
+                return Buffer.From(Convert.FromBase64String((string)val));
+            else
+                return Buffer.From((byte[])val);
         }
 
         public override void WriteJson(JsonWriter writer, Buffer value, JsonSerializer serializer)
         {
-            var o = JToken.FromObject(value.Bytes);
-            o.WriteTo(writer);
+            writer.WriteToken(JsonToken.Bytes, value.Bytes);
         }
     }
 }

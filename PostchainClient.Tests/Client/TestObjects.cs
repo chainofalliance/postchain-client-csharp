@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Chromia.Tests.Client
 {
-    struct MyStruct
+    struct MyStruct : IGtvSerializable
     {
         [JsonProperty("a")]
         public string A;
@@ -17,7 +17,7 @@ namespace Chromia.Tests.Client
         public string B;
     }
 
-    struct MyStructReverse
+    struct MyStructReverse : IGtvSerializable
     {
         [JsonProperty("b")]
         public string B;
@@ -31,7 +31,7 @@ namespace Chromia.Tests.Client
         public MyStruct Struct;
     }
 
-    struct MyNestedStruct
+    struct MyNestedStruct : IGtvSerializable
     {
         [JsonProperty("n")]
         public BigInteger BigInt;
@@ -39,7 +39,7 @@ namespace Chromia.Tests.Client
         public MyStruct Struct;
     }
 
-    struct MyBigStruct
+    struct MyBigStruct : IGtvSerializable
     {
         [JsonProperty("s")]
         public string String;
@@ -55,7 +55,15 @@ namespace Chromia.Tests.Client
         public float Float;
         [JsonProperty("n")]
         public BigInteger BigInt;
+        [JsonProperty("e")]
+        public MyEnum Enum;
 
+    }
+
+    enum MyEnum
+    {
+        V1,
+        V2,
     }
 
 

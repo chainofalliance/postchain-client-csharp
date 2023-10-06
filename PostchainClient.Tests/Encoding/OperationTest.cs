@@ -105,50 +105,5 @@ namespace Chromia.Tests.Encoding
                 .AddParameter(new object[] { "bar", "foo" });
             Assert.NotEqual(expected, actual);
         }
-
-        public class GtvTest1 : IGtvSerializable
-        {
-            public int IntVal = 42;
-            public string StrVal = "foo";
-            public Buffer BufferVal = Buffer.From("affe");
-            public BigInteger BigIntVal = BigInteger.One;
-            public string[] StrArrVal = new string[] { "hello", "world"};
-        }
-
-        public struct GtvTest2 : IGtvSerializable
-        {
-            public int IntVal = 42;
-            public string StrVal = "foo";
-            public Buffer BufferVal = Buffer.From("affe");
-            public BigInteger BigIntVal = BigInteger.One;
-            public string[] StrArrVal = new string[] { "hello", "world" };
-
-            public GtvTest2() { }
-        }
-
-        public Operation GtvOp = new Operation("test_op")
-                                    .AddParameter(42)
-                                    .AddParameter("foo")
-                                    .AddParameter(Buffer.From("affe"))
-                                    .AddParameter(BigInteger.One)
-                                    .AddParameter(new string[] { "hello", "world" });
-
-        [Fact]
-        public void GtvClassParameterTest()
-        {
-            var expected = GtvOp;
-
-            var actual = new Operation("test_op", new GtvTest1());
-            Assert.Equal(Gtv.Decode(expected.Encode()), Gtv.Decode(actual.Encode()));
-        }
-
-        [Fact]
-        public void GtvStructParameterTest()
-        {
-            var expected = GtvOp;
-
-            var actual = new Operation("test_op", new GtvTest2());
-            Assert.Equal(Gtv.Decode(expected.Encode()), Gtv.Decode(actual.Encode()));
-        }
     }
 }
