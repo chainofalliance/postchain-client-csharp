@@ -41,6 +41,12 @@ namespace Chromia.Transport
             return await Post(uri, str);
         }
 
+        /// <inheritdoc/>
+        public async Task Delay(int milliseconds)
+        {
+            await Task.Delay(milliseconds);
+        }
+
         private async Task<Buffer> Post(Uri uri, HttpContent content)
         {
             HttpResponseMessage response;

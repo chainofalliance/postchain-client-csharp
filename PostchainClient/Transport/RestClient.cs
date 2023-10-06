@@ -159,8 +159,8 @@ namespace Chromia.Transport
             var txStatus = await GetTransactionStatus(transactionRID);
             if (txStatus.Status == ResponseStatus.Waiting && retry < _pollingRetries)
             {
-                await Task.Delay(_pollingInterval);
-                return await WaitForConfirmation(transactionRID, retry++);
+                await _transport.Delay(_pollingInterval);
+                return await WaitForConfirmation(transactionRID, ++retry);
             }
             return new TransactionReceipt(transactionRID, txStatus, retry >= _pollingRetries);
         }
@@ -187,7 +187,7 @@ namespace Chromia.Transport
                     catch (TransportException e)
                     {
                         lastException = e;
-                        await Task.Delay(_attemptInterval);
+                        await _transport.Delay(_attemptInterval);
                     }
                 }
             }

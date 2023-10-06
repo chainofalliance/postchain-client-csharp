@@ -37,6 +37,11 @@ public class UnityTransport : ITransport
         return await Post(uri, uploadHandler);
     }
 
+    public async Task Delay(int milliseconds)
+    {
+        await UniTask.Delay(milliseconds);
+    }
+
     private static async UniTask<Chromia.Buffer> Post(Uri uri, UploadHandlerRaw uploadHandler)
     {
         using (var request = new UnityWebRequest(uri, "POST"))

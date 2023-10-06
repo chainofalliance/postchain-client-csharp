@@ -33,5 +33,11 @@ namespace Chromia.Transport
         /// <returns>The response content.</returns>
         /// <exception cref="TransportException"></exception>
         Task<Buffer> Post(Uri uri, string content);
+
+        /// <summary>
+        /// Delays the task for the given amount of milliseconds.
+        /// </summary>
+        /// <param name="milliseconds">The milliseconds to delay.</param>
+        Task Delay(int milliseconds);
     }
 }
