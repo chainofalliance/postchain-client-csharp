@@ -227,6 +227,12 @@ namespace Chromia
         }
 
         /// <inheritdoc />
+        public static implicit operator Buffer(byte[] bytes)
+        {
+            return bytes == null ? Empty() : From(bytes);
+        }
+
+        /// <inheritdoc />
         public static implicit operator Buffer(string s)
         {
             return s == null ? Empty() : From(s);
