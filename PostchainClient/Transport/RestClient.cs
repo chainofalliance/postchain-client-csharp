@@ -25,6 +25,7 @@ namespace Chromia.Transport
         public int PollingInterval { get { return _pollingInterval; } }
         public int AttemptsPerEndpoint { get { return _attemptsPerEndpoint; } }
         public int AttemptInterval { get { return _attemptInterval; } }
+        public List<Uri> NodeUrls { get { return new List<Uri>(_nodeUrls); } }
 
         private readonly Buffer _blockchainRID;
         private readonly List<Uri> _nodeUrls;

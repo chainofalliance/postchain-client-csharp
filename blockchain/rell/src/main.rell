@@ -36,6 +36,10 @@ operation test_map(m: map<text, integer>) {
     print(m);
 }
 
+operation test_bigint_op(biginteger: big_integer) {
+    print(biginteger);
+}
+
 query test_map2(m: map<text, integer>) {
     print(m);
     return m;

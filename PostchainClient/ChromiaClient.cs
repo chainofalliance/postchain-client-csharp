@@ -46,9 +46,18 @@ namespace Chromia
         /// </summary>
         public int AttemptInterval { get { return _restClient.AttemptInterval; } }
 
+        /// <summary>
+        /// The urls of all nodes that are configured.
+        /// </summary>
+        public List<Uri> NodeUrls { get { return _restClient.NodeUrls; } }
+
         private readonly RestClient _restClient;
 
         private ChromiaClient(List<string> nodeUrls, Buffer blockchainRID)
+            : this(nodeUrls?.ConvertAll(n => ToUri(n)), blockchainRID)
+        {}
+
+        private ChromiaClient(List<Uri> nodeUrls, Buffer blockchainRID)
         {
             EnsureBlockchainRID(blockchainRID);
             if (nodeUrls == null)
@@ -56,7 +65,7 @@ namespace Chromia
             else if (nodeUrls.Count == 0)
                 throw new ArgumentOutOfRangeException(nameof(nodeUrls));
 
-            _restClient = new RestClient(nodeUrls.Select(n => ToUri(n)).ToList(), blockchainRID);
+            _restClient = new RestClient(nodeUrls, blockchainRID);
         }
 
         #region Static
@@ -136,14 +145,14 @@ namespace Chromia
         /// <exception cref="UriFormatException"></exception>
         public async static Task<ChromiaClient> CreateFromDirectory(List<string> directoryNodeUrls, Buffer blockchainRID)
         {
-            RestClient.EnsureBlockchainRID(blockchainRID);
+            EnsureBlockchainRID(blockchainRID);
             if (directoryNodeUrls == null)
                 throw new ArgumentNullException(nameof(directoryNodeUrls));
             else if (directoryNodeUrls.Count == 0)
                 throw new ArgumentOutOfRangeException(nameof(directoryNodeUrls));
 
-            var convertedNodes = directoryNodeUrls.Select(n => ToUri(n)).ToList();
-            var nodes = await RestClient.GetNodesFromDirectory(convertedNodes, blockchainRID);
+            var convertedNodes = directoryNodeUrls.ConvertAll(n => ToUri(n));
+            var nodes = await GetNodesFromDirectory(convertedNodes, blockchainRID);
             return new ChromiaClient(nodes, blockchainRID);
         }
 
@@ -188,11 +197,24 @@ namespace Chromia
         }
 
         /// <inheritdoc cref="Create(List{string}, Buffer)"/>
+        public async static Task<ChromiaClient> Create(List<Uri> nodeUrls, Buffer blockchainRID)
+        {
+            await Task.FromResult(0);
+            return new ChromiaClient(nodeUrls, blockchainRID);
+        }
+
+        /// <inheritdoc cref="Create(List{string}, Buffer)"/>
         /// <param name="nodeUrl">The node to interact with.</param>
         /// <param name="blockchainRID">The blockchain RID of the application.</param>
         public async static Task<ChromiaClient> Create(string nodeUrl, Buffer blockchainRID)
         {
             return await Create(new List<string>() { nodeUrl }, blockchainRID);
+        }
+
+        /// <inheritdoc cref="Create(string, Buffer)"/>
+        public async static Task<ChromiaClient> Create(Uri nodeUrl, Buffer blockchainRID)
+        {
+            return await Create(new List<Uri>() { nodeUrl }, blockchainRID);
         }
 
         /// <inheritdoc cref="Create(List{string}, Buffer)"/>
@@ -203,10 +225,22 @@ namespace Chromia
             return await Create(new List<string>() { nodeUrl }, blockchainIID);
         }
 
+        /// <inheritdoc cref="Create(string, int)"/>
+        public async static Task<ChromiaClient> Create(Uri nodeUrl, int blockchainIID)
+        {
+            return await Create(new List<Uri>() { nodeUrl }, blockchainIID);
+        }
+
         /// <inheritdoc cref="Create(List{string}, Buffer)"/>
         /// <param name="nodeUrls">The nodes to interact with.</param>
         /// <param name="blockchainIID">The blockchain IID of the application. Gets resolved to the blockchain RID.</param>
         public async static Task<ChromiaClient> Create(List<string> nodeUrls, int blockchainIID)
+        {
+            return await Create(nodeUrls?.ConvertAll(n => ToUri(n)), blockchainIID);
+        }
+
+        /// <inheritdoc cref="Create(List{string}, int)"/>
+        public async static Task<ChromiaClient> Create(List<Uri> nodeUrls, int blockchainIID)
         {
             var blockchainRID = await GetBlockchainRID(nodeUrls[0], blockchainIID);
             return await Create(nodeUrls, blockchainRID);
@@ -228,7 +262,18 @@ namespace Chromia
             else if (blockchainIID < 0)
                 throw new ArgumentOutOfRangeException(nameof(blockchainIID));
 
-            return await RestClient.GetBlockchainRID(ToUri(nodeUrl), blockchainIID);
+            return await GetBlockchainRID(ToUri(nodeUrl), blockchainIID);
+        }
+
+        /// <inheritdoc cref="GetBlockchainRID(string, int)"/>
+        public async static Task<Buffer> GetBlockchainRID(Uri nodeUrl, int blockchainIID)
+        {
+            if (nodeUrl == null)
+                throw new ArgumentNullException(nameof(nodeUrl));
+            else if (blockchainIID < 0)
+                throw new ArgumentOutOfRangeException(nameof(blockchainIID));
+
+            return await RestClient.GetBlockchainRID(nodeUrl, blockchainIID);
         }
 
         private static Uri ToUri(string url)
@@ -470,5 +515,72 @@ namespace Chromia
             var parameterDict = parameters.ToDictionary(p => p.name, p => p.content);
             return await Query<T>(name, parameterDict);
         }
+
+        /// <summary>
+        /// Retrieves a confirmation proof for a transaction with the specified sha256
+        /// hash.
+        /// <para>
+        /// If first parameter is null, then the second parameter is an object
+        /// like the following:
+        /// <code>
+        /// {
+        ///     hash: messageHashBuffer,
+        ///     blockHeader: blockHeaderBuffer,
+        ///     signatures: [
+        ///                     {pubKey: pubKeyBuffer, signature: sigBuffer},
+        ///                     ...
+        ///                 ],
+        ///     merklePath: [
+        ///                     {side: &lt;0|1&gt;, hash: &lt;hash buffer level n-1&gt;},
+        ///                     ...
+        ///                     {side: &lt;0|1&gt;, hash: &lt; hash buffer level 1 &gt;}
+        ///                 ]
+        /// }
+        /// </code>
+        ///
+        /// If no such transaction RID exists, the callback will be called with (null, null).
+        /// The proof object can be validated using
+        /// postchain - common.util.validateMerklePath(proof.merklePath, proof.hash,
+        /// proof.blockHeader.slice(32, 64))
+        ///
+        /// The signatures must be validated agains some know trusted source for valid signers
+        /// at this specific block height.
+        /// </para>
+        /// </summary>
+        /// <param name="transactionRID"></param>
+        /// <returns></returns>
+        //public async Task<Buffer> GetConfirmationProof(Buffer transactionRID)
+        //{
+        //    return await Query<Buffer>("cm_get_blockchain_cluster", ("brid", blockchainRID));
+        //}
+
+        //public static async Transaction CreateIccfProofTransaction(
+        //    ChromiaClient client,
+        //    Buffer txToProveRid,
+        //    Buffer txToProveHash,
+        //    List<Buffer> txToProveSigners,
+        //    Buffer sourceBlockchainRID,
+        //    Buffer targetBlockchainRID,
+        //    List<Buffer> iccfTxSigners,
+        //    bool forceIntraNetworkIccfOperation = false
+        //)
+        //{
+        //    var sourceClient = await Create(client.NodeUrls, sourceBlockchainRID);
+        //    var txProof = sourceClient.GetConfirmationProof(txToProveRid);
+
+        //    if (txProof == null)
+        //        throw new ChromiaException("tx not found in source blockchain");
+
+        //    if (txProof.Hash != txToProveHash)
+        //        throw new ChromiaException("tx hash mismatch");
+
+        //    var sourceCluster = await client.Query<Buffer>("cm_get_blockchain_cluster", ("brid", sourceBlockchainRID));
+        //    var targetCluster = await client.Query<Buffer>("cm_get_blockchain_cluster", ("brid", targetBlockchainRID));
+
+        //    if (!forceIntraNetworkIccfOperation && sourceCluster == targetCluster)
+        //    {
+                
+        //    }
+        //}
     }
 }

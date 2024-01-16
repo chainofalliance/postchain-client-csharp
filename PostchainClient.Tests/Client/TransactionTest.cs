@@ -128,5 +128,17 @@ namespace Chromia.Tests.Client
             var response = await Client.SendTransaction(signed);
             Assert.Equal(TransactionReceipt.ResponseStatus.Confirmed, response.Status);
         }
+
+        [Fact]
+        public async void BigIntTest()
+        {
+            var tx = Client.TransactionBuilder()
+                .AddOperation(new Operation("test_bigint_op", new System.Numerics.BigInteger(100)))
+                .AddNop();
+
+            var signed = tx.Sign();
+            var response = await Client.SendTransaction(signed);
+            Assert.Equal(TransactionReceipt.ResponseStatus.Confirmed, response.Status);
+        }
     }
 }
