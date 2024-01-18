@@ -474,7 +474,6 @@ namespace Chromia
         /// <param name="ct">A cancellation token to abort the task.</param>
         public async Task<T> Query<T>(string name, IGtvSerializable obj, CancellationToken ct = default)
         {
-            Console.WriteLine("Querying " + name);
             var jsonObj = JObject.FromObject(obj);
             return await Query<T>(name, jsonObj, ct);
         }

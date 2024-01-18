@@ -58,7 +58,6 @@ namespace Chromia.Encoding
         private byte[] CalculateHashOfValueInternal(IGtv gtv)
         {
             var buf = new List<byte>(){(byte) HashPrefix.Leaf};
-            Console.WriteLine(gtv.GetType());
             buf.AddRange(gtv.Encode().Bytes);
 
             return HashingFun(buf.ToArray());
