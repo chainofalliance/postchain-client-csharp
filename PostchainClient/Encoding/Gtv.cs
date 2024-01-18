@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
@@ -47,13 +48,20 @@ namespace Chromia.Encoding
             return false;
         }
 
+        public static JToken FromObject(object obj)
+        {
+            return JToken.FromObject(obj, JsonSerializer.Create(new JsonSerializerSettings()
+            {
+                Converters = new List<JsonConverter> { new BigIntegerConverter() }
+            }));
+        }
+
         public static Buffer Encode(object obj)
         {
             if (obj == null)
                 return new NullGtv().Encode();
 
-            var jToken = JToken.FromObject(obj);
-            return EncodeFromJToken(jToken);
+            return EncodeFromJToken(FromObject(obj));
         }
 
         private static Buffer EncodeFromJToken(JToken obj)
@@ -130,17 +138,9 @@ namespace Chromia.Encoding
             else if (obj.Type == JTokenType.Boolean)
                 return new IntegerGtv(obj.ToObject<bool>() ? 1 : 0);
             else if (obj.Type == JTokenType.Integer)
-            {
-                try
-                {
-                    return new IntegerGtv(obj.ToObject<long>());
-                }
-                catch
-                {
-                    var bigInt = obj.ToObject<BigInteger>();
-                    return new BigIntegerGtv(bigInt);
-                }
-            }
+                return new IntegerGtv(obj.ToObject<long>());
+            else if (obj.Type == JTokenType.Raw)
+                return new BigIntegerGtv(obj.ToObject<BigInteger>());
             else if (obj.Type == JTokenType.Array)
             {
                 var gtvArray = new List<IGtv>();

@@ -1,8 +1,6 @@
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+using System.Numerics;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -126,6 +124,19 @@ namespace Chromia.Tests.Client
 
             var signed = tx.Sign();
             var response = await Client.SendTransaction(signed);
+            Assert.Equal(TransactionReceipt.ResponseStatus.Confirmed, response.Status);
+        }
+
+        [Fact]
+        public async void BigIntTest()
+        {
+            var tx = Client.TransactionBuilder()
+                .AddOperation(new Operation("test_bigint_op", BigInteger.One))
+                .AddNop();
+
+            var signed = tx.Sign();
+            var response = await Client.SendTransaction(signed);
+            Console.WriteLine(response.TransactionRID);
             Assert.Equal(TransactionReceipt.ResponseStatus.Confirmed, response.Status);
         }
     }

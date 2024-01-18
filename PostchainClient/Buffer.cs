@@ -239,13 +239,16 @@ namespace Chromia
         }
     }
 
+    /// <inheritdoc />
     public class BufferConverter : JsonConverter<Buffer>
     {
+        /// <inheritdoc />
         public BufferConverter()
         {
 
         }
 
+        /// <inheritdoc />
         public override Buffer ReadJson(JsonReader reader, Type objectType, Buffer existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
             var val = reader.Value;
@@ -255,6 +258,7 @@ namespace Chromia
                 return Buffer.From((byte[])val);
         }
 
+        /// <inheritdoc />
         public override void WriteJson(JsonWriter writer, Buffer value, JsonSerializer serializer)
         {
             writer.WriteToken(JsonToken.Bytes, value.Bytes);

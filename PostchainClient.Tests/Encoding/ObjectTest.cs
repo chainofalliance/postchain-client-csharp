@@ -42,7 +42,7 @@ namespace Chromia.Tests.Encoding
         public void BigIntegerObjectTest()
         {
             var expected = BigInteger.One;
-            var actual = new BigInteger((long)Gtv.Decode(Gtv.Encode(expected)));
+            var actual = (BigInteger)Gtv.Decode(Gtv.Encode(expected));
             Assert.Equal(expected, actual);
         }
 

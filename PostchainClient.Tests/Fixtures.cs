@@ -8,7 +8,7 @@ namespace Chromia.Tests
 {
     public class ChromiaClientFixture : IAsyncLifetime
     {
-        public static Buffer TestDappBrid = Buffer.From("8FD04F29BBE9C5FEC97C5C2378FD6B1527DE687089C26581FFD99738CE54E47B");
+        public static Buffer TestDappBrid = Buffer.From("EC222523F35F8A77E7C6614F0D003CF7757041EFABDE92BB66D06BB4E6253F86");
         public ChromiaClient Client { get; private set; }
 
         public async Task InitializeAsync()
