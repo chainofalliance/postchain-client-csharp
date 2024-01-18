@@ -8,6 +8,7 @@ using Chromia.Transport;
 using static Chromia.Transport.RestClient;
 using System.Security.Cryptography;
 using System.Data.Common;
+using System.Threading;
 
 namespace Chromia
 {
@@ -130,46 +131,50 @@ namespace Chromia
         /// </summary>
         /// <param name="directoryNodeUrls">The directory nodes to query.</param>
         /// <param name="blockchainRID">The blockchain RID of the application.</param>
+        /// <param name="ct">A cancellation token to abort the task.</param>
         /// <returns>This new <see cref="ChromiaClient"/>.</returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         /// <exception cref="UriFormatException"></exception>
-        public async static Task<ChromiaClient> CreateFromDirectory(List<string> directoryNodeUrls, Buffer blockchainRID)
+        public async static Task<ChromiaClient> CreateFromDirectory(List<string> directoryNodeUrls, Buffer blockchainRID, CancellationToken ct = default)
         {
-            RestClient.EnsureBlockchainRID(blockchainRID);
+            EnsureBlockchainRID(blockchainRID);
             if (directoryNodeUrls == null)
                 throw new ArgumentNullException(nameof(directoryNodeUrls));
             else if (directoryNodeUrls.Count == 0)
                 throw new ArgumentOutOfRangeException(nameof(directoryNodeUrls));
 
             var convertedNodes = directoryNodeUrls.Select(n => ToUri(n)).ToList();
-            var nodes = await RestClient.GetNodesFromDirectory(convertedNodes, blockchainRID);
+            var nodes = await GetNodesFromDirectory(convertedNodes, blockchainRID, ct);
             return new ChromiaClient(nodes, blockchainRID);
         }
 
-        /// <inheritdoc cref="CreateFromDirectory(List{string}, Buffer)"/>
+        /// <inheritdoc cref="CreateFromDirectory(List{string}, Buffer, CancellationToken)"/>
         /// <param name="directoryNodeUrl">The directory node to query.</param>
         /// <param name="blockchainRID">The blockchain RID of the application.</param>
-        public async static Task<ChromiaClient> CreateFromDirectory(string directoryNodeUrl, Buffer blockchainRID)
+        /// <param name="ct">A cancellation token to abort the task.</param>
+        public async static Task<ChromiaClient> CreateFromDirectory(string directoryNodeUrl, Buffer blockchainRID, CancellationToken ct = default)
         {
-            return await CreateFromDirectory(new List<string>() { directoryNodeUrl }, blockchainRID);
+            return await CreateFromDirectory(new List<string>() { directoryNodeUrl }, blockchainRID, ct);
         }
 
-        /// <inheritdoc cref="CreateFromDirectory(List{string}, Buffer)"/>
+        /// <inheritdoc cref="CreateFromDirectory(List{string}, Buffer, CancellationToken)"/>
         /// <param name="directoryNodeUrl">The directory node to query.</param>
         /// <param name="blockchainIID">The blockchain IID of the application. Gets resolved to the blockchain RID.</param>
-        public async static Task<ChromiaClient> CreateFromDirectory(string directoryNodeUrl, int blockchainIID)
+        /// <param name="ct">A cancellation token to abort the task.</param>
+        public async static Task<ChromiaClient> CreateFromDirectory(string directoryNodeUrl, int blockchainIID, CancellationToken ct = default)
         {
-            return await CreateFromDirectory(new List<string>() { directoryNodeUrl }, blockchainIID);
+            return await CreateFromDirectory(new List<string>() { directoryNodeUrl }, blockchainIID, ct);
         }
 
-        /// <inheritdoc cref="CreateFromDirectory(List{string}, Buffer)"/>
+        /// <inheritdoc cref="CreateFromDirectory(List{string}, Buffer, CancellationToken)"/>
         /// <param name="directoryNodeUrls">The directory nodes to query.</param>
         /// <param name="blockchainIID">The blockchain IID of the application. Gets resolved to the blockchain RID.</param>
-        public async static Task<ChromiaClient> CreateFromDirectory(List<string> directoryNodeUrls, int blockchainIID)
+        /// <param name="ct">A cancellation token to abort the task.</param>
+        public async static Task<ChromiaClient> CreateFromDirectory(List<string> directoryNodeUrls, int blockchainIID, CancellationToken ct = default)
         {
-            var blockchainRID = await GetBlockchainRID(directoryNodeUrls[0], blockchainIID);
-            return await CreateFromDirectory(directoryNodeUrls, blockchainRID);
+            var blockchainRID = await GetBlockchainRID(directoryNodeUrls[0], blockchainIID, ct);
+            return await CreateFromDirectory(directoryNodeUrls, blockchainRID, ct);
         }
 
         /// <summary>
@@ -206,9 +211,10 @@ namespace Chromia
         /// <inheritdoc cref="Create(List{string}, Buffer)"/>
         /// <param name="nodeUrls">The nodes to interact with.</param>
         /// <param name="blockchainIID">The blockchain IID of the application. Gets resolved to the blockchain RID.</param>
-        public async static Task<ChromiaClient> Create(List<string> nodeUrls, int blockchainIID)
+        /// <param name="ct">A cancellation token to abort the task.</param>
+        public async static Task<ChromiaClient> Create(List<string> nodeUrls, int blockchainIID, CancellationToken ct = default)
         {
-            var blockchainRID = await GetBlockchainRID(nodeUrls[0], blockchainIID);
+            var blockchainRID = await GetBlockchainRID(nodeUrls[0], blockchainIID, ct);
             return await Create(nodeUrls, blockchainRID);
         }
 
@@ -217,18 +223,19 @@ namespace Chromia
         /// </summary>
         /// <param name="nodeUrl">The node to interact with.</param>
         /// <param name="blockchainIID">The blockchain IID to resolve.</param>
+        /// <param name="ct">A cancellation token to abort the task.</param>
         /// <returns>The blockchain RID of that blockchain</returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         /// <exception cref="UriFormatException"></exception>
-        public async static Task<Buffer> GetBlockchainRID(string nodeUrl, int blockchainIID)
+        public async static Task<Buffer> GetBlockchainRID(string nodeUrl, int blockchainIID, CancellationToken ct = default)
         {
             if (nodeUrl == null) 
                 throw new ArgumentNullException(nameof(nodeUrl));
             else if (blockchainIID < 0)
                 throw new ArgumentOutOfRangeException(nameof(blockchainIID));
 
-            return await RestClient.GetBlockchainRID(ToUri(nodeUrl), blockchainIID);
+            return await RestClient.GetBlockchainRID(ToUri(nodeUrl), blockchainIID, ct);
         }
 
         private static Uri ToUri(string url)
@@ -347,10 +354,15 @@ namespace Chromia
         /// </summary>
         /// <param name="operation">The operation to send to the blockchain.</param>
         /// <param name="signer">The operation to send to the blockchain.</param>
+        /// <param name="ct">A cancellation token to abort the task.</param>
         /// <returns>The transaction receipt of the transaction.</returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="TransportException"></exception>
-        public async Task<TransactionReceipt> SendUniqueTransaction(Operation operation, SignatureProvider signer = null)
+        public async Task<TransactionReceipt> SendUniqueTransaction(
+            Operation operation,
+            SignatureProvider signer = null,
+            CancellationToken ct = default
+        )
         {
             var tx = Transaction.Build(BlockchainRID)
                 .AddOperation(operation);
@@ -358,50 +370,53 @@ namespace Chromia
             if (signer != null)
                 tx.AddSignatureProvider(signer);
 
-            return await SendUniqueTransaction(tx);
+            return await SendUniqueTransaction(tx, ct);
         }
 
-        /// <inheritdoc cref="SendUniqueTransaction(Operation, SignatureProvider)"/>
+        /// <inheritdoc cref="SendUniqueTransaction(Operation, SignatureProvider, CancellationToken)"/>
         /// <param name="tx">The transaction to send to the blockchain.</param>
-        public async Task<TransactionReceipt> SendUniqueTransaction(Transaction tx)
+        /// <param name="ct">A cancellation token to abort the task.</param>
+        public async Task<TransactionReceipt> SendUniqueTransaction(Transaction tx, CancellationToken ct = default)
         {
             if (tx == null)
                 throw new ArgumentNullException(nameof(tx));
 
             tx.AddNop();
-            return await SendTransaction(tx);
+            return await SendTransaction(tx, ct);
         }
 
         /// <summary>
         /// Signs and sends a transaction to the blockchain.
         /// </summary>
         /// <param name="tx">The transatcion to send to the blockchain.</param>
+        /// <param name="ct">A cancellation token to abort the task.</param>
         /// <returns>The transaction receipt of the transaction.</returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="TransportException"></exception>
-        public async Task<TransactionReceipt> SendTransaction(Transaction tx)
+        public async Task<TransactionReceipt> SendTransaction(Transaction tx, CancellationToken ct = default)
         {
             if (tx == null)
                 throw new ArgumentNullException(nameof(tx));
 
             var signedTx = tx.SetBlockchainRID(BlockchainRID).Sign();
-            return await SendTransaction(signedTx);
+            return await SendTransaction(signedTx, ct);
         }
 
         /// <summary>
         /// Sends a signed transaction and waits for it to be processed.
         /// </summary>
         /// <param name="tx">The signed transaction to send.</param>
+        /// <param name="ct">A cancellation token to abort the task.</param>
         /// <returns>A receipt for that transaction.</returns>
         /// <exception cref="TransportException"></exception>
-        public async Task<TransactionReceipt> SendTransaction(Transaction.Signed tx)
+        public async Task<TransactionReceipt> SendTransaction(Transaction.Signed tx, CancellationToken ct = default)
         {
             if (tx.Signers.Count != tx.Signatures.Count)
                 throw new InvalidOperationException($"unequal amount of signers and signatures");
 
             try
             {
-                await _restClient.SendTransaction(tx);
+                await _restClient.SendTransaction(tx, ct);
             }
             catch (TransportException e)
             {
@@ -412,23 +427,24 @@ namespace Chromia
                         "tx with hash already exists"
                     );
                 else
-                    throw e;
+                    throw;
             }
 
-            return await _restClient.WaitForConfirmation(tx.TransactionRID);
+            return await _restClient.WaitForConfirmation(tx.TransactionRID, ct: ct);
         }
 
         /// <summary>
         /// Gets the status of a transaction in the blockchain network.
         /// </summary>
         /// <param name="transactionRID">The transaction hash to check.</param>
+        /// <param name="ct">A cancellation token to abort the task.</param>
         /// <returns>The current status of the transaction in the network.</returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         /// <exception cref="TransportException"></exception>
-        public async Task<TransactionStatusResponse> GetTransactionStatus(Buffer transactionRID)
+        public async Task<TransactionStatusResponse> GetTransactionStatus(Buffer transactionRID, CancellationToken ct = default)
         {
             Transaction.EnsureRID(transactionRID);
-            return await _restClient.GetTransactionStatus(transactionRID);
+            return await _restClient.GetTransactionStatus(transactionRID, ct);
         }
 
         /// <summary>
@@ -436,39 +452,48 @@ namespace Chromia
         /// </summary>
         /// <param name="name">The name of the query.</param>
         /// <param name="parameters">The parameters of the query.</param>
+        /// <param name="ct">A cancellation token to abort the task.</param>
         /// <returns>The data parsed as the given type.</returns>
         /// <exception cref="ChromiaException"></exception>
         /// <exception cref="TransportException"></exception>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        private async Task<T> Query<T>(string name, object parameters)
+        private async Task<T> Query<T>(string name, object parameters, CancellationToken ct = default)
         {
             if (name == null)
                 throw new ArgumentNullException(nameof(name));
             else if (name.Length == 0)
                 throw new ArgumentOutOfRangeException(nameof(name));
 
-            return await _restClient.Query<T>(name, parameters);
+            return await _restClient.Query<T>(name, parameters, ct);
         }
 
-        /// <inheritdoc cref="Query{T}(string, object)"/>
+        /// <inheritdoc cref="Query{T}(string, object, CancellationToken)"/>
         /// <param name="name">The name of the query.</param>
         /// <param name="obj">A gtv serializable object as query parameters.</param>
-        public async Task<T> Query<T>(string name, IGtvSerializable obj)
+        /// <param name="ct">A cancellation token to abort the task.</param>
+        public async Task<T> Query<T>(string name, IGtvSerializable obj, CancellationToken ct = default)
         {
+            Console.WriteLine("Querying " + name);
             var jsonObj = JObject.FromObject(obj);
-            return await Query<T>(name, jsonObj);
+            return await Query<T>(name, jsonObj, ct);
         }
 
-        /// <inheritdoc cref="Query{T}(string, object)"/>
+        /// <inheritdoc cref="Query{T}(string, object, CancellationToken)"/>
         public async Task<T> Query<T>(string name, params (string name, object content)[] parameters)
+        {
+            return await Query<T>(name, CancellationToken.None, parameters);
+        }
+
+        /// <inheritdoc cref="Query{T}(string, object, CancellationToken)"/>
+        public async Task<T> Query<T>(string name, CancellationToken ct = default, params (string name, object content)[] parameters)
         {
             foreach (var item in parameters)
                 if (!Gtv.IsOfValidType(item.content))
-                    throw new ArgumentException(nameof(parameters), "unsupported data type for " + item.content);
+                    throw new ArgumentException("unsupported data type for " + item.content, nameof(parameters));
 
             var parameterDict = parameters.ToDictionary(p => p.name, p => p.content);
-            return await Query<T>(name, parameterDict);
+            return await Query<T>(name, parameterDict, ct);
         }
     }
 }

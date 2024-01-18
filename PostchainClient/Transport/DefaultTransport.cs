@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Chromia.Transport
@@ -12,12 +13,12 @@ namespace Chromia.Transport
         private readonly HttpClient _httpClient = new HttpClient();
 
         /// <inheritdoc/>
-        public async Task<Buffer> Get(Uri uri)
+        public async Task<Buffer> Get(Uri uri, CancellationToken ct)
         {
             HttpResponseMessage response;
             try
             {
-                response = await _httpClient.GetAsync(uri);
+                response = await _httpClient.GetAsync(uri, ct);
             }
             catch (Exception e)
             {
@@ -28,31 +29,31 @@ namespace Chromia.Transport
         }
 
         /// <inheritdoc/>
-        public async Task<Buffer> Post(Uri uri, Buffer content)
+        public async Task<Buffer> Post(Uri uri, Buffer content, CancellationToken ct)
         {
             var bytes = new ByteArrayContent(content.Bytes);
-            return await Post(uri, bytes);
+            return await Post(uri, bytes, ct);
         }
 
         /// <inheritdoc/>
-        public async Task<Buffer> Post(Uri uri, string content)
+        public async Task<Buffer> Post(Uri uri, string content, CancellationToken ct)
         {
             var str = new StringContent(content, System.Text.Encoding.UTF8, "application/json");
-            return await Post(uri, str);
+            return await Post(uri, str, ct);
         }
 
         /// <inheritdoc/>
-        public async Task Delay(int milliseconds)
+        public async Task Delay(int milliseconds, CancellationToken ct)
         {
-            await Task.Delay(milliseconds);
+            await Task.Delay(milliseconds, ct);
         }
 
-        private async Task<Buffer> Post(Uri uri, HttpContent content)
+        private async Task<Buffer> Post(Uri uri, HttpContent content, CancellationToken ct)
         {
             HttpResponseMessage response;
             try
             {
-                response = await _httpClient.PostAsync(uri, content);
+                response = await _httpClient.PostAsync(uri, content, ct);
             }
             catch (Exception e)
             {
