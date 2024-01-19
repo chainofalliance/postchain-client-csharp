@@ -5,7 +5,7 @@ using System.Numerics;
 namespace Chromia.Encoding
 {
     /// <inheritdoc />
-    internal class BigIntegerConverter : JsonConverter<BigInteger>
+    public class BigIntegerConverter : JsonConverter<BigInteger>
     {
         /// <inheritdoc />
         public BigIntegerConverter()
