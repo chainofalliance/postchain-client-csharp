@@ -219,5 +219,18 @@ namespace Chromia
             SecpECDSASignature.TryCreateFromCompact(sig.Hash.Bytes, out var signature);
             return pubKey.SigVerify(signature, buffer.Bytes);
         }
+
+        /// <summary>
+        /// Verifies the signature is correct for the given <see cref="Buffer"/>.
+        /// </summary>
+        /// <param name="pubKey">The pubkey to verify.</param>
+        /// <param name="signature">The signature to verify.</param>
+        /// <param name="buffer">The buffer the signature was created from.</param>
+        /// <returns>True if the signature is valid, false if not.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static bool Verify(Buffer pubKey, Buffer signature, Buffer buffer)
+        {
+            return Verify(new Signature(pubKey, signature), buffer);
+        }
     }
 }

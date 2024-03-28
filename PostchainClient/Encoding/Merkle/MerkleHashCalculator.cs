@@ -41,7 +41,7 @@ namespace Chromia.Encoding
 
         public byte[] CalculateLeafHash(object value)
         {
-            var gtv = Gtv.EncodeToGtv(value == null ? null : JToken.FromObject(value));
+            var gtv = Gtv.EncodeToGtv(value == null ? null : Gtv.FromObject(value));
             
             return CalculateHashOfValueInternal(gtv);
         }

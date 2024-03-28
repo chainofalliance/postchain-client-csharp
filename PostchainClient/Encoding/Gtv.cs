@@ -1,5 +1,7 @@
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -15,13 +17,51 @@ namespace Chromia.Encoding
 
     internal static class Gtv
     {
+        public static Type[] SupportedTypes  = new Type[]
+        {
+            typeof(int),
+            typeof(long),
+            typeof(float),
+            typeof(double),
+            typeof(bool),
+            typeof(string),
+            typeof(BigInteger),
+            typeof(Enum),
+            typeof(Buffer),
+            typeof(JToken),
+            typeof(ICollection<dynamic>),
+            typeof(IDictionary),
+            typeof(IGtvSerializable)
+        };
+
+        public static bool IsOfValidType(object obj)
+        {
+            if (obj == null || obj.GetType().IsArray)
+                return true;
+
+            foreach (var t in SupportedTypes)
+            {
+                if (t.IsAssignableFrom(obj.GetType()))
+                    return true;
+            }
+
+            return false;
+        }
+
+        public static JToken FromObject(object obj)
+        {
+            return JToken.FromObject(obj, JsonSerializer.Create(new JsonSerializerSettings()
+            {
+                Converters = new List<JsonConverter> { new BigIntegerConverter() }
+            }));
+        }
+
         public static Buffer Encode(object obj)
         {
             if (obj == null)
                 return new NullGtv().Encode();
 
-            var jToken = JToken.FromObject(obj);
-            return EncodeFromJToken(jToken);
+            return EncodeFromJToken(FromObject(obj));
         }
 
         private static Buffer EncodeFromJToken(JToken obj)
@@ -98,17 +138,9 @@ namespace Chromia.Encoding
             else if (obj.Type == JTokenType.Boolean)
                 return new IntegerGtv(obj.ToObject<bool>() ? 1 : 0);
             else if (obj.Type == JTokenType.Integer)
-            {
-                try
-                {
-                    return new IntegerGtv(obj.ToObject<long>());
-                }
-                catch
-                {
-                    var bigInt = obj.ToObject<BigInteger>();
-                    return new BigIntegerGtv(bigInt);
-                }
-            }
+                return new IntegerGtv(obj.ToObject<long>());
+            else if (obj.Type == JTokenType.Raw)
+                return new BigIntegerGtv(obj.ToObject<BigInteger>());
             else if (obj.Type == JTokenType.Array)
             {
                 var gtvArray = new List<IGtv>();
@@ -121,7 +153,8 @@ namespace Chromia.Encoding
             else if (obj.Type == JTokenType.Object)
             {
                 var gtvDict = new Dictionary<string, IGtv>();
-                foreach (var entry in obj.ToObject<JObject>())
+                var jobj = obj.ToObject<JObject>();
+                foreach (var entry in jobj)
                 {
                     gtvDict.Add(entry.Key, EncodeToGtv(entry.Value));
                 }
@@ -395,6 +428,28 @@ namespace Chromia.Encoding
         public override string ToString()
         {
             return Value == null ? "<null>" : Value.Aggregate("{", (c, v) => $"{c}\"{v.Key}\": {v.Value}, ")[..^2] + "}";
+        }
+    }
+
+    internal static class DictionaryExtenstion
+    {
+        internal static object[] ToGtv(this IDictionary source)
+        {
+            var arr = new List<object[]>();
+            foreach (DictionaryEntry sourcePair in source)
+                arr.Add(new object[] { sourcePair.Key, sourcePair.Value });
+            return arr.ToArray();
+        }
+    }
+
+    internal static class CollectionExtenstion
+    {
+        internal static object[] ToGtv(this ICollection source)
+        {
+            var arr = new List<object>();
+            foreach (var entry in source)
+                arr.Add(entry);
+            return arr.ToArray();
         }
     }
 }

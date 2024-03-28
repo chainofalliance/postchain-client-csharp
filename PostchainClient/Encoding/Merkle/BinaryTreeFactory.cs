@@ -1,6 +1,10 @@
 using System;
+using System.Linq;
+using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace Chromia.Encoding
 {
@@ -39,7 +43,15 @@ namespace Chromia.Encoding
             }
             else if (leaf is string)
             {
-                return HandlePrimitiveLeaf(leaf, paths); 
+                return HandlePrimitiveLeaf(leaf, paths);
+            }
+            else if (leaf is bool)
+            {
+                return HandlePrimitiveLeaf(leaf, paths);
+            }
+            else if (leaf is Enum)
+            {
+                return InnerHandleLeaf((int)leaf, paths);
             }
             else if (IsNumericType(leaf))
             {
@@ -51,11 +63,19 @@ namespace Chromia.Encoding
             }
             else if (leaf is object[] v)
             {
-                return BuildFromArray(v, paths); 
+                return BuildFromArray(v, paths);
             }
             else if (leaf is Dictionary<string, object> dictionary)
             {
-                return BuildFromDictionary(dictionary, paths); 
+                return BuildFromDictionary(dictionary, paths);
+            }
+            else if (IsDictionary(leaf))
+            {
+                return BuildFromArray((leaf as IDictionary).ToGtv(), paths);
+            }
+            else if (IsObjectType(leaf))
+            {
+                return InnerHandleLeaf(Gtv.Encode(leaf), paths);
             }
             else
             {
@@ -184,14 +204,14 @@ namespace Chromia.Encoding
             return leafArray;
         }
 
-        private DictHeadNode<Dictionary<string,object>> BuildFromDictionary(Dictionary<string,object> dict, PathSet paths)
+        private DictHeadNode<Dictionary<string,object>> BuildFromDictionary(Dictionary<string, object> dict, PathSet paths)
         {
             var pathElem = paths.GetPathLeafOrElseAnyCurrentPathElement();
 
             var keys = new List<string>(dict.Keys);
             if (keys.Count == 0)
             {
-                return new DictHeadNode<Dictionary<string,object>>(new EmptyLeaf(), new EmptyLeaf(), dict, 0, pathElem);
+                return new DictHeadNode<Dictionary<string, object>>(new EmptyLeaf(), new EmptyLeaf(), dict, 0, pathElem);
             }
             keys.Sort();
 
@@ -247,6 +267,20 @@ namespace Chromia.Encoding
                 default:
                     return false;
             }
+        }
+
+        internal static bool IsObjectType(object o)
+        {
+            var type = o.GetType();
+            return type.IsValueType && !type.IsPrimitive || type.IsClass;
+        }
+
+        internal bool IsDictionary(object o)
+        {
+            if (o == null) return false;
+            return o is IDictionary &&
+                   o.GetType().IsGenericType &&
+                   o.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(Dictionary<,>));
         }
     }
 }

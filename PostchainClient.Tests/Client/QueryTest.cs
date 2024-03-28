@@ -1,5 +1,7 @@
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Xml.Linq;
 using Xunit;
@@ -199,11 +201,29 @@ namespace Chromia.Tests.Client
         }
 
         [Fact]
+        public async void EnumTest()
+        {
+            var expected = MyEnum.V1;
+            var actual = await Client.Query<MyEnum>("test_enum", ("e", expected));
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
         public async void Ft3Test()
         {
             var expected = Buffer.From("c42b182e2c6a29d5efa0a38ca337f0226590ebda153da325991fd73d67d3523e");
             var actual = await Client.Query<object>("ft3.get_account_by_id", ("id", expected));
             Console.WriteLine(actual);
+        }
+
+        [Fact]
+        public async void DictTest()
+        {
+            var expected = new Dictionary<string, int>() { { "b", 42 }, { "a", 21 } };
+            var actual = await Client.Query<Dictionary<string, int>>("test_map2", ("m", expected));
+            foreach (var (k, v) in actual)
+                Console.WriteLine($"{k}: {v}");
+            Assert.Equal(expected, actual);
         }
     }
 }

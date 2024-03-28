@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
@@ -10,6 +9,8 @@ namespace Chromia.Tests.Encoding
     {
         private SignatureProvider Signer1 => StaticSignatureProvider.Signer1;
         private SignatureProvider Signer2 => StaticSignatureProvider.Signer2;
+        private SignatureProvider Signer3 => StaticSignatureProvider.Signer3;
+        private SignatureProvider Signer4 => StaticSignatureProvider.Signer4;
 
         public TransactionTest(ITestOutputHelper output) : base(output) { }
 
@@ -20,7 +21,7 @@ namespace Chromia.Tests.Encoding
         public void EmptyTransactionTest()
         {
             var expected = Transaction.Build(BlockchainRID);
-            var actual = Transaction.Decode(expected.Sign().SignedHash);
+            var actual = Transaction.Decode(expected.Sign().GtvBody);
             Assert.Equal(expected.TransactionRID(), actual.TransactionRID);
         }
 
@@ -29,7 +30,7 @@ namespace Chromia.Tests.Encoding
         {
             var expected = Transaction.Build(BlockchainRID)
                 .AddOperation(Operation.Nop());
-            var actual = Transaction.Decode(expected.Sign().SignedHash);
+            var actual = Transaction.Decode(expected.Sign().GtvBody);
             Assert.Equal(expected.TransactionRID(), actual.TransactionRID);
         }
 
@@ -39,7 +40,7 @@ namespace Chromia.Tests.Encoding
             var expected = Transaction.Build(BlockchainRID)
                 .AddOperation(new Operation("test_op"))
                 .AddSignatureProvider(Signer1);
-            var actual = Transaction.Decode(expected.Sign().SignedHash);
+            var actual = Transaction.Decode(expected.Sign().GtvBody);
             Assert.Equal(expected.TransactionRID(), actual.TransactionRID);
         }
 
@@ -49,7 +50,7 @@ namespace Chromia.Tests.Encoding
             var expected = Transaction.Build(BlockchainRID)
                 .AddOperation(new Operation("test_op", "foo", "bar"))
                 .AddSignatureProvider(Signer1);
-            var actual = Transaction.Decode(expected.Sign().SignedHash);
+            var actual = Transaction.Decode(expected.Sign().GtvBody);
             Assert.Equal(expected.TransactionRID(), actual.TransactionRID);
         }
 
@@ -60,7 +61,7 @@ namespace Chromia.Tests.Encoding
                 .AddOperation(new Operation("test_op", "foo", "bar"))
                 .AddSignatureProvider(Signer1)
                 .AddSignatureProvider(Signer2);
-            var actual = Transaction.Decode(expected.Sign().SignedHash);
+            var actual = Transaction.Decode(expected.Sign().GtvBody);
             Assert.Equal(expected.TransactionRID(), actual.TransactionRID);
         }
 
@@ -76,8 +77,35 @@ namespace Chromia.Tests.Encoding
                 .AddOperation(new Operation("test_op", "foo", "bar"))
                 .AddSignatureProvider(Signer1);
 
-            var actual = Transaction.Decode(expected.Sign(signature).SignedHash);
+            var actual = Transaction.Decode(expected.Sign(signature).GtvBody);
             Assert.Equal(expected.TransactionRID(), actual.TransactionRID);
+        }
+
+        [Fact]
+        public void SignedTransactionWithPreSigned2Test()
+        {
+            var otherTx = Transaction.Build(BlockchainRID)
+                .AddOperation(new Operation("test_op", "foo", "bar"))
+                .AddSigner(Signer1.PubKey)
+                .AddSigner(Signer3.PubKey)
+                .AddSignatureProvider(Signer2);
+            var signedTx = otherTx.Sign();
+            var newSignedTx = signedTx.Sign(Signer1);
+
+            Assert.Equal(3, signedTx.Signers.Count);
+            Assert.Equal(1, signedTx.Signatures.Count);
+            Assert.Equal(3, newSignedTx.Signers.Count);
+            Assert.Equal(2, newSignedTx.Signatures.Count);
+
+            var decodedTx = Transaction.Decode(newSignedTx.GtvBody);
+            newSignedTx = decodedTx.Sign(Signer3);
+
+            Assert.Equal(3, decodedTx.Signers.Count);
+            Assert.Equal(2, decodedTx.Signatures.Count);
+            Assert.Equal(3, newSignedTx.Signers.Count);
+            Assert.Equal(3, newSignedTx.Signatures.Count);
+
+            Assert.Throws<ArgumentException>(() => { newSignedTx.Sign(Signer4); });
         }
 
         [Fact]
@@ -100,6 +128,20 @@ namespace Chromia.Tests.Encoding
             var actual = Transaction.Decode(encoded);
             Assert.Equal(1, actual.Operations.Count);
             Assert.Contains("ft3.evm.add_auth_descriptor", actual.Operations.Select(o => o.Name));
+        }
+
+        [Fact]
+        public void MasterAuthTransactionTest()
+        {
+            var encodedStr = "a582016d30820169a582011d30820119a122042072b3258876e8249dfbc1fa347b47b497426c6e7748883f4eb9d00afd659e2345a581c93081c6a55d305ba20d0c0b6674342e66745f61757468a54a3048a122042099fd2eb50911ae53372b79319ecd004c2d0c682faff90635619ce86762ecf23da122042099fd2eb50911ae53372b79319ecd004c2d0c682faff90635619ce86762ecf23da5653063a2190c176674342e6164645f617574685f64657363726970746f72a5463044a5423040a303020100a5353033a50c300aa2030c0141a2030c0154a1230421036c741014f8ed3945e7473befdb40aa4ded1cd010f9978a4285622274ca04ff5aa0020500a5273025a1230421036c741014f8ed3945e7473befdb40aa4ded1cd010f9978a4285622274ca04ff5aa5463044a1420440fe63bd1d8ca95a13bbc123875738191fef8d01f77d1e382cba2a3ae0c045a15e6d224a7b575ef8da22900b68c949a761c3c2da0ad8505920f1e7fe488b42d6b7";
+            var encoded = Buffer.From(encodedStr);
+
+            var actual = Transaction.Decode(encoded);
+            Console.WriteLine(actual.TransactionRID);
+            Console.WriteLine(actual.BlockchainRID);
+            Console.WriteLine(actual.Operations.First());
+            Console.WriteLine(actual.Operations.Skip(1).First());
+            Console.WriteLine(actual.Signers.First());
         }
     }
 }

@@ -236,12 +236,12 @@ namespace Chromia
         /// <param name="operations">The operations to add to the transaction.</param>
         /// <returns>This object.</returns>
         /// <exception cref="ArgumentNullException"></exception>
-        public Transaction AddOperations(List<Operation> operations)
+        public Transaction AddOperations(IEnumerable<Operation> operations)
         {
             if (operations == null)
                 throw new ArgumentNullException(nameof(operations));
 
-            operations.ForEach(o => AddOperation(o));
+            operations.ToList().ForEach(o => AddOperation(o));
             return this;
         }
 
@@ -277,7 +277,7 @@ namespace Chromia
         /// <returns>This object.</returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         /// <exception cref="ArgumentNullException"></exception>
-        public Transaction AddSigners(HashSet<Buffer> signers)
+        public Transaction AddSigners(IEnumerable<Buffer> signers)
         {
             if (signers == null)
                 throw new ArgumentNullException(nameof(signers));
@@ -327,9 +327,9 @@ namespace Chromia
         /// <param name="preSigned">Signature that were created beforehand. May be null or empty.</param>
         /// <returns>The <see cref="Signed"/> transaction.</returns>
         /// <exception cref="ChromiaException"></exception>
-        public Signed Sign(List<Signature> preSigned = null)
+        public Signed Sign(IEnumerable<Signature> preSigned = null)
         {
-            return Signed.From(this, preSigned);
+            return Signed.From(this, preSigned?.ToList());
         }
 
         /// <summary>
@@ -373,15 +373,8 @@ namespace Chromia
                 }
             }
 
-            var providers = _signatureProviders.ToList();
-            foreach (var pubkey in _signers.Except(signedPubkeys))
-            {
-                var provider = providers.Find(s => s.PubKey == pubkey);
-                if (provider == null)
-                    throw new InvalidOperationException($"signature for \"{pubkey}\" not found");
-
+            foreach (var provider in _signatureProviders)
                 signatures.Add(provider.Sign(buffer));
-            }
 
             return signatures;
         }
@@ -449,9 +442,9 @@ namespace Chromia
             public readonly Buffer TransactionRID;
 
             /// <summary>
-            /// The transaction body.
+            /// The transaction gtv body.
             /// </summary>
-            public readonly Buffer SignedHash;
+            public readonly Buffer GtvBody;
 
             /// <summary>
             /// List of <see cref="Operation"/> that are included in the transaction.
@@ -483,14 +476,14 @@ namespace Chromia
                     throw new ArgumentNullException(nameof(tx));
 
                 var signatures = tx.GetSignatures(preSigned);
-                var signedHash = tx.Encode(signatures);
+                var gtvBody = tx.Encode(signatures);
 
                 return new Signed(
                     tx._blockchainRID,
                     tx.TransactionRID(),
-                    signedHash,
+                    gtvBody,
                     tx._operations,
-                    signatures.Select(s => s.PubKey).ToHashSet(),
+                    tx._signers,
                     signatures.Select(s => s.Hash).ToList()
                 );
             }
@@ -525,7 +518,7 @@ namespace Chromia
             private Signed(
                 Buffer blockchainRID,
                 Buffer transactionRID,
-                Buffer signedHash,
+                Buffer gtvBody,
                 List<Operation> operations,
                 HashSet<Buffer> signers,
                 List<Buffer> signatures
@@ -533,10 +526,35 @@ namespace Chromia
             {
                 BlockchainRID = blockchainRID;
                 TransactionRID = transactionRID;
-                SignedHash = signedHash;
+                GtvBody = gtvBody;
                 Operations = operations;
                 Signers = signers;
                 Signatures = signatures;
+            }
+
+            /// <summary>
+            /// Signs the signed transaction and adds the signature.
+            /// </summary>
+            /// <param name="signatureProvider"></param>
+            /// <exception cref="ArgumentNullException"></exception>
+            /// <exception cref="ArgumentException"></exception>
+            public Signed Sign(SignatureProvider signatureProvider)
+            {
+                if (signatureProvider == null) 
+                    throw new ArgumentNullException(nameof(signatureProvider));
+                if (!Signers.Contains(signatureProvider.PubKey))
+                    throw new ArgumentException("signature provider not a valid signer");
+
+                var newTx = Build(BlockchainRID)
+                    .AddOperations(Operations)
+                    .AddSigners(Signers)
+                    .AddSignatureProvider(signatureProvider);
+
+                var sigList = Signatures.ToList();
+                var signers = Signers;
+                var body = TransactionRID;
+                var signatures = sigList.Select(s => new Signature(signers.First(signer => SignatureProvider.Verify(signer, s, body)), s));
+                return newTx.Sign(signatures);
             }
 
             /// <inheritdoc/>
@@ -549,7 +567,7 @@ namespace Chromia
                 else
                 {
                     var tx = (Signed)obj;
-                    return SignedHash == tx.SignedHash;
+                    return GtvBody == tx.GtvBody;
                 }
             }
 
@@ -568,7 +586,7 @@ namespace Chromia
             /// <inheritdoc/>
             public override int GetHashCode()
             {
-                return SignedHash.GetHashCode();
+                return GtvBody.GetHashCode();
             }
         }
     }

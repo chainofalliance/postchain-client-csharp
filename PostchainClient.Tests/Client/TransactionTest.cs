@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Numerics;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -27,16 +27,14 @@ namespace Chromia.Tests.Client
                 .AddOperation(new Operation("insert_city", "hamburg", 22222))
                 .AddSignatureProvider(Signer1);
             var tx2 = Client.TransactionBuilder()
-                .AddOperation(new Operation("insert_city", new CityStruct
-                {
-                    Name = "hamburg",
-                    Zip = 22222
-                }))
+                .AddOperation(new Operation("insert_city", "hamburg", 22222))
                 .AddSignatureProvider(Signer1);
-            Assert.Equal(tx1, tx2);
 
             var response = await Client.SendUniqueTransaction(tx1);
             Assert.Equal(TransactionReceipt.ResponseStatus.Confirmed, response.Status);
+
+            response = await Client.SendUniqueTransaction(tx1);
+            Assert.Equal(TransactionReceipt.ResponseStatus.DoubleTx, response.Status);
 
             response = await Client.SendUniqueTransaction(tx2);
             Assert.Equal(TransactionReceipt.ResponseStatus.Rejected, response.Status);
@@ -102,7 +100,7 @@ namespace Chromia.Tests.Client
                 .AddOperation(new Operation("insert_city", "hamburg", new Random().Next()))
                 .AddSigner(Signer1.PubKey);
 
-            Assert.Throws<InvalidOperationException>(() => { tx.Sign(); });
+            Assert.ThrowsAsync<InvalidOperationException>(async () => { await Client.SendTransaction(tx); });
         }
 
         [Fact]
@@ -115,6 +113,31 @@ namespace Chromia.Tests.Client
             tx.AddNop();
 
             Assert.Throws<InvalidOperationException>(() => { tx.Sign(sig); });
+        }
+
+        [Fact]
+        public async void DictTest()
+        {
+            var tx = Client.TransactionBuilder()
+                .AddOperation(new Operation("test_map", new Dictionary<string, int>() { { "b", 42 }, { "a", 21 } }))
+                .AddNop();
+
+            var signed = tx.Sign();
+            var response = await Client.SendTransaction(signed);
+            Assert.Equal(TransactionReceipt.ResponseStatus.Confirmed, response.Status);
+        }
+
+        [Fact]
+        public async void BigIntTest()
+        {
+            var tx = Client.TransactionBuilder()
+                .AddOperation(new Operation("test_bigint_op", BigInteger.One))
+                .AddNop();
+
+            var signed = tx.Sign();
+            var response = await Client.SendTransaction(signed);
+            Console.WriteLine(response.TransactionRID);
+            Assert.Equal(TransactionReceipt.ResponseStatus.Confirmed, response.Status);
         }
     }
 }
