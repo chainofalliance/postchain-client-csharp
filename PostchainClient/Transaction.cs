@@ -373,16 +373,6 @@ namespace Chromia
                 }
             }
 
-            //var providers = _signatureProviders.ToList();
-            //foreach (var pubkey in _signers.Except(signedPubkeys))
-            //{
-            //    var provider = providers.Find(s => s.PubKey == pubkey);
-            //    if (provider == null)
-            //        throw new InvalidOperationException($"signature for \"{pubkey}\" not found");
-
-            //    signatures.Add(provider.Sign(buffer));
-            //}
-
             foreach (var provider in _signatureProviders)
                 signatures.Add(provider.Sign(buffer));
 
