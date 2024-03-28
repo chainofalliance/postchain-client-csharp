@@ -29,7 +29,7 @@ namespace Chromia.Transport
 
         private readonly Buffer _blockchainRID;
         private readonly List<Uri> _nodeUrls;
-        private int _pollingRetries = int.MaxValue;
+        private int _pollingRetries = 10;
         private int _pollingInterval = 500;
         private int _attemptsPerEndpoint = 5;
         private int _attemptInterval = 500;
@@ -161,7 +161,7 @@ namespace Chromia.Transport
             if (txStatus.Status == ResponseStatus.Waiting && retry < _pollingRetries)
             {
                 await _transport.Delay(_pollingInterval, ct);
-                return await WaitForConfirmation(transactionRID, ++retry, ct);
+                return await WaitForConfirmation(transactionRID, retry+1, ct);
             }
             return new TransactionReceipt(transactionRID, txStatus, retry >= _pollingRetries);
         }

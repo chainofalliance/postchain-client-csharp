@@ -4,7 +4,7 @@
     <TargetFrameworks>netstandard2.1;net5.0;net6.0;net7.0</TargetFrameworks>
     <PackageId>PostchainClient</PackageId>
     <AssemblyName>Postchain.Client</AssemblyName>
-    <Version>0.6.1</Version>
+    <Version>0.6.2</Version>
     <Authors>Simon Sorgenfrei and Dennis Kirsch</Authors>
     <RepositoryUrl>https://github.com/chainofalliance/postchain-client-csharp</RepositoryUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
@@ -16,6 +16,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <CheckEolTargetFramework>false</CheckEolTargetFramework>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0|AnyCPU'">
