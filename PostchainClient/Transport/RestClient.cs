@@ -13,12 +13,18 @@ namespace Chromia.Transport
 {
     internal class RestClient
     {
-
         private enum Request
         {
             Get,
             PostBytes,
             PostJson
+        }
+
+        private enum RequestType
+        {
+            Query,
+            Tx,
+            TxStatus,
         }
 
         public Buffer BlockchainRID { get { return _blockchainRID; } }
@@ -37,10 +43,9 @@ namespace Chromia.Transport
         private static ITransport _transport = new DefaultTransport();
         private static readonly Random _random = new Random();
 
-        private Uri BaseUri => _nodeUrls[_random.Next(_nodeUrls.Count)];
-        private Uri QueryUri => new Uri(BaseUri, $"./query_gtv/{_blockchainRID.Parse()}");
-        private Uri TxUri => new Uri(BaseUri, $"./tx/{_blockchainRID.Parse()}");
-        private Uri TxStatusUri(Buffer transactionRID) => new Uri(BaseUri, $"./tx/{_blockchainRID.Parse()}/{transactionRID.Parse()}/status");
+        private Uri QueryUri(Uri baseUri) => new Uri(baseUri, $"./query_gtv/{_blockchainRID.Parse()}");
+        private Uri TxUri(Uri baseUri) => new Uri(baseUri, $"./tx/{_blockchainRID.Parse()}");
+        private Uri TxStatusUri(Uri baseUri, Buffer transactionRID) => new Uri(baseUri, $"./tx/{_blockchainRID.Parse()}/{transactionRID.Parse()}/status");
 
         public RestClient(List<Uri> nodeUrl, Buffer blockchainRID) 
         {
@@ -116,7 +121,7 @@ namespace Chromia.Transport
         {
             var queryObject = new object[] { name, parameters };
             var buffer = Gtv.Encode(queryObject);
-            var response = await RequestWithRetries(Request.PostBytes, QueryUri, buffer, ct);
+            var response = await RequestWithRetries(RequestType.Query, Request.PostBytes, buffer, ct);
             var jsonObj = Gtv.Decode(response);
             if (jsonObj == null)
                 return default;
@@ -146,12 +151,12 @@ namespace Chromia.Transport
                 { "tx", tx.GtvBody.Parse() }
             };
 
-            return RequestWithRetries(Request.PostJson, TxUri, JsonConvert.SerializeObject(txObject), ct);
+            return RequestWithRetries(RequestType.Tx, Request.PostJson, JsonConvert.SerializeObject(txObject), ct);
         }
 
         public async Task<TransactionStatusResponse> GetTransactionStatus(Buffer transactionRID, CancellationToken ct)
         {
-            var response = await RequestWithRetries(Request.Get, TxStatusUri(transactionRID), ct: ct);
+            var response = await RequestWithRetries(RequestType.TxStatus, Request.Get, transactionRID, ct: ct);
             return JsonConvert.DeserializeObject<TransactionStatusResponse>(response.ParseUTF8());
         }
 
@@ -166,13 +171,21 @@ namespace Chromia.Transport
             return new TransactionReceipt(transactionRID, txStatus, retry >= _pollingRetries);
         }
 
-        private async Task<Buffer> RequestWithRetries(Request request, Uri uri, object content = null, CancellationToken ct = default)
+        private async Task<Buffer> RequestWithRetries(RequestType type, Request request, object content = null, CancellationToken ct = default)
         {
             var response = Buffer.Empty();
             var lastException = new TransportException(TransportException.ReasonCode.MalformedUri, "no nodes found");
 
             foreach (var endpoint in _nodeUrls.OrderBy(_ => _random.Next()))
             {
+                var uri = type switch
+                {
+                    RequestType.Query => QueryUri(endpoint),
+                    RequestType.Tx => TxUri(endpoint),
+                    RequestType.TxStatus => TxStatusUri(endpoint, (Buffer)content),
+                    _ => throw new NotSupportedException($"request type {type} not supported")
+                };
+
                 for (var attempt = 0; attempt < _attemptsPerEndpoint; attempt++)
                 {
                     try
