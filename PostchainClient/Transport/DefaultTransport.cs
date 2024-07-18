@@ -65,28 +65,32 @@ namespace Chromia.Transport
 
         private static async Task<Buffer> VerifyResponse(HttpResponseMessage response)
         {
+            var bytes = await response.Content.ReadAsByteArrayAsync();
             try
             {
                 response.EnsureSuccessStatusCode();
-                var bytes = await response.Content.ReadAsByteArrayAsync();
                 return Buffer.From(bytes);
             }
             catch (Exception e)
             {
-                throw HandleException(e, (int)response.StatusCode);
+                throw HandleException(e, (int)response.StatusCode, System.Text.Encoding.UTF8.GetString(bytes));
             }
         }
 
-        private static TransportException HandleException(Exception e, int statusCode = -1)
+        private static TransportException HandleException(
+            Exception e,
+            int statusCode = -1,
+            string content = ""
+        )
         {
             if (e is HttpRequestException h)
-                return new TransportException(TransportException.ReasonCode.HttpError, h.Message, statusCode);
+                return new TransportException(TransportException.ReasonCode.HttpError, content, statusCode);
             else if (e is InvalidOperationException || e is UriFormatException)
-                return new TransportException(TransportException.ReasonCode.MalformedUri, "malformed request uri");
+                return new TransportException(TransportException.ReasonCode.MalformedUri, $"malformed request uri");
             else if (e is TaskCanceledException)
-                return new TransportException(TransportException.ReasonCode.Timeout, "request timed out");
+                return new TransportException(TransportException.ReasonCode.Timeout, $"request timed out");
             else
-                return new TransportException(TransportException.ReasonCode.Unknown, e.Message);
+                return new TransportException(TransportException.ReasonCode.Unknown, $"{e.Message}\n{content}");
         }
     }
 }
