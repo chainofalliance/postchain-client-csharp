@@ -122,11 +122,26 @@ namespace Chromia
     /// <summary>
     /// Provides a key pair to sign transactions.
     /// </summary>
-    public class SignatureProvider
+    public interface ISignatureProvider
     {
         /// <summary>
         /// Public key of the keypair used by the signature provider.
         /// </summary>
+        Buffer PubKey { get; }
+
+        /// <summary>
+        /// Signs the given <see cref="Buffer"/>.
+        /// </summary>
+        /// <param name="buffer">The buffer to sign.</param>
+        /// <returns>The signed hash wrapped as a <see cref="Signature"/>.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        Signature Sign(Buffer buffer);
+    }
+
+    /// <inheritdoc/>
+    public class SignatureProvider : ISignatureProvider
+    {
+        /// <inheritdoc/>
         public Buffer PubKey => _keyPair.PubKey;
         private readonly KeyPair _keyPair;
 
@@ -185,12 +200,7 @@ namespace Chromia
                 throw new ArgumentOutOfRangeException(nameof(message), "has to be 32 bytes");
         }
 
-        /// <summary>
-        /// Signs the given <see cref="Buffer"/>.
-        /// </summary>
-        /// <param name="buffer">The buffer to sign.</param>
-        /// <returns>The signed hash wrapped as a <see cref="Signature"/>.</returns>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        /// <inheritdoc/>
         public Signature Sign(Buffer buffer)
         {
             EnsureValidMessage(buffer);

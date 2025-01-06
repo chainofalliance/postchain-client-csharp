@@ -1,10 +1,9 @@
+using Newtonsoft.Json.Linq;
 using System;
-using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
 
 namespace Chromia.Encoding
 {
@@ -32,6 +31,10 @@ namespace Chromia.Encoding
             if (leaf is null)
             {
                 return HandlePrimitiveLeaf(leaf, paths);
+            }
+            else if (leaf is JToken token)
+            {
+                return InnerHandleLeaf(Gtv.Decode(Gtv.Encode(token)), paths);
             }
             else if (leaf is byte[])
             {
@@ -61,9 +64,9 @@ namespace Chromia.Encoding
             {
                 return HandlePrimitiveLeaf(leaf, paths);
             }
-            else if (leaf is object[] v)
+            else if (leaf is Array array)
             {
-                return BuildFromArray(v, paths);
+                return BuildFromArray(array.Cast<object>().ToArray(), paths);
             }
             else if (leaf is Dictionary<string, object> dictionary)
             {
@@ -86,7 +89,7 @@ namespace Chromia.Encoding
         private BinaryTreeElement HandlePrimitiveLeaf(object leaf, PathSet paths)
         {
             var pathElem = paths.GetPathLeafOrElseAnyCurrentPathElement();
-            
+
             if (pathElem != null && !(pathElem is PathLeafElement))
             {
                 throw new Exception("Path does not match the tree structure. We are at a leaf " + leaf + " but found path element " + pathElem);
@@ -158,14 +161,13 @@ namespace Chromia.Encoding
             var leafArray = BuildLeafElements(array, paths);
 
             var result = BuildHigherLayer(1, leafArray);
-
             var orgRoot = result[0];
             if (orgRoot is Node)
             {
-                var nodeRoot = (Node) orgRoot;
+                var nodeRoot = (Node)orgRoot;
                 return new ArrayHeadNode<object[]>(nodeRoot.Left, nodeRoot.Right, array, array.Length, pathElem);
             }
-            
+
             if (orgRoot is Leaf)
             {
                 return BuildFromOneLeaf(array, orgRoot, pathElem);
@@ -204,7 +206,7 @@ namespace Chromia.Encoding
             return leafArray;
         }
 
-        private DictHeadNode<Dictionary<string,object>> BuildFromDictionary(Dictionary<string, object> dict, PathSet paths)
+        private DictHeadNode<Dictionary<string, object>> BuildFromDictionary(Dictionary<string, object> dict, PathSet paths)
         {
             var pathElem = paths.GetPathLeafOrElseAnyCurrentPathElement();
 
@@ -222,7 +224,7 @@ namespace Chromia.Encoding
             var orgRoot = result[0];
             if (orgRoot is Node)
             {
-                var nodeRoot = (Node) orgRoot;
+                var nodeRoot = (Node)orgRoot;
                 return new DictHeadNode<Dictionary<string, object>>(nodeRoot.Left, nodeRoot.Right, dict, keys.Count, pathElem);
             }
             else

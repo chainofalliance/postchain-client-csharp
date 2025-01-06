@@ -43,9 +43,9 @@ namespace Chromia.Transport
         }
 
         /// <inheritdoc/>
-        public async Task Delay(int milliseconds, CancellationToken ct)
+        public Task Delay(int milliseconds, CancellationToken ct)
         {
-            await Task.Delay(milliseconds, ct);
+            return Task.Delay(milliseconds, ct);
         }
 
         private async Task<Buffer> Post(Uri uri, HttpContent content, CancellationToken ct)

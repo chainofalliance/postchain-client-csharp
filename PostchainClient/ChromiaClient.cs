@@ -153,18 +153,18 @@ namespace Chromia
         /// <param name="directoryNodeUrl">The directory node to query.</param>
         /// <param name="blockchainRID">The blockchain RID of the application.</param>
         /// <param name="ct">A cancellation token to abort the task.</param>
-        public async static Task<ChromiaClient> CreateFromDirectory(string directoryNodeUrl, Buffer blockchainRID, CancellationToken ct = default)
+        public static Task<ChromiaClient> CreateFromDirectory(string directoryNodeUrl, Buffer blockchainRID, CancellationToken ct = default)
         {
-            return await CreateFromDirectory(new List<string>() { directoryNodeUrl }, blockchainRID, ct);
+            return CreateFromDirectory(new List<string>() { directoryNodeUrl }, blockchainRID, ct);
         }
 
         /// <inheritdoc cref="CreateFromDirectory(List{string}, Buffer, CancellationToken)"/>
         /// <param name="directoryNodeUrl">The directory node to query.</param>
         /// <param name="blockchainIID">The blockchain IID of the application. Gets resolved to the blockchain RID.</param>
         /// <param name="ct">A cancellation token to abort the task.</param>
-        public async static Task<ChromiaClient> CreateFromDirectory(string directoryNodeUrl, int blockchainIID, CancellationToken ct = default)
+        public static Task<ChromiaClient> CreateFromDirectory(string directoryNodeUrl, int blockchainIID, CancellationToken ct = default)
         {
-            return await CreateFromDirectory(new List<string>() { directoryNodeUrl }, blockchainIID, ct);
+            return CreateFromDirectory(new List<string>() { directoryNodeUrl }, blockchainIID, ct);
         }
 
         /// <inheritdoc cref="CreateFromDirectory(List{string}, Buffer, CancellationToken)"/>
@@ -188,7 +188,6 @@ namespace Chromia
         /// <exception cref="UriFormatException"></exception>
         public async static Task<ChromiaClient> Create(List<string> nodeUrls, Buffer blockchainRID)
         {
-            await Task.FromResult(0);
             return new ChromiaClient(nodeUrls, blockchainRID);
         }
 
@@ -228,14 +227,14 @@ namespace Chromia
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         /// <exception cref="UriFormatException"></exception>
-        public async static Task<Buffer> GetBlockchainRID(string nodeUrl, int blockchainIID, CancellationToken ct = default)
+        public static Task<Buffer> GetBlockchainRID(string nodeUrl, int blockchainIID, CancellationToken ct = default)
         {
             if (nodeUrl == null) 
                 throw new ArgumentNullException(nameof(nodeUrl));
             else if (blockchainIID < 0)
                 throw new ArgumentOutOfRangeException(nameof(blockchainIID));
 
-            return await RestClient.GetBlockchainRID(ToUri(nodeUrl), blockchainIID, ct);
+            return RestClient.GetBlockchainRID(ToUri(nodeUrl), blockchainIID, ct);
         }
 
         private static Uri ToUri(string url)
@@ -358,9 +357,9 @@ namespace Chromia
         /// <returns>The transaction receipt of the transaction.</returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="TransportException"></exception>
-        public async Task<TransactionReceipt> SendUniqueTransaction(
+        public Task<TransactionReceipt> SendUniqueTransaction(
             Operation operation,
-            SignatureProvider signer = null,
+            ISignatureProvider signer = null,
             CancellationToken ct = default
         )
         {
@@ -370,19 +369,19 @@ namespace Chromia
             if (signer != null)
                 tx.AddSignatureProvider(signer);
 
-            return await SendUniqueTransaction(tx, ct);
+            return SendUniqueTransaction(tx, ct);
         }
 
-        /// <inheritdoc cref="SendUniqueTransaction(Operation, SignatureProvider, CancellationToken)"/>
+        /// <inheritdoc cref="SendUniqueTransaction(Operation, ISignatureProvider, CancellationToken)"/>
         /// <param name="tx">The transaction to send to the blockchain.</param>
         /// <param name="ct">A cancellation token to abort the task.</param>
-        public async Task<TransactionReceipt> SendUniqueTransaction(Transaction tx, CancellationToken ct = default)
+        public Task<TransactionReceipt> SendUniqueTransaction(Transaction tx, CancellationToken ct = default)
         {
             if (tx == null)
                 throw new ArgumentNullException(nameof(tx));
 
             tx.AddNop();
-            return await SendTransaction(tx, ct);
+            return SendTransaction(tx, ct);
         }
 
         /// <summary>
@@ -441,10 +440,10 @@ namespace Chromia
         /// <returns>The current status of the transaction in the network.</returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         /// <exception cref="TransportException"></exception>
-        public async Task<TransactionStatusResponse> GetTransactionStatus(Buffer transactionRID, CancellationToken ct = default)
+        public Task<TransactionStatusResponse> GetTransactionStatus(Buffer transactionRID, CancellationToken ct = default)
         {
             Transaction.EnsureRID(transactionRID);
-            return await _restClient.GetTransactionStatus(transactionRID, ct);
+            return _restClient.GetTransactionStatus(transactionRID, ct);
         }
 
         /// <summary>
@@ -458,41 +457,41 @@ namespace Chromia
         /// <exception cref="TransportException"></exception>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        private async Task<T> Query<T>(string name, object parameters, CancellationToken ct = default)
+        private Task<T> Query<T>(string name, object parameters, CancellationToken ct = default)
         {
             if (name == null)
                 throw new ArgumentNullException(nameof(name));
             else if (name.Length == 0)
                 throw new ArgumentOutOfRangeException(nameof(name));
 
-            return await _restClient.Query<T>(name, parameters, ct);
+            return _restClient.Query<T>(name, parameters, ct);
         }
 
         /// <inheritdoc cref="Query{T}(string, object, CancellationToken)"/>
         /// <param name="name">The name of the query.</param>
         /// <param name="obj">A gtv serializable object as query parameters.</param>
         /// <param name="ct">A cancellation token to abort the task.</param>
-        public async Task<T> Query<T>(string name, IGtvSerializable obj, CancellationToken ct = default)
+        public Task<T> Query<T>(string name, IGtvSerializable obj, CancellationToken ct = default)
         {
             var jsonObj = JObject.FromObject(obj);
-            return await Query<T>(name, jsonObj, ct);
+            return Query<T>(name, jsonObj, ct);
         }
 
         /// <inheritdoc cref="Query{T}(string, object, CancellationToken)"/>
-        public async Task<T> Query<T>(string name, params (string name, object content)[] parameters)
+        public Task<T> Query<T>(string name, params (string name, object content)[] parameters)
         {
-            return await Query<T>(name, CancellationToken.None, parameters);
+            return Query<T>(name, CancellationToken.None, parameters);
         }
 
         /// <inheritdoc cref="Query{T}(string, object, CancellationToken)"/>
-        public async Task<T> Query<T>(string name, CancellationToken ct = default, params (string name, object content)[] parameters)
+        public Task<T> Query<T>(string name, CancellationToken ct = default, params (string name, object content)[] parameters)
         {
             foreach (var item in parameters)
                 if (!Gtv.IsOfValidType(item.content))
                     throw new ArgumentException("unsupported data type for " + item.content, nameof(parameters));
 
             var parameterDict = parameters.ToDictionary(p => p.name, p => p.content);
-            return await Query<T>(name, parameterDict, ct);
+            return Query<T>(name, parameterDict, ct);
         }
     }
 }

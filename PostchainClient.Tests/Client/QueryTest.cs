@@ -209,6 +209,13 @@ namespace Chromia.Tests.Client
         }
 
         [Fact]
+        public async void WrongEnumTest()
+        {
+            var expected = MyEnum.V1;
+            await Client.Query<MyEnum>("test_enum", ("b", expected));
+        }
+
+        [Fact]
         public async void Ft3Test()
         {
             var expected = Buffer.From("c42b182e2c6a29d5efa0a38ca337f0226590ebda153da325991fd73d67d3523e");

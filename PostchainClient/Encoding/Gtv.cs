@@ -17,7 +17,7 @@ namespace Chromia.Encoding
 
     internal static class Gtv
     {
-        public static Type[] SupportedTypes  = new Type[]
+        public static Type[] SupportedTypes = new Type[]
         {
             typeof(int),
             typeof(long),
@@ -218,7 +218,7 @@ namespace Chromia.Encoding
 
     internal class NullGtv : Gtv<object>
     {
-        public NullGtv(): base(null) { }
+        public NullGtv() : base(null) { }
 
         protected override void EncodeInternal(AsnWriter writer)
         {
@@ -340,9 +340,9 @@ namespace Chromia.Encoding
             Value = values.ToArray();
         }
 
-        public List<K> ToList<T, K>() where T: Gtv<K>
+        public List<K> ToList<T, K>() where T : Gtv<K>
         {
-            return Value.ToList().Select(e => ((T) e).Value).ToList();
+            return Value.ToList().Select(e => ((T)e).Value).ToList();
         }
 
         public override bool Equals(object obj)

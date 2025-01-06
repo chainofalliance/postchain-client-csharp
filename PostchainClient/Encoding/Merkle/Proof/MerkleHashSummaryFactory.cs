@@ -35,12 +35,12 @@ namespace Chromia.Encoding
         {
             if (currentElement is ProofHashedLeaf)
             {
-                var leafElement = (ProofHashedLeaf) currentElement;
+                var leafElement = (ProofHashedLeaf)currentElement;
                 return leafElement.MerkleHash;
             }
             else if (currentElement is ProofValueLeaf)
             {
-                var valueElement = (ProofValueLeaf) currentElement;
+                var valueElement = (ProofValueLeaf)currentElement;
                 var value = valueElement.Content;
                 if (calculator.IsContainerProofValueLeaf(value))
                 {
@@ -54,7 +54,7 @@ namespace Chromia.Encoding
             }
             else if (currentElement is ProofNode)
             {
-                var proofElement = (ProofNode) currentElement;
+                var proofElement = (ProofNode)currentElement;
                 var left = this.CalculateMerkleRootInternal(proofElement.Left, calculator);
                 var right = this.CalculateMerkleRootInternal(proofElement.Right, calculator);
 

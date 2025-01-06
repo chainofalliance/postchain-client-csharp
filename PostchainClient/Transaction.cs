@@ -117,7 +117,7 @@ namespace Chromia
         private Buffer _blockchainRID;
         private readonly List<Operation> _operations;
         private readonly HashSet<Buffer> _signers;
-        private readonly HashSet<SignatureProvider> _signatureProviders;
+        private readonly HashSet<ISignatureProvider> _signatureProviders;
 
 
         /// <summary>
@@ -146,19 +146,19 @@ namespace Chromia
         /// <param name="blockchainRID">The RID of the blockchain.</param>
         /// <param name="operations">The operations to be added to the transaction.</param>
         /// <param name="signers">The signers that need to sign the transaction.</param>
-        /// <param name="signatureProviders">The <see cref="SignatureProvider"/> that sign the transaction.</param>
+        /// <param name="signatureProviders">The <see cref="ISignatureProvider"/> that sign the transaction.</param>
         /// <returns>The new <see cref="Transaction"/>.</returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public static Transaction Build(
             Buffer blockchainRID,
             List<Operation> operations,
             HashSet<Buffer> signers,
-            HashSet<SignatureProvider> signatureProviders
+            HashSet<ISignatureProvider> signatureProviders
         )
         {
             operations ??= new List<Operation>();
             signers ??= new HashSet<Buffer>();
-            signatureProviders ??= new HashSet<SignatureProvider>();
+            signatureProviders ??= new HashSet<ISignatureProvider>();
 
             return new Transaction(blockchainRID, operations, signers, signatureProviders);
         }
@@ -189,7 +189,7 @@ namespace Chromia
             Buffer blockchainRID,
             List<Operation> operations,
             HashSet<Buffer> signers,
-            HashSet<SignatureProvider> signatureProviders
+            HashSet<ISignatureProvider> signatureProviders
         )
         {
             if (!blockchainRID.IsEmpty && blockchainRID.Length != 32)
@@ -289,13 +289,13 @@ namespace Chromia
         }
 
         /// <summary>
-        /// Adds a <see cref="SignatureProvider"/> to the transaction
+        /// Adds a <see cref="ISignatureProvider"/> to the transaction
         /// and the public key of the provider as a signer.
         /// </summary>
-        /// <param name="signatureProvider">The <see cref="SignatureProvider"/> to add to the transaction.</param>
+        /// <param name="signatureProvider">The <see cref="ISignatureProvider"/> to add to the transaction.</param>
         /// <returns>This object.</returns>
         /// <exception cref="ArgumentNullException"></exception>
-        public Transaction AddSignatureProvider(SignatureProvider signatureProvider)
+        public Transaction AddSignatureProvider(ISignatureProvider signatureProvider)
         {
             if (signatureProvider == null)
                 throw new ArgumentNullException(nameof(signatureProvider));
@@ -309,10 +309,10 @@ namespace Chromia
         /// Signs the transaction with the given signature provider.
         /// Does <b>not</b> add the public key as a signer before signing. 
         /// </summary>
-        /// <param name="signatureProvider">The <see cref="SignatureProvider"/> to sign the transaction.</param>
+        /// <param name="signatureProvider">The <see cref="ISignatureProvider"/> to sign the transaction.</param>
         /// <returns>The <see cref="Signature"/> created by the provider.</returns>
         /// <exception cref="ArgumentNullException"></exception>
-        public Signature Sign(SignatureProvider signatureProvider)
+        public Signature Sign(ISignatureProvider signatureProvider)
         {
             if (signatureProvider == null)
                 throw new ArgumentNullException(nameof(signatureProvider));
@@ -391,7 +391,7 @@ namespace Chromia
 
             var tx = new object[]
             {
-                _blockchainRID.Bytes,
+                _blockchainRID,
                 _operations.Select(o => o.GetBody()).ToArray(),
                 _signers.Select(s => (object)s).ToArray()
             };
@@ -538,9 +538,9 @@ namespace Chromia
             /// <param name="signatureProvider"></param>
             /// <exception cref="ArgumentNullException"></exception>
             /// <exception cref="ArgumentException"></exception>
-            public Signed Sign(SignatureProvider signatureProvider)
+            public Signed Sign(ISignatureProvider signatureProvider)
             {
-                if (signatureProvider == null) 
+                if (signatureProvider == null)
                     throw new ArgumentNullException(nameof(signatureProvider));
                 if (!Signers.Contains(signatureProvider.PubKey))
                     throw new ArgumentException("signature provider not a valid signer");
