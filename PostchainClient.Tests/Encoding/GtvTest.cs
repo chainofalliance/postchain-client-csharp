@@ -114,6 +114,54 @@ namespace Chromia.Tests.Encoding
             Assert.Equal(expected, actual);
         }
 
+        [Theory]
+        [InlineData("foo", "CBD2B5746BE474CD3C8F2DED0927B9F48B221635F53E1F300C68312DE974F72A")]
+        [InlineData("bar", "A741C1E407F18A889E2EFA136C0C9F1600D325363D1E21F0EB1B0DD85FFD9F30")]
+        public void HashTest(string val, string expected)
+        {
+            Assert.Equal(Gtv.Hash(val), Buffer.From(expected));
+        }
+
+        [Fact]
+        public void DictionaryTest()
+        {
+            var dict = new Dictionary<uint, Buffer>()
+            {
+                { 1, ChromiaClient.Hash("foo") }
+            };
+            var expected = Gtv.Hash(dict);
+            var actual = Buffer.From("3A12CCFB1B71FB792E8B78E8A443D532914D1AA1E7DE71D1503F1C6D2C191688");
+            Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(42424242)]
+        [InlineData(-256)]
+        [InlineData(float.Epsilon)]
+        [InlineData(-float.Epsilon)]
+        [InlineData(float.MinValue)]
+        [InlineData(float.MaxValue)]
+        public void FloatTest(float f)
+        {
+            var expected = Gtv.Hash(f);
+            Console.WriteLine(expected);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(42424242)]
+        [InlineData(-256)]
+        [InlineData(double.Epsilon)]
+        [InlineData(-double.Epsilon)]
+        [InlineData(long.MinValue)]
+        [InlineData(long.MaxValue)]
+        public void DoubleTest(double d)
+        {
+            var expected = Gtv.Hash(d);
+            Console.WriteLine(expected);
+        }
+
         [Fact]
         public void SimpleObjectTest()
         {

@@ -2,6 +2,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Numerics;
 
@@ -60,6 +61,14 @@ namespace Chromia.Encoding
             {
                 return HandlePrimitiveLeaf(leaf, paths);
             }
+            else if (leaf is double d)
+            {
+                return HandlePrimitiveLeaf(d.ToString(CultureInfo.InvariantCulture), paths);
+            }
+            else if (leaf is float f)
+            {
+                return HandlePrimitiveLeaf(f.ToString(CultureInfo.InvariantCulture), paths);
+            }
             else if (leaf is BigInteger)
             {
                 return HandlePrimitiveLeaf(leaf, paths);
@@ -68,9 +77,9 @@ namespace Chromia.Encoding
             {
                 return BuildFromArray(array.Cast<object>().ToArray(), paths);
             }
-            else if (leaf is Dictionary<string, object> dictionary)
+            else if (leaf is IDictionary dict)
             {
-                return BuildFromDictionary(dictionary, paths);
+                return BuildFromDictionary(dict, paths);
             }
             else if (IsDictionary(leaf))
             {
@@ -206,26 +215,30 @@ namespace Chromia.Encoding
             return leafArray;
         }
 
-        private DictHeadNode<Dictionary<string, object>> BuildFromDictionary(Dictionary<string, object> dict, PathSet paths)
+        private DictHeadNode<Dictionary<string, object>> BuildFromDictionary(IDictionary dict, PathSet paths)
         {
             var pathElem = paths.GetPathLeafOrElseAnyCurrentPathElement();
 
-            var keys = new List<string>(dict.Keys);
-            if (keys.Count == 0)
+            if (dict.Count == 0)
             {
-                return new DictHeadNode<Dictionary<string, object>>(new EmptyLeaf(), new EmptyLeaf(), dict, 0, pathElem);
+                return new DictHeadNode<Dictionary<string, object>>(new EmptyLeaf(), new EmptyLeaf(), new Dictionary<string, object>(), 0, pathElem);
             }
-            keys.Sort();
 
-            var leafArray = BuildLeafElementFromDict(keys, dict, paths);
+            var leafArray = BuildLeafElementFromDict(dict, paths);
 
             var result = BuildHigherLayer(1, leafArray);
 
+
             var orgRoot = result[0];
-            if (orgRoot is Node)
+            if (orgRoot is Node nodeRoot)
             {
-                var nodeRoot = (Node)orgRoot;
-                return new DictHeadNode<Dictionary<string, object>>(nodeRoot.Left, nodeRoot.Right, dict, keys.Count, pathElem);
+                var specificDict = new Dictionary<string, object>();
+                foreach (var key in specificDict.Keys)
+                {
+                    specificDict[key] = dict[key];
+                }
+
+                return new DictHeadNode<Dictionary<string, object>>(nodeRoot.Left, nodeRoot.Right, specificDict, dict.Count, pathElem);
             }
             else
             {
@@ -233,10 +246,13 @@ namespace Chromia.Encoding
             }
         }
 
-        private List<BinaryTreeElement> BuildLeafElementFromDict(List<string> keys, Dictionary<string, object> dict, PathSet paths)
+        private List<BinaryTreeElement> BuildLeafElementFromDict(IDictionary dict, PathSet paths)
         {
             var leafArray = new List<BinaryTreeElement>();
             var onlyDictPaths = paths.KeepOnlyDictPaths();
+
+            var keys = dict.Keys.Cast<object>().Select(k => k.ToString()).ToList();
+            keys.Sort();
 
             for (int i = 0; i < keys.Count; i++)
             {
@@ -244,7 +260,7 @@ namespace Chromia.Encoding
                 var keyElement = HandleLeaf(key, GetEmptyPathSet());
                 leafArray.Add(keyElement);
 
-                var content = dict[key];
+                var content = dict[i];
                 var pathsRelevantForThisLeaf = onlyDictPaths.GetTailIfFirstElementIsDictOfThisKeyFromList(key);
                 var contentElement = HandleLeaf(content, pathsRelevantForThisLeaf);
                 leafArray.Add(contentElement);
