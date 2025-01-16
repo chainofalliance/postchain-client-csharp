@@ -230,11 +230,20 @@ namespace Chromia.Tests.Encoding
         }
 
         [Fact]
-        public void ListEqualToArrayTest()
+        public void ListEqualToArrayHashTest()
         {
             var list = new List<int>() { int.MinValue, -1, 0, 1, int.MaxValue };
             var hash = ChromiaClient.Hash(list);
             var actual = ChromiaClient.Hash(list.ToArray());
+            Assert.Equal(hash, actual);
+        }
+
+        [Fact]
+        public void ListEqualToArrayGtvTest()
+        {
+            var list = new List<int>() { int.MinValue, -1, 0, 1, int.MaxValue };
+            var hash = ChromiaClient.EncodeToGtv(list);
+            var actual = ChromiaClient.EncodeToGtv(list.ToArray());
             Assert.Equal(hash, actual);
         }
 
