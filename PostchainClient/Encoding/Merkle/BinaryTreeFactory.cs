@@ -77,6 +77,12 @@ namespace Chromia.Encoding
             {
                 return BuildFromArray(array.Cast<object>().ToArray(), paths);
             }
+            else if (leaf is IList list)
+            {
+                var arr = new object[list.Count];
+                list.CopyTo(arr, 0);
+                return BuildFromArray(arr, paths);
+            }
             else if (leaf is IDictionary dict)
             {
                 return BuildFromDictionary(dict, paths);

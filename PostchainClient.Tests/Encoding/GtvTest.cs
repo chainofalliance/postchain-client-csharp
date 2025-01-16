@@ -219,12 +219,22 @@ namespace Chromia.Tests.Encoding
             var actual = Buffer.From("46af9064f12528cad6a7c377204acd0ac38cdc6912903e7dab3703764c8dd5e5");
             Assert.Equal(hash, actual);
         }
+
         [Fact]
         public void EmptyNestedListTest()
         {
             var obj = new object[] { Array.Empty<object>(), Array.Empty<object>() };
             var hash = ChromiaClient.Hash(obj);
             var actual = Buffer.From("8f0402234fe66da0b21f7c871cc2f3211fe8cee5af714bdcdb76bd9ef848b1fd");
+            Assert.Equal(hash, actual);
+        }
+
+        [Fact]
+        public void ListEqualToArrayTest()
+        {
+            var list = new List<int>() { int.MinValue, -1, 0, 1, int.MaxValue };
+            var hash = ChromiaClient.Hash(list);
+            var actual = ChromiaClient.Hash(list.ToArray());
             Assert.Equal(hash, actual);
         }
 
