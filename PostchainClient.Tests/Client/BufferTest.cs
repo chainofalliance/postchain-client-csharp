@@ -29,5 +29,16 @@ namespace Chromia.Tests.Client
             var actual = JsonConvert.DeserializeObject<Buffer>(serialized);
             Assert.Equal(expected, actual);
         }
+
+        [Fact]
+        public void EmptyBufferTest()
+        {
+            var buffer1 = new Buffer();
+            Buffer buffer2 = default;
+            Assert.True(buffer1.IsEmpty);
+            Assert.True(buffer2.IsEmpty);
+            Assert.Empty(buffer1.Bytes);
+            Assert.Empty(buffer2.Bytes);
+        }
     }
 }
