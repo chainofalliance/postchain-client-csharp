@@ -1,10 +1,8 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.Linq;
 using System.Text;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Chromia
 {
@@ -19,17 +17,17 @@ namespace Chromia
         /// <summary>
         /// Bytes contained in the buffer.
         /// </summary>
-        public byte[] Bytes => _bytes;
+        public byte[] Bytes => _bytes ?? Array.Empty<byte>();
 
         /// <summary>
         /// Amount of bytes stored in the buffer.
         /// </summary>
-        public int Length => _bytes.Length;
+        public int Length => _bytes == null ? 0 : _bytes.Length;
 
         /// <summary>
         /// Whether the buffer contains any bytes or is empty.
         /// </summary>
-        public bool IsEmpty => _bytes.Length == 0;
+        public bool IsEmpty => _bytes == null || _bytes.Length == 0;
 
         /// <summary>
         /// Parses a <see cref="Buffer"/> from the given string of raw bytes.
@@ -40,7 +38,7 @@ namespace Chromia
         /// <exception cref="ArgumentNullException"></exception>
         public static Buffer Parse(string byteString)
         {
-            if (byteString == null) 
+            if (byteString == null)
                 throw new ArgumentNullException(nameof(byteString));
 
             return From(byteString.Select(c => (byte)c));
@@ -79,7 +77,7 @@ namespace Chromia
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public static Buffer Repeat(char c, int count)
         {
-            if (count < 0) 
+            if (count < 0)
                 throw new ArgumentOutOfRangeException(nameof(count), "has to be positive");
 
             return From(Enumerable.Repeat((byte)c, count));
@@ -153,6 +151,8 @@ namespace Chromia
         /// <returns>The encoded UTF8 string.</returns>
         public string ParseUTF8()
         {
+            if (_bytes == null)
+                return "";
             return System.Text.Encoding.UTF8.GetString(_bytes);
         }
 
@@ -222,7 +222,8 @@ namespace Chromia
         }
 
         /// <inheritdoc />
-        public static implicit operator string(Buffer b) {
+        public static implicit operator string(Buffer b)
+        {
             return b.Parse();
         }
 
