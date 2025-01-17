@@ -1,14 +1,11 @@
-using Chromia.Encoding;
-using System;
 using System.Threading.Tasks;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Chromia.Tests
 {
     public class ChromiaClientFixture : IAsyncLifetime
     {
-        public static Buffer TestDappBrid = Buffer.From("EC222523F35F8A77E7C6614F0D003CF7757041EFABDE92BB66D06BB4E6253F86");
+        public static Buffer TestDappBrid = Buffer.From("EBABE54CC0B7E54BCF5DA398790DA969333490F17E5A0AE5B7FD604EBFDFA916");
         public ChromiaClient Client { get; private set; }
 
         public async Task InitializeAsync()

@@ -1,9 +1,6 @@
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Xml.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -212,7 +209,7 @@ namespace Chromia.Tests.Client
         public async void WrongEnumTest()
         {
             var expected = MyEnum.V1;
-            await Client.Query<MyEnum>("test_enum", ("b", expected));
+            await Client.Query<MyEnum>("test_enum", ("e", expected));
         }
 
         [Fact]
@@ -231,6 +228,15 @@ namespace Chromia.Tests.Client
             foreach (var (k, v) in actual)
                 Console.WriteLine($"{k}: {v}");
             Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public async void ListTest()
+        {
+            var expected = new List<int>() { int.MinValue, -1, 0, 1, int.MaxValue };
+            var actual = await Client.Query<List<int>>("test_list", ("l", expected));
+            foreach (var v in actual)
+                Assert.Equal(expected[actual.IndexOf(v)], v);
         }
     }
 }

@@ -107,6 +107,11 @@ query test_enum(e: my_enum) {
     return e;
 }
 
+query test_list(l: list<integer>) {
+    print("test_enum", l);
+    return l;
+}
+
 namespace ft3{
     query get_account_by_id(id: byte_array) {
         print("ft3.get_account_by_id", id);

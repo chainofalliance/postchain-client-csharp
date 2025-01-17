@@ -29,7 +29,7 @@ namespace Chromia.Encoding
             typeof(Enum),
             typeof(Buffer),
             typeof(JToken),
-            typeof(ICollection<dynamic>),
+            typeof(IList),
             typeof(IDictionary),
             typeof(IGtvSerializable)
         };
