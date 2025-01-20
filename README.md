@@ -120,3 +120,19 @@ client.SendUniqueTransaction(tx);
 ## Error handling
 
 In general, the client throws exceptions when it runs into error. The code is documented to show all possible exceptions thrown by each method. Logic errors by the client throw `ChromiaException` or its subclass `TransportException`. The `TransportException` contains information about which part of the transport failed and contains http status codes (if applicable).
+
+## Type mapping
+
+The following table shows which types map to each [Rell type](https://docs.chromia.com/rell/language-features/types/).
+
+| Rell        | C#                | Notes                                                                                                       |
+|-------------|-------------------|-------------------------------------------------------------------------------------------------------------|
+| boolean     | bool              |                                                                                                             |
+| integer     | long              | Internally long, because of the size of Rell integer. But any numeric type is supported  (int, byte, etc.). |
+| big_integer | System.BigInteger |                                                                                                             |
+| decimal     | string            | Internally string, but double and float values will automatically be cast.                                  |
+| text        | string            |                                                                                                             |
+| byte_array  | Chromia.Buffer    | Own struct with similar behavior to Javascript's Buffer. byte[] is also supported.                          |
+| list<T>     | IList             | Any type that implements IList, i.e. List<T>, ReadOnlyList<T>, etc. Native arrays are supported as well.    |
+| set<T>      | IList             | Any C# ISet type can be cast to a List or array with System.Linq.                                           |
+| map<K,V>    | IDictionary       | Keys, if not of type string, will be converted using ToString(). Values can be any other type.              |
