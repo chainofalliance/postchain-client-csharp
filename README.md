@@ -123,8 +123,8 @@ In general, the client throws exceptions when it runs into error. The code is do
 
 ## Type mapping
 
-The following table shows which types map to each [Rell type](https://docs.chromia.com/rell/language-features/types/).
-
+The following table shows which types map to each [Rell type](https://docs.chromia.com/rell/language-features/types/). Values that are `null` will be cast accordingly.
+ 
 | Rell        | C#                | Notes                                                                                                       |
 |-------------|-------------------|-------------------------------------------------------------------------------------------------------------|
 | boolean     | bool              |                                                                                                             |
