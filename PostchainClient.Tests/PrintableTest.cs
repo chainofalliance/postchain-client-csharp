@@ -20,7 +20,6 @@ namespace Chromia.Tests
         public TestWriter(ITestOutputHelper output)
         {
             _output = output;
-            Console.SetOut(this);
         }
 
         public override System.Text.Encoding Encoding { get; } // set some if required
