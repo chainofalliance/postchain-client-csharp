@@ -166,11 +166,38 @@ namespace Chromia.Tests.Encoding
             Assert.Equal(expected.Parse(), actual.Parse());
         }
 
+        [Fact]
+        public void DefaultGtvHashVersionTest()
+        {
+            Assert.Equal(1, Gtv.HashVersion);
+        }
+
+        [Fact]
+        public void LegacyGtvHashVersionTest()
+        {
+            var list = new List<List<int>>() { new List<int>() { 1 } };
+            var hash = Gtv.Hash(list);
+            var expected = Buffer.From("67BB8D38054DB41A4B401F5971FF7560E48A730693E46371191ECEA9D7BD1E32");
+            Assert.Equal(expected.Parse(), hash.Parse());
+        }
+
+        [Fact]
+        public void GtvHashVersion2Test()
+        {
+            Gtv.HashVersion = 2;
+            var list = new List<List<int>>() { new List<int>() { 1 } };
+            var hash = Gtv.Hash(list);
+            var expected = Buffer.From("082E13545DD8A1D4003143D17F781C9346BC500800592CD9B2D5D39DEDF05415");
+            Assert.Equal(expected.Parse(), hash.Parse());
+        }
+
+
         [Theory]
         [InlineData(0)]
         [InlineData(42424242)]
         [InlineData(-256)]
         [InlineData(float.Epsilon)]
+
         [InlineData(-float.Epsilon)]
         [InlineData(float.MinValue)]
         [InlineData(float.MaxValue)]
