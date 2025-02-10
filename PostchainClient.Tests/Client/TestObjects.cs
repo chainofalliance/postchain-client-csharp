@@ -73,5 +73,11 @@ namespace Chromia.Tests.Client
         public string Name;
         [JsonProperty("zip")]
         public int Zip;
+
+        public CityStruct(string name, int zip)
+        {
+            Name = name;
+            Zip = zip;
+        }
     }
 }

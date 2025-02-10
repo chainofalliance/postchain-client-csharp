@@ -186,9 +186,9 @@ namespace Chromia
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         /// <exception cref="UriFormatException"></exception>
-        public async static Task<ChromiaClient> Create(List<string> nodeUrls, Buffer blockchainRID)
+        public static Task<ChromiaClient> Create(List<string> nodeUrls, Buffer blockchainRID)
         {
-            return new ChromiaClient(nodeUrls, blockchainRID);
+            return Task.FromResult(new ChromiaClient(nodeUrls, blockchainRID));
         }
 
         /// <inheritdoc cref="Create(List{string}, Buffer)"/>

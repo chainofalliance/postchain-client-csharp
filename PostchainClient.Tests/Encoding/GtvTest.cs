@@ -164,7 +164,6 @@ namespace Chromia.Tests.Encoding
             var actual = Gtv.Hash(dict);
             var expected = Buffer.From("55CF8EC4CB42114B0C0A7FBB99EF44008602F815609DEBBB10EBC52608A828A8");
             Assert.Equal(expected.Parse(), actual.Parse());
-
         }
 
         [Theory]
