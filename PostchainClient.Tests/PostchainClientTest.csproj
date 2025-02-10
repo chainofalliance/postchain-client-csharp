@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PostchainClient\postchain-client.csproj" />
+    <ProjectReference Include="..\PostchainClient\PostchainClient.csproj" />
   </ItemGroup>
 
 </Project>
