@@ -229,7 +229,7 @@ namespace Chromia
         /// <exception cref="UriFormatException"></exception>
         public static Task<Buffer> GetBlockchainRID(string nodeUrl, int blockchainIID, CancellationToken ct = default)
         {
-            if (nodeUrl == null) 
+            if (nodeUrl == null)
                 throw new ArgumentNullException(nameof(nodeUrl));
             else if (blockchainIID < 0)
                 throw new ArgumentOutOfRangeException(nameof(blockchainIID));
@@ -335,6 +335,24 @@ namespace Chromia
 
             _restClient.SetAttemptInterval(attemptInterval);
             return this;
+        }
+
+        /// <summary>
+        /// Sets the version of the hash algorithm to use.
+        /// Version 1 is the legacy hash algorithm.
+        /// Version 2 is the new hash algorithm that fixes some edge cases.
+        /// </summary>
+        /// <returns>This object.</returns>
+        /// <param name="hashVersion">The hash version to use (1 or 2).</param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public ChromiaClient SetHashVersion(int hashVersion)
+        {
+            if (hashVersion <= 0 || hashVersion > 2)
+                throw new ArgumentOutOfRangeException(nameof(hashVersion));
+
+            Gtv.HashVersion = hashVersion;
+            return this;
+
         }
         #endregion
 

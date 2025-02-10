@@ -175,6 +175,12 @@ namespace Chromia.Encoding
 
             var leafArray = BuildLeafElements(array, paths);
 
+            // If we have just a single leaf that is a node we can return immediately (version 2)
+            if (leafArray.Count == 1 && leafArray[0] is Node && Gtv.HashVersion > 1)
+            {
+                return new ArrayHeadNode<object[]>(leafArray[0], new EmptyLeaf(), array, array.Length, pathElem);
+            }
+
             var result = BuildHigherLayer(1, leafArray);
             var orgRoot = result[0];
             if (orgRoot is Node)

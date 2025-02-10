@@ -17,12 +17,15 @@ namespace Chromia.Encoding
 
     internal static class Gtv
     {
+        public static int HashVersion = 1;
+
         public static Type[] SupportedTypes = new Type[]
         {
             typeof(int),
             typeof(long),
             typeof(float),
             typeof(double),
+
             typeof(bool),
             typeof(string),
             typeof(BigInteger),
