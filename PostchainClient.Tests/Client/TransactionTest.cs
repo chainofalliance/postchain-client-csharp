@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -13,7 +14,7 @@ namespace Chromia.Tests.Client
         private SignatureProvider Signer2 => StaticSignatureProvider.Signer2;
 
         private readonly ResetableChromiaClientFixture _fixture;
-        private ChromiaClient Client => _fixture.Client;
+        private ChromiaClient Client => _fixture.Client.SetHashVersion(1);
 
         public TransactionTest(ITestOutputHelper output, ResetableChromiaClientFixture fixture) : base(output)
         {
@@ -44,7 +45,7 @@ namespace Chromia.Tests.Client
         public async void DoubleTransactionTest()
         {
             var tx = Client.TransactionBuilder()
-                .AddOperation(new Operation("insert_city", "hamburg", new Random().Next()))
+                .AddOperation(new Operation("insert_city", "hamburg", 2))
                 .AddSignatureProvider(Signer1);
 
             var response = await Client.SendTransaction(tx);
@@ -137,6 +138,48 @@ namespace Chromia.Tests.Client
             var signed = tx.Sign();
             var response = await Client.SendTransaction(signed);
             Console.WriteLine(response.TransactionRID);
+            Assert.Equal(TransactionReceipt.ResponseStatus.Confirmed, response.Status);
+        }
+
+        [Fact]
+        public async void BigObjectTest()
+        {
+            var tx = Client.TransactionBuilder()
+                .AddOperation(new Operation("test_bigobj_op", new MyBigMixedClass("foo", ChromiaClient.Hash("bar"), true, 1, 1, 1f, 1, MyEnum.V2)))
+                .AddNop();
+
+            var signed = tx.Sign();
+            var response = await Client.SendTransaction(signed);
+            Assert.Equal(TransactionReceipt.ResponseStatus.Confirmed, response.Status);
+        }
+
+        [Fact]
+        public async void BigObjectArrayTest()
+        {
+            var tx = Client.TransactionBuilder()
+                .AddOperation(new Operation("test_bigobj_array_op", new List<MyBigMixedClass>() {
+                    new MyBigMixedClass("foo", ChromiaClient.Hash("bar"), true, 1, 1, 1f, 1, MyEnum.V2),
+                    new MyBigMixedClass("foo2", ChromiaClient.Hash("bar2"), false, 2, 2, 2f, 2, MyEnum.V1)
+                }))
+                .AddNop();
+
+            var signed = tx.Sign();
+            var response = await Client.SendTransaction(signed);
+            Assert.Equal(TransactionReceipt.ResponseStatus.Confirmed, response.Status);
+        }
+
+        [Fact]
+        public async void NestedObjectArrayTest()
+        {
+            var tx = Client.TransactionBuilder()
+                .AddOperation(new Operation("test_nested_obj_array_op", new List<MyNestedStruct>() {
+                    new MyNestedStruct() {BigInt = BigInteger.One, Struct = new MyStruct() {A = "foo", B = "bar" } },
+                    new MyNestedStruct() {BigInt = BigInteger.MinusOne, Struct = new MyStruct() {A = "foo2", B = "bar2" } },
+                }))
+                .AddNop();
+
+            var signed = tx.Sign();
+            var response = await Client.SendTransaction(signed);
             Assert.Equal(TransactionReceipt.ResponseStatus.Confirmed, response.Status);
         }
     }

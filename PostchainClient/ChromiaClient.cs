@@ -9,6 +9,7 @@ using static Chromia.Transport.RestClient;
 using System.Security.Cryptography;
 using System.Data.Common;
 using System.Threading;
+using Newtonsoft.Json;
 
 namespace Chromia
 {
@@ -46,6 +47,11 @@ namespace Chromia
         /// The interval between each request attempt.
         /// </summary>
         public int AttemptInterval { get { return _restClient.AttemptInterval; } }
+
+        /// <summary>
+        /// The version of the hash algorithm to use for transactions. Default is 2.
+        /// </summary>
+        public int HashVersion { get; private set; } = 2;
 
         private readonly RestClient _restClient;
 
@@ -98,11 +104,17 @@ namespace Chromia
         /// Parses the object to gtv and creates the merkle root hash of it.
         /// </summary>
         /// <param name="obj">The object to hash.</param>
+        /// <param name="hashVersion">The hash version to use.</param>
         /// <returns>The merkle root hash.</returns>
-        public static Buffer Hash(object obj)
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static Buffer Hash(object obj, int hashVersion = 2)
         {
-            return Gtv.Hash(obj);
+            if (hashVersion <= 0 || hashVersion > 2)
+                throw new ArgumentOutOfRangeException(nameof(hashVersion));
+
+            return Gtv.Hash(obj, hashVersion);
         }
+
 
         /// <summary>
         /// Encodes the given object to a gtv buffer.
@@ -350,7 +362,7 @@ namespace Chromia
             if (hashVersion <= 0 || hashVersion > 2)
                 throw new ArgumentOutOfRangeException(nameof(hashVersion));
 
-            Gtv.HashVersion = hashVersion;
+            HashVersion = hashVersion;
             return this;
 
         }
@@ -362,7 +374,7 @@ namespace Chromia
         /// <returns>An empty transaction object.</returns>
         public Transaction TransactionBuilder()
         {
-            return Transaction.Build(BlockchainRID);
+            return Transaction.Build(BlockchainRID, HashVersion);
         }
 
         /// <summary>
@@ -415,6 +427,7 @@ namespace Chromia
             if (tx == null)
                 throw new ArgumentNullException(nameof(tx));
 
+            tx.UseHashVersion(HashVersion);
             var signedTx = tx.SetBlockchainRID(BlockchainRID).Sign();
             return await SendTransaction(signedTx, ct);
         }
@@ -475,7 +488,7 @@ namespace Chromia
         /// <exception cref="TransportException"></exception>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        private Task<T> Query<T>(string name, object parameters, CancellationToken ct = default)
+        public Task<T> Query<T>(string name, object parameters, CancellationToken ct = default)
         {
             if (name == null)
                 throw new ArgumentNullException(nameof(name));
@@ -483,16 +496,6 @@ namespace Chromia
                 throw new ArgumentOutOfRangeException(nameof(name));
 
             return _restClient.Query<T>(name, parameters, ct);
-        }
-
-        /// <inheritdoc cref="Query{T}(string, object, CancellationToken)"/>
-        /// <param name="name">The name of the query.</param>
-        /// <param name="obj">A gtv serializable object as query parameters.</param>
-        /// <param name="ct">A cancellation token to abort the task.</param>
-        public Task<T> Query<T>(string name, IGtvSerializable obj, CancellationToken ct = default)
-        {
-            var jsonObj = JObject.FromObject(obj);
-            return Query<T>(name, jsonObj, ct);
         }
 
         /// <inheritdoc cref="Query{T}(string, object, CancellationToken)"/>

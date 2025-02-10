@@ -16,13 +16,19 @@ namespace Chromia.Encoding
         /// <inheritdoc />
         public override BigInteger ReadJson(JsonReader reader, Type objectType, BigInteger existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
-            var val = reader.Value;
             if (reader.TokenType == JsonToken.String)
-                return BigInteger.Parse((string)val);
+            {
+                return BigInteger.Parse((string)reader.Value);
+            }
             else if (reader.TokenType == JsonToken.Integer)
-                return new BigInteger((long)val);
-            else if (reader.TokenType == JsonToken.Bytes)
-                return new BigInteger((byte[])val);
+            {
+                return new BigInteger((long)reader.Value);
+            }
+            else if (reader.TokenType == JsonToken.Raw)
+            {
+                // Handle raw token by parsing it as string
+                return BigInteger.Parse(reader.Value.ToString());
+            }
 
             throw new JsonSerializationException($"Unexpected token {reader.TokenType} when parsing BigInteger.");
         }

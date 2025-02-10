@@ -112,12 +112,13 @@ namespace Chromia
         /// <summary>
         /// The transaction hash.
         /// </summary>
-        public Buffer TransactionRID() => Gtv.Hash(GetBody());
+        public Buffer TransactionRID() => Gtv.Hash(GetBody(), hashVersion);
 
-        private Buffer _blockchainRID;
-        private readonly List<Operation> _operations;
-        private readonly HashSet<Buffer> _signers;
-        private readonly HashSet<ISignatureProvider> _signatureProviders;
+        private Buffer blockchainRID;
+        private readonly List<Operation> operations;
+        private readonly HashSet<Buffer> signers;
+        private readonly HashSet<ISignatureProvider> signatureProviders;
+        private int hashVersion;
 
 
         /// <summary>
@@ -133,12 +134,14 @@ namespace Chromia
         /// Builds a new empty transaction.
         /// </summary>
         /// <param name="blockchainRID">The RID of the blockchain.</param>
+        /// <param name="hashVersion">The hash version to use for the transaction.</param>
         /// <returns>The empty <see cref="Transaction"/>.</returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static Transaction Build(Buffer blockchainRID)
+        public static Transaction Build(Buffer blockchainRID, int hashVersion = 2)
         {
-            return Build(blockchainRID, null, null, null);
+            return Build(blockchainRID, null, null, null, hashVersion);
         }
+
 
         /// <summary>
         /// Builds a new transaction.
@@ -147,32 +150,37 @@ namespace Chromia
         /// <param name="operations">The operations to be added to the transaction.</param>
         /// <param name="signers">The signers that need to sign the transaction.</param>
         /// <param name="signatureProviders">The <see cref="ISignatureProvider"/> that sign the transaction.</param>
+        /// <param name="hashVersion">The hash version to use for the transaction.</param>
         /// <returns>The new <see cref="Transaction"/>.</returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public static Transaction Build(
             Buffer blockchainRID,
             List<Operation> operations,
             HashSet<Buffer> signers,
-            HashSet<ISignatureProvider> signatureProviders
+            HashSet<ISignatureProvider> signatureProviders,
+            int hashVersion = 2
         )
         {
             operations ??= new List<Operation>();
             signers ??= new HashSet<Buffer>();
             signatureProviders ??= new HashSet<ISignatureProvider>();
 
-            return new Transaction(blockchainRID, operations, signers, signatureProviders);
+            return new Transaction(blockchainRID, operations, signers, signatureProviders, hashVersion);
         }
+
 
         /// <summary>
         /// Decodes a buffer to a signed transaction.
         /// </summary>
         /// <param name="buffer">The buffer to decode.</param>
+        /// <param name="hashVersion">The hash version to use.</param>
         /// <returns>The decoded <see cref="Signed"/> object.</returns>
         /// <exception cref="ChromiaException"></exception>
-        public static Signed Decode(Buffer buffer)
+        public static Signed Decode(Buffer buffer, int hashVersion = 2)
         {
-            return Signed.From(buffer);
+            return Signed.From(buffer, hashVersion);
         }
+
 
         /// <summary>
         /// Ensures a buffer is a valid transaction RID. Throws an exception if not.
@@ -189,16 +197,18 @@ namespace Chromia
             Buffer blockchainRID,
             List<Operation> operations,
             HashSet<Buffer> signers,
-            HashSet<ISignatureProvider> signatureProviders
+            HashSet<ISignatureProvider> signatureProviders,
+            int hashVersion
         )
         {
             if (!blockchainRID.IsEmpty && blockchainRID.Length != 32)
                 throw new ArgumentOutOfRangeException(nameof(blockchainRID), "has to be empty or 32 bytes");
 
-            _blockchainRID = blockchainRID;
-            _operations = operations;
-            _signers = signers;
-            _signatureProviders = signatureProviders;
+            this.blockchainRID = blockchainRID;
+            this.operations = operations;
+            this.signers = signers;
+            this.signatureProviders = signatureProviders;
+            this.hashVersion = hashVersion;
         }
 
         /// <summary>
@@ -211,7 +221,7 @@ namespace Chromia
         {
             EnsureBlockchainRID(blockchainRID);
 
-            _blockchainRID = blockchainRID;
+            this.blockchainRID = blockchainRID;
             return this;
         }
 
@@ -226,7 +236,7 @@ namespace Chromia
             if (operation == null)
                 throw new ArgumentNullException(nameof(operation));
 
-            _operations.Add(operation);
+            operations.Add(operation);
             return this;
         }
 
@@ -251,7 +261,7 @@ namespace Chromia
         /// <returns>This object.</returns>
         public Transaction AddNop()
         {
-            if (_operations.Find(o => o.Equals(Operation.Nop())) == null)
+            if (operations.Find(o => o.Equals(Operation.Nop())) == null)
                 AddOperation(Operation.Nop());
             return this;
         }
@@ -266,7 +276,7 @@ namespace Chromia
         {
             KeyPair.EnsurePublicKey(signer);
 
-            _signers.Add(signer);
+            signers.Add(signer);
             return this;
         }
 
@@ -289,6 +299,21 @@ namespace Chromia
         }
 
         /// <summary>
+        /// Sets the hash version to use for the transaction.
+        /// </summary>
+        /// <param name="hashVersion">The hash version to use.</param>
+        /// <returns>This object.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public Transaction UseHashVersion(int hashVersion)
+        {
+            if (hashVersion <= 0 || hashVersion > 2)
+                throw new ArgumentOutOfRangeException(nameof(hashVersion));
+
+            this.hashVersion = hashVersion;
+            return this;
+        }
+
+        /// <summary>
         /// Adds a <see cref="ISignatureProvider"/> to the transaction
         /// and the public key of the provider as a signer.
         /// </summary>
@@ -301,7 +326,7 @@ namespace Chromia
                 throw new ArgumentNullException(nameof(signatureProvider));
 
             AddSigner(signatureProvider.PubKey);
-            _signatureProviders.Add(signatureProvider);
+            signatureProviders.Add(signatureProvider);
             return this;
         }
 
@@ -373,27 +398,27 @@ namespace Chromia
                 }
             }
 
-            foreach (var provider in _signatureProviders)
+            foreach (var provider in signatureProviders)
                 signatures.Add(provider.Sign(buffer));
 
             return signatures;
         }
 
-        private Buffer GetBufferToSign()
+        internal Buffer GetBufferToSign()
         {
-            return Gtv.Hash(GetBody());
+            return Gtv.Hash(GetBody(), hashVersion);
         }
 
-        private object GetBody()
+        internal object GetBody()
         {
-            if (_blockchainRID.IsEmpty)
+            if (blockchainRID.IsEmpty)
                 throw new InvalidOperationException($"blockchain rid not set");
 
             var tx = new object[]
             {
-                _blockchainRID,
-                _operations.Select(o => o.GetBody()).ToArray(),
-                _signers.Select(s => (object)s).ToArray()
+                blockchainRID,
+                operations.Select(o => o.GetBody()).ToArray(),
+                signers.Select(s => (object)s).ToArray()
             };
 
             return tx;
@@ -410,7 +435,7 @@ namespace Chromia
             {
                 var b = (Transaction)obj;
                 return TransactionRID() == b.TransactionRID()
-                    && _signers.SequenceEqual(b._signers);
+                    && signers.SequenceEqual(b.signers);
             }
         }
 
@@ -479,11 +504,11 @@ namespace Chromia
                 var gtvBody = tx.Encode(signatures);
 
                 return new Signed(
-                    tx._blockchainRID,
+                    tx.blockchainRID,
                     tx.TransactionRID(),
                     gtvBody,
-                    tx._operations,
-                    tx._signers,
+                    tx.operations,
+                    tx.signers,
                     signatures.Select(s => s.Hash).ToList()
                 );
             }
@@ -492,9 +517,10 @@ namespace Chromia
             /// Decodes a buffer into a signed transaction.
             /// </summary>
             /// <param name="buffer">The buffer to decode.</param>
+            /// <param name="hashVersion">The hash version to use.</param>
             /// <returns>The signed transaction.</returns>
             /// <exception cref="ChromiaException"></exception>
-            public static Signed From(Buffer buffer)
+            public static Signed From(Buffer buffer, int hashVersion = 2)
             {
                 var obj = Gtv.Decode(buffer) as object[];
                 var body = obj[0] as object[];
@@ -504,10 +530,9 @@ namespace Chromia
                 var signers = (body[2] as object[])?.Select(s => (Buffer)s).ToHashSet() ?? new HashSet<Buffer>();
                 var signatures = (obj[1] as object[])?.Select(s => (Buffer)s).ToList() ?? new List<Buffer>();
 
-
                 return new Signed(
                     blockchainRID,
-                    Gtv.Hash(body),
+                    Gtv.Hash(body, hashVersion),
                     buffer,
                     operations,
                     signers,

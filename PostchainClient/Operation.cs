@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace Chromia
 {
@@ -22,8 +23,8 @@ namespace Chromia
         /// </summary>
         public readonly List<object> Parameters;
 
-        private static readonly Random _random = new Random();
-        private static readonly string _nopName = "nop";
+        private static readonly Random random = new Random();
+        private static readonly string nopName = "nop";
 
         /// <summary>
         /// Creates a new parameterless operation.
@@ -97,29 +98,8 @@ namespace Chromia
             return new object[]
             {
                 Name,
-                ParamterBody()
+                Parameters.ToGtv()
             };
-        }
-
-        internal object[] ParamterBody()
-        {
-            var parameters = new List<object>();
-            foreach (var param in Parameters)
-            {
-                switch (param)
-                {
-                    case IDictionary p:
-                        parameters.Add(p.ToGtv());
-                        break;
-                    case ICollection p:
-                        parameters.Add(p.ToGtv());
-                        break;
-                    default:
-                        parameters.Add(param);
-                        break;
-                }
-            }
-            return parameters.ToArray();
         }
 
         /// <summary>
@@ -157,7 +137,7 @@ namespace Chromia
         /// <returns>The "no-operation" operation.</returns>
         public static Operation Nop()
         {
-            return new Operation(_nopName, _random.Next(int.MinValue, int.MaxValue));
+            return new Operation(nopName, random.Next(int.MinValue, int.MaxValue));
         }
 
         private string ParametersToString()
@@ -195,11 +175,11 @@ namespace Chromia
             else
             {
                 var b = (Operation)obj;
-                if (Name == _nopName)
-                    return b.Name == _nopName;
-                else 
-                    return Name == b.Name 
-                        && (Parameters == null ? b.Parameters == null 
+                if (Name == nopName)
+                    return b.Name == nopName;
+                else
+                    return Name == b.Name
+                        && (Parameters == null ? b.Parameters == null
                             : ParametersToString() == b.ParametersToString());
             }
         }
@@ -207,7 +187,7 @@ namespace Chromia
         /// <inheritdoc/>
         public override int GetHashCode()
         {
-            if (Name == _nopName)
+            if (Name == nopName)
                 return Name.GetHashCode();
             else
                 return $"{Name.GetHashCode()}{Parameters.GetHashCode()}".GetHashCode();

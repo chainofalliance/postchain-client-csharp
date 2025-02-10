@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 
 namespace Chromia.Encoding
 {
@@ -17,8 +18,6 @@ namespace Chromia.Encoding
 
     internal static class Gtv
     {
-        public static int HashVersion = 1;
-
         public static Type[] SupportedTypes = new Type[]
         {
             typeof(int),
@@ -33,13 +32,14 @@ namespace Chromia.Encoding
             typeof(Buffer),
             typeof(JToken),
             typeof(IList),
-            typeof(IDictionary),
-            typeof(IGtvSerializable)
+            typeof(IDictionary)
         };
 
         public static bool IsOfValidType(object obj)
         {
-            if (obj == null || obj.GetType().IsArray)
+            if (obj == null
+                || obj.GetType().IsArray
+                || obj.GetType().GetCustomAttribute<PostchainSerializableAttribute>() != null)
                 return true;
 
             foreach (var t in SupportedTypes)
@@ -55,9 +55,11 @@ namespace Chromia.Encoding
         {
             return JToken.FromObject(obj, JsonSerializer.Create(new JsonSerializerSettings()
             {
-                Converters = new List<JsonConverter> { new BigIntegerConverter() }
+                Converters = new List<JsonConverter> { new BigIntegerConverter(), new BufferConverter() },
+                ContractResolver = new PostchainPropertyContractResolver()
             }));
         }
+
 
         public static Buffer Encode(object obj)
         {
@@ -67,7 +69,7 @@ namespace Chromia.Encoding
             return EncodeFromJToken(FromObject(obj));
         }
 
-        private static Buffer EncodeFromJToken(JToken obj)
+        internal static Buffer EncodeFromJToken(JToken obj)
         {
             return EncodeToGtv(obj).Encode();
         }
@@ -101,7 +103,7 @@ namespace Chromia.Encoding
             return gtv;
         }
 
-        private static object Decode(IGtv gtv)
+        internal static object Decode(IGtv gtv)
         {
             object obj;
             if (gtv is NullGtv)
@@ -167,9 +169,9 @@ namespace Chromia.Encoding
             throw new ChromiaException("cannot encode object of type " + obj.Type.ToString());
         }
 
-        public static Buffer Hash(object obj)
+        public static Buffer Hash(object obj, int hashVersion = 2)
         {
-            return Buffer.From(MerkleProof.MerkleHashSummary(obj, new MerkleHashCalculator(new CryptoSystem())).MerkleHash);
+            return Buffer.From(MerkleProof.MerkleHashSummary(obj, new MerkleHashCalculator(new CryptoSystem()), hashVersion).MerkleHash);
         }
     }
 
@@ -434,24 +436,40 @@ namespace Chromia.Encoding
         }
     }
 
-    internal static class DictionaryExtenstion
+    internal static class GtvExtension
     {
+        internal static object ToGtv(this object obj)
+        {
+            if (obj == null)
+                return null;
+
+            switch (obj)
+            {
+                case IDictionary p:
+                    return p.ToGtv();
+                case ICollection p:
+                    return p.ToGtv();
+                case object p when p.GetType().GetCustomAttribute<PostchainSerializableAttribute>() != null:
+                    return p.GetPostchainProperties().ToArray().ToGtv();
+                default:
+                    return obj;
+            }
+        }
+
         internal static object[] ToGtv(this IDictionary source)
         {
             var arr = new List<object[]>();
             foreach (DictionaryEntry sourcePair in source)
-                arr.Add(new object[] { sourcePair.Key, sourcePair.Value });
+            {
+                arr.Add(new object[] { sourcePair.Key, sourcePair.Value.ToGtv() });
+            }
             return arr.ToArray();
         }
-    }
-
-    internal static class CollectionExtenstion
-    {
         internal static object[] ToGtv(this ICollection source)
         {
             var arr = new List<object>();
             foreach (var entry in source)
-                arr.Add(entry);
+                arr.Add(entry.ToGtv());
             return arr.ToArray();
         }
     }

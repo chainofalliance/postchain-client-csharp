@@ -47,7 +47,7 @@ namespace Chromia.Transport
         private Uri TxUri(Uri baseUri) => new Uri(baseUri, $"./tx/{_blockchainRID.Parse()}");
         private Uri TxStatusUri(Uri baseUri, Buffer transactionRID) => new Uri(baseUri, $"./tx/{_blockchainRID.Parse()}/{transactionRID.Parse()}/status");
 
-        public RestClient(List<Uri> nodeUrl, Buffer blockchainRID) 
+        public RestClient(List<Uri> nodeUrl, Buffer blockchainRID)
         {
             _nodeUrls = nodeUrl;
             _blockchainRID = blockchainRID;
@@ -122,13 +122,23 @@ namespace Chromia.Transport
             var queryObject = new object[] { name, parameters };
             var buffer = Gtv.Encode(queryObject);
             var response = await RequestWithRetries(RequestType.Query, Request.PostBytes, buffer, ct);
+            Console.WriteLine($"Raw response: {response.Parse()}");  // Debug line
             var jsonObj = Gtv.Decode(response);
             if (jsonObj == null)
+            {
+                Console.WriteLine("Decoded GTV is null!");
                 return default;
+            }
 
             try
             {
-                var jToken = JToken.FromObject(jsonObj);
+                Console.WriteLine($"Decoded jsonObj: {JsonConvert.SerializeObject(jsonObj)}");  // Debug line
+                var settings = new JsonSerializerSettings()
+                {
+                    Converters = new List<JsonConverter> { new BigIntegerConverter(), new BufferConverter() },
+                    ContractResolver = new PostchainPropertyContractResolver()
+                };
+                var jToken = JToken.FromObject(jsonObj, JsonSerializer.Create(settings));
                 if (typeof(T) == typeof(float))
                     return (T)(object)float.Parse(jToken.ToObject<string>(), CultureInfo.InvariantCulture);
                 else if (typeof(T) == typeof(double))
@@ -136,7 +146,7 @@ namespace Chromia.Transport
                 else if (typeof(T) == typeof(Buffer))
                     return (T)jsonObj;
                 else
-                    return jToken.ToObject<T>();
+                    return jToken.ToObject<T>(JsonSerializer.Create(settings));
             }
             catch (Exception e)
             {
@@ -166,7 +176,7 @@ namespace Chromia.Transport
             if (txStatus.Status == ResponseStatus.Waiting && retry < _pollingRetries)
             {
                 await _transport.Delay(_pollingInterval, ct);
-                return await WaitForConfirmation(transactionRID, retry+1, ct);
+                return await WaitForConfirmation(transactionRID, retry + 1, ct);
             }
             return new TransactionReceipt(transactionRID, txStatus, retry >= _pollingRetries);
         }
@@ -189,7 +199,7 @@ namespace Chromia.Transport
                 for (var attempt = 0; attempt < _attemptsPerEndpoint; attempt++)
                 {
                     try
-                    { 
+                    {
                         return request switch
                         {
                             Request.Get => await _transport.Get(uri, ct),

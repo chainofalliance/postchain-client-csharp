@@ -5,12 +5,22 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 
 namespace Chromia.Encoding
 {
     internal class BinaryTreeFactory
     {
+        private int hashVersion;
+
+        public BinaryTreeFactory(int hashVersion)
+        {
+            this.hashVersion = hashVersion;
+
+        }
+
         public BinaryTreeElement HandleLeaf(object leaf, PathSet paths, bool IsRoot = false)
+
         {
             if (paths.IsEmpty() && !IsRoot)
             {
@@ -35,7 +45,7 @@ namespace Chromia.Encoding
             }
             else if (leaf is JToken token)
             {
-                return InnerHandleLeaf(Gtv.Decode(Gtv.Encode(token)), paths);
+                return InnerHandleLeaf(Gtv.Decode(Gtv.EncodeToGtv(token)), paths);
             }
             else if (leaf is byte[])
             {
@@ -69,6 +79,10 @@ namespace Chromia.Encoding
             {
                 return HandlePrimitiveLeaf(f.ToString(CultureInfo.InvariantCulture), paths);
             }
+            else if (leaf is decimal dec)
+            {
+                return HandlePrimitiveLeaf(dec.ToString(CultureInfo.InvariantCulture), paths);
+            }
             else if (leaf is BigInteger)
             {
                 return HandlePrimitiveLeaf(leaf, paths);
@@ -87,17 +101,18 @@ namespace Chromia.Encoding
             {
                 return BuildFromDictionary(dict, paths);
             }
+
             else if (IsDictionary(leaf))
             {
-                return BuildFromArray((leaf as IDictionary).ToGtv(), paths);
+                return BuildFromDictionary(leaf as IDictionary, paths);
             }
             else if (IsObjectType(leaf))
             {
-                return InnerHandleLeaf(Gtv.FromObject(leaf), paths);
+                return InnerHandleLeaf(leaf.GetPostchainProperties().ToArray(), paths);
             }
             else
             {
-                throw new Exception("Unsupporting data type: " + leaf.GetType());
+                throw new Exception("Unsupported data type: " + leaf.GetType());
             }
         }
 
@@ -176,10 +191,11 @@ namespace Chromia.Encoding
             var leafArray = BuildLeafElements(array, paths);
 
             // If we have just a single leaf that is a node we can return immediately (version 2)
-            if (leafArray.Count == 1 && leafArray[0] is Node && Gtv.HashVersion > 1)
+            if (leafArray.Count == 1 && leafArray[0] is Node && hashVersion > 1)
             {
                 return new ArrayHeadNode<object[]>(leafArray[0], new EmptyLeaf(), array, array.Length, pathElem);
             }
+
 
             var result = BuildHigherLayer(1, leafArray);
             var orgRoot = result[0];

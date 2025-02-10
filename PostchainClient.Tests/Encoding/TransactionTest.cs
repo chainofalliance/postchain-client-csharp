@@ -1,18 +1,25 @@
 ﻿using System;
 using System.Linq;
+using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Chromia.Tests.Encoding
 {
-    public class TransactionTest : PrintableTest
+    public class TransactionTest : PrintableTest, IClassFixture<ResetableChromiaClientFixture>
     {
         private SignatureProvider Signer1 => StaticSignatureProvider.Signer1;
         private SignatureProvider Signer2 => StaticSignatureProvider.Signer2;
         private SignatureProvider Signer3 => StaticSignatureProvider.Signer3;
         private SignatureProvider Signer4 => StaticSignatureProvider.Signer4;
 
-        public TransactionTest(ITestOutputHelper output) : base(output) { }
+        private readonly ResetableChromiaClientFixture _fixture;
+        private ChromiaClient Client => _fixture.Client;
+
+        public TransactionTest(ITestOutputHelper output, ResetableChromiaClientFixture fixture) : base(output)
+        {
+            _fixture = fixture;
+        }
 
         private static readonly Buffer BlockchainRID = Buffer.From("7848422629D30011403E100FCB910A9A364677A9E84D05A66B6320D0E261EF71");
 

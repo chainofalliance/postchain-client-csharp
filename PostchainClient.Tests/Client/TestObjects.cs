@@ -1,64 +1,148 @@
 ﻿using Chromia.Encoding;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Chromia.Tests.Client
 {
-    struct MyStruct : IGtvSerializable
+    [PostchainSerializable]
+    struct MyStruct
     {
-        [JsonProperty("a")]
+        [PostchainProperty("a")]
         public string A;
-        [JsonProperty("b")]
+        [PostchainProperty("b")]
         public string B;
+
+        public override bool Equals([NotNullWhen(true)] object obj)
+        {
+            if (obj == null || !(obj is MyStruct))
+                return false;
+
+            var other = (MyStruct)obj;
+            return A == other.A && B == other.B;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(A, B);
+        }
     }
 
-    struct MyStructReverse : IGtvSerializable
+    [PostchainSerializable]
+    struct MyStructReverse
     {
-        [JsonProperty("b")]
+        [PostchainProperty("b")]
         public string B;
-        [JsonProperty("a")]
+        [PostchainProperty("a")]
         public string A;
     }
 
-    struct MyStructQueryObject : IGtvSerializable
+    [PostchainSerializable]
+    struct MyStructQueryObject
     {
-        [JsonProperty("s")]
+        [PostchainProperty("s")]
         public MyStruct Struct;
     }
 
-    struct MyNestedStruct : IGtvSerializable
+    [PostchainSerializable]
+    struct MyNestedStruct
     {
-        [JsonProperty("n")]
+        [PostchainProperty("n")]
         public BigInteger BigInt;
-        [JsonProperty("my_struct")]
+        [PostchainProperty("my_struct")]
         public MyStruct Struct;
+
+        public override bool Equals([NotNullWhen(true)] object obj)
+        {
+            if (obj == null || !(obj is MyNestedStruct))
+                return false;
+
+            var other = (MyNestedStruct)obj;
+            return BigInt == other.BigInt && Struct.Equals(other.Struct);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(BigInt, Struct);
+        }
     }
 
-    struct MyBigStruct : IGtvSerializable
+    [PostchainSerializable]
+    struct MyBigStruct
     {
-        [JsonProperty("s")]
+        [PostchainProperty("s")]
         public string String;
-        [JsonProperty("ba")]
+        [PostchainProperty("ba")]
         public Buffer Buffer;
-        [JsonProperty("b")]
+        [PostchainProperty("b")]
         public bool Bool;
-        [JsonProperty("i")]
+        [PostchainProperty("i")]
         public int Int;
-        [JsonProperty("l")]
+        [PostchainProperty("l")]
         public long Long;
-        [JsonProperty("f")]
+        [PostchainProperty("f")]
         public float Float;
-        [JsonProperty("n")]
+        [PostchainProperty("n")]
         public BigInteger BigInt;
-        [JsonProperty("e")]
+        [PostchainProperty("e")]
+        public MyEnum Enum;
+    }
+
+    [PostchainSerializable]
+    class MyBigClass
+    {
+        [PostchainProperty("s")]
+        public string String;
+        [PostchainProperty("ba")]
+        public Buffer Buffer;
+        [PostchainProperty("b")]
+        public bool Bool;
+        [PostchainProperty("i")]
+        public int Int;
+        [PostchainProperty("l")]
+        public long Long;
+        [PostchainProperty("f")]
+        public float Float;
+        [PostchainProperty("n")]
+        public BigInteger BigInt;
+        [PostchainProperty("e")]
+        public MyEnum Enum;
+    }
+
+    [PostchainSerializable]
+    class MyBigMixedClass
+    {
+        [PostchainProperty("s", 1)]
+        public string String;
+        [PostchainProperty("ba", 2)]
+        private Buffer Buffer;
+        [PostchainProperty("b", 3)]
+        public bool Bool { get; }
+        [PostchainProperty("i", 4)]
+        public int Int { get; private set; }
+        [PostchainProperty("l", 5)]
+        private long Long { get; }
+        [PostchainProperty("f", 6)]
+        private float Float { get; set; }
+        [PostchainProperty("n", 7)]
+        public BigInteger BigInt;
+        [PostchainProperty("e", 8)]
         public MyEnum Enum;
 
+
+        public MyBigMixedClass(string s, Buffer ba, bool b, int i, long l, float f, BigInteger n, MyEnum e)
+        {
+            String = s;
+            Buffer = ba;
+            Bool = b;
+            Int = i;
+            Long = l;
+            Float = f;
+            BigInt = n;
+            Enum = e;
+        }
     }
+
 
     enum MyEnum
     {
@@ -66,12 +150,12 @@ namespace Chromia.Tests.Client
         V2,
     }
 
-
-    struct CityStruct : IGtvSerializable
+    [PostchainSerializable]
+    struct CityStruct
     {
-        [JsonProperty("name")]
+        [PostchainProperty("name")]
         public string Name;
-        [JsonProperty("zip")]
+        [PostchainProperty("zip")]
         public int Zip;
 
         public CityStruct(string name, int zip)

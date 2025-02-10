@@ -177,8 +177,13 @@ namespace Chromia.Tests.Client
                 }
             };
             var actual = await Client.Query<MyNestedStruct>("test_nested_struct", ("s", expected));
+            Assert.Equal(expected.BigInt, actual.BigInt);
+            Assert.Equal(expected.Struct.A, actual.Struct.A);
+            Assert.Equal(expected.Struct.B, actual.Struct.B);
             Assert.Equal(expected, actual);
         }
+
+
 
         [Fact]
         public async void BigStructTest()
@@ -194,7 +199,13 @@ namespace Chromia.Tests.Client
                 BigInt = BigInteger.MinusOne
             };
             var actual = await Client.Query<MyBigStruct>("test_big_struct", ("s", expected));
-            Assert.Equal(expected, actual);
+            Assert.Equal(expected.Bool, actual.Bool);
+            Assert.Equal(expected.Buffer, actual.Buffer);
+            Assert.Equal(expected.Float, actual.Float);
+            Assert.Equal(expected.Int, actual.Int);
+            Assert.Equal(expected.Long, actual.Long);
+            Assert.Equal(expected.String, actual.String);
+            Assert.Equal(expected.BigInt, actual.BigInt);
         }
 
         [Fact]

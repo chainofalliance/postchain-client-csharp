@@ -1,21 +1,24 @@
 module;
 
-entity city { key name; zip: integer; }
+entity city {
+    key name;
+    zip: integer;
+}
 
 struct my_struct {
-  a: text;
-  b: text;
+    a: text;
+    b: text;
 }
 
 struct my_nested_struct {
-  n: big_integer;
-  my_struct;
+    n: big_integer;
+    my_struct;
 }
 
 struct my_big_struct {
     s: text;
-    ba:  byte_array;
-    b:  boolean;
+    ba: byte_array;
+    b: boolean;
     i: integer;
     l: integer;
     f: decimal;
@@ -29,7 +32,7 @@ enum my_enum {
 }
 
 operation insert_city(name, zip: integer) {
-    create city (name, zip);
+    create city ( name, zip );
 }
 
 operation test_map(m: map<text, integer>) {
@@ -41,19 +44,30 @@ operation test_bigint_op(b: big_integer) {
     print(b);
 }
 
+operation test_bigobj_op(b: my_big_struct) {
+    print(b);
+}
+
+operation test_bigobj_array_op(b: list<my_big_struct>) {
+    print(b);
+}
+
+operation test_nested_obj_array_op(b: list<my_nested_struct>) {
+    print(b);
+}
+
 query test_map2(m: map<text, integer>) {
     print(m);
     return m;
 }
 
 operation reset() {
-    delete city @* {};
+    delete city @* { };
 }
 
-query get_city(name) = city @ {name}.zip;
+query get_city(name) = city @ { name }.zip;
 
-query get_zip(zip: integer) = city @ {zip}.name;
-
+query get_zip(zip: integer) = city @ { zip }.name;
 
 query test_string(text) {
     print("test_string", text);
@@ -112,7 +126,7 @@ query test_list(l: list<integer>) {
     return l;
 }
 
-namespace ft3{
+namespace ft3 {
     query get_account_by_id(id: byte_array) {
         print("ft3.get_account_by_id", id);
         return id;

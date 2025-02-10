@@ -37,9 +37,10 @@ var client3 = await ChromiaClient.Create(new() {"http://localhost:7750", "http:/
 Queries return dapp data from the blockchain. They are invoked with typed parameters or an object implementing `IGtvSerializable`. Properties in the query object can be mapped to Rell query parameters through the `JsonProperty` attribute. It automatically parses the data to the given type.
 
 ```c#
-struct QueryParams : IGtvSerializable
+[PostchainSerializable]
+struct QueryParams
 {
-    [JsonProperty("zip")]
+    [PostchainProperty("zip")]
     public int Zip;
 }
 
@@ -55,12 +56,14 @@ var signer1 = SignatureProvider.Create(); // creates a new random keypair
 var signer2 = SignatureProvider.Create(Buffer.Repeat('a', 32)); // from private key
 ```
 
-Transactions send operations to the node that execute Rell code. Operations can be created dynamically or through the constructor. The parameters can also be passed as a `IGtvSerializable` object. The order of the parameter list has to match the operation in the Rell code. This also applies to the order of the properties in the `IGtvSerializable` object.
+Transactions send operations to the node that execute Rell code. Operations can be created dynamically or through the constructor. The parameters can also be passed as an object (see `PostchainSerializable`).
 
 ```c#
-struct OperationParams : IGtvSerializable
+struct OperationParams
 {
+    [PostchainProperty("city")]
     public string City;
+    [PostchainProperty("zip")]
     public int Zip;
 }
 
@@ -136,3 +139,56 @@ The following table shows which types map to each [Rell type](https://docs.chrom
 | list<T>     | IList             | Any type that implements IList, i.e. List<T>, ReadOnlyList<T>, etc. Native arrays are supported as well.    |
 | set<T>      | IList             | Any C# ISet type can be cast to a List or array with System.Linq.                                           |
 | map<K,V>    | IDictionary       | Keys, if not of type string, will be converted using ToString(). Values can be any other type.              |
+| struct    | `class` or `struct`       | Has to have attribute `PostchainSerializable`. Fields or properties that should be included in payload need `PostchainProperty`.           |
+
+### Custom Types
+
+As mentioned in the previous table, structs and classes can be converted directly into Rell structs. The class or struct needs to have the attribute `[PostchainSerializable]`. Properties and fields that need to be included in the payload need the attribute `[PostchainProperty]`. 
+
+A `PostchainProperty` has to define the name it should be mapped to in Rell, as well as an optional `Order`. The latter is needed in the case `MyBigMixedClass` will get hashed directly using `ChromiaClient.Hash()`. In that case the names will be omitted and the order of fields and properties inside the class *should* get used. Since that order cannot be guaranteed if a mix of properties and fields is used, a manual order needs to be defined. 
+
+Examples:
+```csharp
+
+    [PostchainSerializable]
+    class MyBigClass
+    {
+        [PostchainProperty("s")]
+        public string String;
+        [PostchainProperty("ba")]
+        public Buffer Buffer;
+        [PostchainProperty("b")]
+        public bool Bool;
+        [PostchainProperty("i")]
+        public int Int;
+        [PostchainProperty("l")]
+        public long Long;
+        [PostchainProperty("f")]
+        public float Float;
+        [PostchainProperty("n")]
+        public BigInteger BigInt;
+        [PostchainProperty("e")]
+        public MyEnum Enum;
+    }
+
+    [PostchainSerializable]
+    class MyBigMixedClass
+    {
+        [PostchainProperty("s", 1)]
+        public string String;
+        [PostchainProperty("ba", 2)]
+        private Buffer Buffer;
+        [PostchainProperty("b", 3)]
+        public bool Bool { get; }
+        [PostchainProperty("i", 4)]
+        public int Int { get; private set; }
+        [PostchainProperty("l", 5)]
+        private long Long { get; }
+        [PostchainProperty("f", 6)]
+        private float Float { get; set; }
+        [PostchainProperty("n", 7)]
+        public BigInteger BigInt;
+        [PostchainProperty("e", 8)]
+        public MyEnum Enum;
+    }
+```
