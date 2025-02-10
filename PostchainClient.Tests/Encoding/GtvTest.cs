@@ -123,15 +123,48 @@ namespace Chromia.Tests.Encoding
         }
 
         [Fact]
+        public void IntStringTest()
+        {
+            var actual = Gtv.Hash("1");
+            var expected = Buffer.From("4C3896768D311786D9B8507ED4E0A49F4DD5A1B5B630F73A87F43FD907D3EFAB");
+            Assert.Equal(expected.Parse(), actual.Parse());
+        }
+
+        [Fact]
         public void DictionaryTest()
+        {
+            var dict = new Dictionary<string, Buffer>()
+            {
+                { "1", ChromiaClient.Hash("foo") }
+            };
+            var actual = Gtv.Hash(dict);
+            var expected = Buffer.From("7AE617AAA57255D40E5C8D9F284C872EBEC5CBCD2B0C551992D4389CC77E5181");
+            Assert.Equal(expected.Parse(), actual.Parse());
+        }
+
+        [Fact]
+        public void DictionaryIntKeyTest()
         {
             var dict = new Dictionary<uint, Buffer>()
             {
                 { 1, ChromiaClient.Hash("foo") }
             };
-            var expected = Gtv.Hash(dict);
-            var actual = Buffer.From("3A12CCFB1B71FB792E8B78E8A443D532914D1AA1E7DE71D1503F1C6D2C191688");
-            Assert.Equal(expected, actual);
+            var actual = Gtv.Hash(dict);
+            var expected = Buffer.From("7AE617AAA57255D40E5C8D9F284C872EBEC5CBCD2B0C551992D4389CC77E5181");
+            Assert.Equal(expected.Parse(), actual.Parse());
+        }
+
+        [Fact]
+        public void DictionaryBufferKeyTest()
+        {
+            var dict = new Dictionary<Buffer, Buffer>()
+            {
+                { ChromiaClient.Hash("foo"), ChromiaClient.Hash("bar") }
+            };
+            var actual = Gtv.Hash(dict);
+            var expected = Buffer.From("55CF8EC4CB42114B0C0A7FBB99EF44008602F815609DEBBB10EBC52608A828A8");
+            Assert.Equal(expected.Parse(), actual.Parse());
+
         }
 
         [Theory]

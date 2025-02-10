@@ -93,7 +93,7 @@ namespace Chromia.Encoding
             }
             else if (IsObjectType(leaf))
             {
-                return InnerHandleLeaf(Gtv.Encode(leaf), paths);
+                return InnerHandleLeaf(Gtv.FromObject(leaf), paths);
             }
             else
             {
@@ -257,18 +257,20 @@ namespace Chromia.Encoding
             var leafArray = new List<BinaryTreeElement>();
             var onlyDictPaths = paths.KeepOnlyDictPaths();
 
-            var keys = dict.Keys.Cast<object>().Select(k => k.ToString()).ToList();
-            keys.Sort();
-
-            for (int i = 0; i < keys.Count; i++)
+            var castDict = new List<(string key, object value)>();
+            foreach (var key in dict.Keys)
             {
-                var key = keys[i];
+                castDict.Add((key is Buffer b ? b.Parse() : key.ToString(), dict[key]));
+            }
+            castDict.Sort((a, b) => string.Compare(a.key, b.key));
+
+            foreach (var (key, value) in castDict)
+            {
                 var keyElement = HandleLeaf(key, GetEmptyPathSet());
                 leafArray.Add(keyElement);
 
-                var content = dict[i];
                 var pathsRelevantForThisLeaf = onlyDictPaths.GetTailIfFirstElementIsDictOfThisKeyFromList(key);
-                var contentElement = HandleLeaf(content, pathsRelevantForThisLeaf);
+                var contentElement = HandleLeaf(value, pathsRelevantForThisLeaf);
                 leafArray.Add(contentElement);
             }
 
