@@ -105,7 +105,9 @@ namespace Chromia
         /// Parses the object to gtv and creates the merkle root hash of it.
         /// The hash version depends on the configuration of the blockchain in <c>chromia.yml</c>.
         /// Refer to the documentation for more information.
-        /// https://docs.chromia.com/intro/configuration/project-config
+        /// https://docs.chromia.com/intro/configuration/project-config <br />
+        /// Version 1 is the legacy hash algorithm. Will be deprecated in the future. <br />
+        /// Version 2 is the new hash algorithm that fixes some edge cases. <br />
         /// </summary>
         /// <param name="obj">The object to hash.</param>
         /// <param name="hashVersion">The hash version to use.</param>
