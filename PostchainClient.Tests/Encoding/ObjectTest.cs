@@ -120,7 +120,7 @@ namespace Chromia.Tests.Encoding
                 BigInt = BigInteger.MinusOne,
                 Enum = MyEnum.V2
             };
-            var hash = ChromiaClient.Hash(expected);
+            var hash = ChromiaClient.Hash(expected, 2);
             Console.WriteLine(hash);
         }
 
@@ -137,7 +137,7 @@ namespace Chromia.Tests.Encoding
                 },
                 null
             };
-            Console.WriteLine(ChromiaClient.Hash(obj));
+            Console.WriteLine(ChromiaClient.Hash(obj, 2));
         }
 
         [Fact]

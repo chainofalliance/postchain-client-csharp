@@ -22,9 +22,16 @@ namespace Chromia.Transport
 
         private enum RequestType
         {
+            Features,
             Query,
             Tx,
             TxStatus,
+        }
+
+        private struct FeaturesResponse
+        {
+            [JsonProperty("merkle_hash_version")]
+            public int MerkleHashVersion { get; set; }
         }
 
         public Buffer BlockchainRID { get { return _blockchainRID; } }
@@ -43,6 +50,7 @@ namespace Chromia.Transport
         private static ITransport _transport = new DefaultTransport();
         private static readonly Random _random = new Random();
 
+        private Uri FeaturesUri(Uri baseUri) => new Uri(baseUri, $"./config/{_blockchainRID.Parse()}/features");
         private Uri QueryUri(Uri baseUri) => new Uri(baseUri, $"./query_gtv/{_blockchainRID.Parse()}");
         private Uri TxUri(Uri baseUri) => new Uri(baseUri, $"./tx/{_blockchainRID.Parse()}");
         private Uri TxStatusUri(Uri baseUri, Buffer transactionRID) => new Uri(baseUri, $"./tx/{_blockchainRID.Parse()}/{transactionRID.Parse()}/status");
@@ -72,7 +80,7 @@ namespace Chromia.Transport
                 throw new ArgumentOutOfRangeException(nameof(blockchainRID), "has to be 32 bytes");
         }
 
-        public async static Task<List<string>> GetNodesFromDirectory(List<Uri> directoryNodeUrls, Buffer blockchainRID, CancellationToken ct)
+        public async static Task<List<Uri>> GetNodesFromDirectory(List<Uri> directoryNodeUrls, Buffer blockchainRID, CancellationToken ct)
         {
             var directoryBrid = await GetBlockchainRID(directoryNodeUrls[0], 0, ct);
             var tmpClient = new RestClient(directoryNodeUrls, directoryBrid);
@@ -80,7 +88,27 @@ namespace Chromia.Transport
             {
                 { "blockchain_rid", blockchainRID }
             };
-            return await tmpClient.Query<List<string>>("cm_get_blockchain_api_urls", queryObject, ct);
+            var result = await tmpClient.Query<List<string>>("cm_get_blockchain_api_urls", queryObject, ct);
+            return result.Select(n => new Uri(n)).ToList();
+        }
+
+        public async static Task<int> GetHashVersion(List<Uri> nodeUrls, Buffer blockchainRID, CancellationToken ct)
+        {
+            var tmpClient = new RestClient(nodeUrls, blockchainRID);
+            try
+            {
+                var result = await tmpClient.RequestWithRetries(RequestType.Features, Request.Get, null, ct: ct);
+                var response = JsonConvert.DeserializeObject<FeaturesResponse>(result.ParseUTF8());
+                if (response.MerkleHashVersion == 0)
+                {
+                    return 1;
+                }
+                return response.MerkleHashVersion;
+            }
+            catch (Exception)
+            {
+                return 1;
+            }
         }
 
         #endregion
@@ -121,7 +149,7 @@ namespace Chromia.Transport
         {
             var queryObject = new object[] { name, parameters };
             var buffer = Gtv.Encode(queryObject);
-            var response = await RequestWithRetries(RequestType.Query, Request.PostBytes, buffer, ct);
+            var response = await RequestWithRetries(RequestType.Query, Request.PostBytes, buffer, ct: ct);
             Console.WriteLine($"Raw response: {response.Parse()}");  // Debug line
             var jsonObj = Gtv.Decode(response);
             if (jsonObj == null)
@@ -161,7 +189,7 @@ namespace Chromia.Transport
                 { "tx", tx.GtvBody.Parse() }
             };
 
-            return RequestWithRetries(RequestType.Tx, Request.PostJson, JsonConvert.SerializeObject(txObject), ct);
+            return RequestWithRetries(RequestType.Tx, Request.PostJson, JsonConvert.SerializeObject(txObject), ct: ct);
         }
 
         public async Task<TransactionStatusResponse> GetTransactionStatus(Buffer transactionRID, CancellationToken ct)
@@ -181,22 +209,32 @@ namespace Chromia.Transport
             return new TransactionReceipt(transactionRID, txStatus, retry >= _pollingRetries);
         }
 
-        private async Task<Buffer> RequestWithRetries(RequestType type, Request request, object content = null, CancellationToken ct = default)
+        private async Task<Buffer> RequestWithRetries(
+            RequestType type,
+            Request request,
+            object content = null,
+            int? attempts = null,
+            int? attemptInterval = null,
+            CancellationToken ct = default
+        )
         {
             var response = Buffer.Empty();
             var lastException = new TransportException(TransportException.ReasonCode.MalformedUri, "no nodes found");
+            attempts ??= _attemptsPerEndpoint;
+            attemptInterval ??= _attemptInterval;
 
             foreach (var endpoint in _nodeUrls.OrderBy(_ => _random.Next()))
             {
                 var uri = type switch
                 {
+                    RequestType.Features => FeaturesUri(endpoint),
                     RequestType.Query => QueryUri(endpoint),
                     RequestType.Tx => TxUri(endpoint),
                     RequestType.TxStatus => TxStatusUri(endpoint, (Buffer)content),
                     _ => throw new NotSupportedException($"request type {type} not supported")
                 };
 
-                for (var attempt = 0; attempt < _attemptsPerEndpoint; attempt++)
+                for (var attempt = 0; attempt < attempts; attempt++)
                 {
                     try
                     {
@@ -211,7 +249,7 @@ namespace Chromia.Transport
                     catch (TransportException e)
                     {
                         lastException = e;
-                        await _transport.Delay(_attemptInterval, ct);
+                        await _transport.Delay(attemptInterval.Value, ct);
                     }
                 }
             }

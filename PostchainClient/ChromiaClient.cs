@@ -49,13 +49,13 @@ namespace Chromia
         public int AttemptInterval { get { return _restClient.AttemptInterval; } }
 
         /// <summary>
-        /// The version of the hash algorithm to use for transactions. Default is 2.
+        /// The version of the hash algorithm to use for transactions on this blockchain.
         /// </summary>
-        public int HashVersion { get; private set; } = 2;
+        public int HashVersion { get; }
 
         private readonly RestClient _restClient;
 
-        private ChromiaClient(List<string> nodeUrls, Buffer blockchainRID)
+        private ChromiaClient(List<Uri> nodeUrls, Buffer blockchainRID, int hashVersion)
         {
             EnsureBlockchainRID(blockchainRID);
             if (nodeUrls == null)
@@ -63,7 +63,8 @@ namespace Chromia
             else if (nodeUrls.Count == 0)
                 throw new ArgumentOutOfRangeException(nameof(nodeUrls));
 
-            _restClient = new RestClient(nodeUrls.Select(n => ToUri(n)).ToList(), blockchainRID);
+            _restClient = new RestClient(nodeUrls, blockchainRID);
+            HashVersion = hashVersion;
         }
 
         #region Static
@@ -102,12 +103,15 @@ namespace Chromia
 
         /// <summary>
         /// Parses the object to gtv and creates the merkle root hash of it.
+        /// The hash version depends on the configuration of the blockchain in <c>chromia.yml</c>.
+        /// Refer to the documentation for more information.
+        /// https://docs.chromia.com/intro/configuration/project-config
         /// </summary>
         /// <param name="obj">The object to hash.</param>
         /// <param name="hashVersion">The hash version to use.</param>
         /// <returns>The merkle root hash.</returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static Buffer Hash(object obj, int hashVersion = 2)
+        public static Buffer Hash(object obj, int hashVersion)
         {
             if (hashVersion <= 0 || hashVersion > 2)
                 throw new ArgumentOutOfRangeException(nameof(hashVersion));
@@ -156,9 +160,10 @@ namespace Chromia
             else if (directoryNodeUrls.Count == 0)
                 throw new ArgumentOutOfRangeException(nameof(directoryNodeUrls));
 
-            var convertedNodes = directoryNodeUrls.Select(n => ToUri(n)).ToList();
+            var convertedNodes = directoryNodeUrls.Select(ToUri).ToList();
             var nodes = await GetNodesFromDirectory(convertedNodes, blockchainRID, ct);
-            return new ChromiaClient(nodes, blockchainRID);
+            var hashVersion = await GetHashVersion(nodes, blockchainRID, ct);
+            return new ChromiaClient(nodes, blockchainRID, hashVersion);
         }
 
         /// <inheritdoc cref="CreateFromDirectory(List{string}, Buffer, CancellationToken)"/>
@@ -194,39 +199,44 @@ namespace Chromia
         /// </summary>
         /// <param name="nodeUrls">The nodes to interact with.</param>
         /// <param name="blockchainRID">The blockchain RID of the application.</param>
+        /// <param name="ct">A cancellation token to abort the task.</param>
         /// <returns>This new <see cref="ChromiaClient"/>.</returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         /// <exception cref="UriFormatException"></exception>
-        public static Task<ChromiaClient> Create(List<string> nodeUrls, Buffer blockchainRID)
+        public static async Task<ChromiaClient> Create(List<string> nodeUrls, Buffer blockchainRID, CancellationToken ct = default)
         {
-            return Task.FromResult(new ChromiaClient(nodeUrls, blockchainRID));
+            var convertedNodes = nodeUrls.Select(ToUri).ToList();
+            var hashVersion = await GetHashVersion(convertedNodes, blockchainRID, ct);
+            return new ChromiaClient(convertedNodes, blockchainRID, hashVersion);
         }
 
-        /// <inheritdoc cref="Create(List{string}, Buffer)"/>
+        /// <inheritdoc cref="Create(List{string}, Buffer, CancellationToken)"/>
         /// <param name="nodeUrl">The node to interact with.</param>
         /// <param name="blockchainRID">The blockchain RID of the application.</param>
-        public async static Task<ChromiaClient> Create(string nodeUrl, Buffer blockchainRID)
+        /// <param name="ct">A cancellation token to abort the task.</param>
+        public async static Task<ChromiaClient> Create(string nodeUrl, Buffer blockchainRID, CancellationToken ct = default)
         {
-            return await Create(new List<string>() { nodeUrl }, blockchainRID);
+            return await Create(new List<string>() { nodeUrl }, blockchainRID, ct);
         }
 
-        /// <inheritdoc cref="Create(List{string}, Buffer)"/>
+        /// <inheritdoc cref="Create(List{string}, Buffer, CancellationToken)"/>
         /// <param name="nodeUrl">The node to interact with.</param>
         /// <param name="blockchainIID">The blockchain IID of the application. Gets resolved to the blockchain RID.</param>
-        public async static Task<ChromiaClient> Create(string nodeUrl, int blockchainIID)
+        /// <param name="ct">A cancellation token to abort the task.</param>
+        public async static Task<ChromiaClient> Create(string nodeUrl, int blockchainIID, CancellationToken ct = default)
         {
-            return await Create(new List<string>() { nodeUrl }, blockchainIID);
+            return await Create(new List<string>() { nodeUrl }, blockchainIID, ct);
         }
 
-        /// <inheritdoc cref="Create(List{string}, Buffer)"/>
+        /// <inheritdoc cref="Create(List{string}, Buffer, CancellationToken)"/>
         /// <param name="nodeUrls">The nodes to interact with.</param>
         /// <param name="blockchainIID">The blockchain IID of the application. Gets resolved to the blockchain RID.</param>
         /// <param name="ct">A cancellation token to abort the task.</param>
         public async static Task<ChromiaClient> Create(List<string> nodeUrls, int blockchainIID, CancellationToken ct = default)
         {
             var blockchainRID = await GetBlockchainRID(nodeUrls[0], blockchainIID, ct);
-            return await Create(nodeUrls, blockchainRID);
+            return await Create(nodeUrls, blockchainRID, ct);
         }
 
         /// <summary>
@@ -347,24 +357,6 @@ namespace Chromia
 
             _restClient.SetAttemptInterval(attemptInterval);
             return this;
-        }
-
-        /// <summary>
-        /// Sets the version of the hash algorithm to use.
-        /// Version 1 is the legacy hash algorithm.
-        /// Version 2 is the new hash algorithm that fixes some edge cases.
-        /// </summary>
-        /// <returns>This object.</returns>
-        /// <param name="hashVersion">The hash version to use (1 or 2).</param>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public ChromiaClient SetHashVersion(int hashVersion)
-        {
-            if (hashVersion <= 0 || hashVersion > 2)
-                throw new ArgumentOutOfRangeException(nameof(hashVersion));
-
-            HashVersion = hashVersion;
-            return this;
-
         }
         #endregion
 

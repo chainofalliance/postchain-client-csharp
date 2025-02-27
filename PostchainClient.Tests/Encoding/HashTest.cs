@@ -34,7 +34,7 @@ namespace Chromia.Tests.Encoding
         {
             var dict = new Dictionary<string, Buffer>()
             {
-                { "1", ChromiaClient.Hash("foo") }
+                { "1", ChromiaClient.Hash("foo", 2) }
             };
             var actual = Gtv.Hash(dict);
             var expected = Buffer.From("7AE617AAA57255D40E5C8D9F284C872EBEC5CBCD2B0C551992D4389CC77E5181");
@@ -46,7 +46,7 @@ namespace Chromia.Tests.Encoding
         {
             var dict = new Dictionary<uint, Buffer>()
             {
-                { 1, ChromiaClient.Hash("foo") }
+                { 1, ChromiaClient.Hash("foo", 2) }
             };
             var actual = Gtv.Hash(dict);
             var expected = Buffer.From("7AE617AAA57255D40E5C8D9F284C872EBEC5CBCD2B0C551992D4389CC77E5181");
@@ -58,7 +58,7 @@ namespace Chromia.Tests.Encoding
         {
             var dict = new Dictionary<Buffer, Buffer>()
             {
-                { ChromiaClient.Hash("foo"), ChromiaClient.Hash("bar") }
+                { ChromiaClient.Hash("foo", 2), ChromiaClient.Hash("bar", 2) }
             };
             var actual = Gtv.Hash(dict);
             var expected = Buffer.From("55CF8EC4CB42114B0C0A7FBB99EF44008602F815609DEBBB10EBC52608A828A8");
@@ -111,7 +111,7 @@ namespace Chromia.Tests.Encoding
             var obj = new MyBigStruct()
             {
                 String = "foo",
-                Buffer = ChromiaClient.Hash("bar"),
+                Buffer = ChromiaClient.Hash("bar", 2),
                 Bool = true,
                 Int = 1,
                 Long = 1,
@@ -130,7 +130,7 @@ namespace Chromia.Tests.Encoding
             var obj = new MyBigClass()
             {
                 String = "foo",
-                Buffer = ChromiaClient.Hash("bar"),
+                Buffer = ChromiaClient.Hash("bar", 2),
                 Bool = true,
                 Int = 1,
                 Long = 1,
@@ -146,7 +146,7 @@ namespace Chromia.Tests.Encoding
         [Fact]
         public void MixedObjectHashTest()
         {
-            var obj = new MyBigMixedClass("foo", ChromiaClient.Hash("bar"), true, 1, 1, 1f, 1, MyEnum.V2);
+            var obj = new MyBigMixedClass("foo", ChromiaClient.Hash("bar", 2), true, 1, 1, 1f, 1, MyEnum.V2);
             var hash = Gtv.Hash(obj);
             var expected = Buffer.From("BA0D206C6ED3D9E751BB027A0C88BD84C70A123E44F12D7341594780CF695C9B");
             Assert.Equal(expected.Parse(), hash.Parse());
@@ -155,7 +155,7 @@ namespace Chromia.Tests.Encoding
         [Fact]
         public void MixedObjectInArrayHashTest()
         {
-            var obj = new object[] { new MyBigMixedClass("foo", ChromiaClient.Hash("bar"), true, 1, 1, 1f, 1, MyEnum.V2) };
+            var obj = new object[] { new MyBigMixedClass("foo", ChromiaClient.Hash("bar", 2), true, 1, 1, 1f, 1, MyEnum.V2) };
             var hash = Gtv.Hash(obj);
             var expected = Buffer.From("0DBD1C83F503CF5A32658E3E7223F7BA64936B178A25CC97C4247EB58E006B99");
             Assert.Equal(expected.Parse(), hash.Parse());
@@ -256,7 +256,7 @@ namespace Chromia.Tests.Encoding
             var actualGtv = Buffer.From("a52e302ca20a0c08477561726469616ea303020100a5023000a511300fa303020101a303020102a303020103a5023000");
             Assert.Equal(gtv, actualGtv);
 
-            var hash = ChromiaClient.Hash(obj);
+            var hash = ChromiaClient.Hash(obj, 2);
             var actualHash = Buffer.From("b532f964a6969bcd8f7f509fe13cc5d3dc70e702d8f939edba90af8150f9e30d");
             Assert.Equal(hash, actualHash);
         }
@@ -286,7 +286,7 @@ namespace Chromia.Tests.Encoding
         {
             var obj = ChromiaClient.DecodeFromGtv(Buffer.From(gtv));
 
-            var hash = ChromiaClient.Hash(obj);
+            var hash = ChromiaClient.Hash(obj, 2);
             var expectedHash = Buffer.From(expected);
             Assert.Equal(expectedHash, hash);
         }

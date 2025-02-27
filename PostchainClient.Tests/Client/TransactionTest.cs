@@ -14,7 +14,7 @@ namespace Chromia.Tests.Client
         private SignatureProvider Signer2 => StaticSignatureProvider.Signer2;
 
         private readonly ResetableChromiaClientFixture _fixture;
-        private ChromiaClient Client => _fixture.Client.SetHashVersion(1);
+        private ChromiaClient Client => _fixture.Client;
 
         public TransactionTest(ITestOutputHelper output, ResetableChromiaClientFixture fixture) : base(output)
         {
@@ -145,7 +145,7 @@ namespace Chromia.Tests.Client
         public async void BigObjectTest()
         {
             var tx = Client.TransactionBuilder()
-                .AddOperation(new Operation("test_bigobj_op", new MyBigMixedClass("foo", ChromiaClient.Hash("bar"), true, 1, 1, 1f, 1, MyEnum.V2)))
+                .AddOperation(new Operation("test_bigobj_op", new MyBigMixedClass("foo", ChromiaClient.Hash("bar", 2), true, 1, 1, 1f, 1, MyEnum.V2)))
                 .AddNop();
 
             var signed = tx.Sign();
@@ -158,8 +158,8 @@ namespace Chromia.Tests.Client
         {
             var tx = Client.TransactionBuilder()
                 .AddOperation(new Operation("test_bigobj_array_op", new List<MyBigMixedClass>() {
-                    new MyBigMixedClass("foo", ChromiaClient.Hash("bar"), true, 1, 1, 1f, 1, MyEnum.V2),
-                    new MyBigMixedClass("foo2", ChromiaClient.Hash("bar2"), false, 2, 2, 2f, 2, MyEnum.V1)
+                    new MyBigMixedClass("foo", ChromiaClient.Hash("bar", 2), true, 1, 1, 1f, 1, MyEnum.V2),
+                    new MyBigMixedClass("foo2", ChromiaClient.Hash("bar2", 2), false, 2, 2, 2f, 2, MyEnum.V1)
                 }))
                 .AddNop();
 
