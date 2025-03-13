@@ -97,7 +97,13 @@ namespace Chromia.Transport
             var tmpClient = new RestClient(nodeUrls, blockchainRID);
             try
             {
-                var result = await tmpClient.RequestWithRetries(RequestType.Features, Request.Get, null, ct: ct);
+                var result = await tmpClient.RequestWithRetries(
+                    RequestType.Features,
+                    Request.Get,
+                    attempts: 1,
+                    attemptInterval: 0,
+                    ct: ct
+                );
                 var response = JsonConvert.DeserializeObject<FeaturesResponse>(result.ParseUTF8());
                 if (response.MerkleHashVersion == 0)
                 {
@@ -249,7 +255,10 @@ namespace Chromia.Transport
                     catch (TransportException e)
                     {
                         lastException = e;
-                        await _transport.Delay(attemptInterval.Value, ct);
+                        if (attemptInterval.HasValue && attemptInterval.Value > 0)
+                        {
+                            await _transport.Delay(attemptInterval.Value, ct);
+                        }
                     }
                 }
             }
