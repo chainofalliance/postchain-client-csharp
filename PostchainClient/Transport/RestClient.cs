@@ -156,17 +156,14 @@ namespace Chromia.Transport
             var queryObject = new object[] { name, parameters };
             var buffer = Gtv.Encode(queryObject);
             var response = await RequestWithRetries(RequestType.Query, Request.PostBytes, buffer, ct: ct);
-            Console.WriteLine($"Raw response: {response.Parse()}");  // Debug line
             var jsonObj = Gtv.Decode(response);
             if (jsonObj == null)
             {
-                Console.WriteLine("Decoded GTV is null!");
                 return default;
             }
 
             try
             {
-                Console.WriteLine($"Decoded jsonObj: {JsonConvert.SerializeObject(jsonObj)}");  // Debug line
                 var settings = new JsonSerializerSettings()
                 {
                     Converters = new List<JsonConverter> { new BigIntegerConverter(), new BufferConverter() },
