@@ -387,7 +387,7 @@ namespace Chromia
             CancellationToken ct = default
         )
         {
-            var tx = Transaction.Build(BlockchainRID)
+            var tx = Transaction.Build(BlockchainRID, HashVersion)
                 .AddOperation(operation);
 
             if (signer != null)

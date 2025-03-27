@@ -169,7 +169,7 @@ namespace Chromia.Encoding
             throw new ChromiaException("cannot encode object of type " + obj.Type.ToString());
         }
 
-        public static Buffer Hash(object obj, int hashVersion = 2)
+        public static Buffer Hash(object obj, int hashVersion)
         {
             return Buffer.From(MerkleProof.MerkleHashSummary(obj, new MerkleHashCalculator(new CryptoSystem()), hashVersion).MerkleHash);
         }

@@ -124,10 +124,11 @@ namespace Chromia
         /// <summary>
         /// Builds a new empty transaction.
         /// </summary>
+        /// <param name="hashVersion">The hash version to use for the transaction.</param>
         /// <returns>The empty <see cref="Transaction"/>.</returns>
-        public static Transaction Build()
+        public static Transaction Build(int hashVersion)
         {
-            return Build(Buffer.Empty(), null, null, null);
+            return Build(Buffer.Empty(), null, null, null, hashVersion);
         }
 
         /// <summary>
@@ -137,7 +138,7 @@ namespace Chromia
         /// <param name="hashVersion">The hash version to use for the transaction.</param>
         /// <returns>The empty <see cref="Transaction"/>.</returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static Transaction Build(Buffer blockchainRID, int hashVersion = 2)
+        public static Transaction Build(Buffer blockchainRID, int hashVersion)
         {
             return Build(blockchainRID, null, null, null, hashVersion);
         }
@@ -158,7 +159,7 @@ namespace Chromia
             List<Operation> operations,
             HashSet<Buffer> signers,
             HashSet<ISignatureProvider> signatureProviders,
-            int hashVersion = 2
+            int hashVersion
         )
         {
             operations ??= new List<Operation>();
@@ -176,7 +177,7 @@ namespace Chromia
         /// <param name="hashVersion">The hash version to use.</param>
         /// <returns>The decoded <see cref="Signed"/> object.</returns>
         /// <exception cref="ChromiaException"></exception>
-        public static Signed Decode(Buffer buffer, int hashVersion = 2)
+        public static Signed Decode(Buffer buffer, int hashVersion)
         {
             return Signed.From(buffer, hashVersion);
         }
@@ -520,7 +521,7 @@ namespace Chromia
             /// <param name="hashVersion">The hash version to use.</param>
             /// <returns>The signed transaction.</returns>
             /// <exception cref="ChromiaException"></exception>
-            public static Signed From(Buffer buffer, int hashVersion = 2)
+            public static Signed From(Buffer buffer, int hashVersion)
             {
                 var obj = Gtv.Decode(buffer) as object[];
                 var body = obj[0] as object[];
@@ -560,17 +561,19 @@ namespace Chromia
             /// <summary>
             /// Signs the signed transaction and adds the signature.
             /// </summary>
-            /// <param name="signatureProvider"></param>
+            /// <param name="signatureProvider">The <see cref="ISignatureProvider"/> to sign the transaction.</param>
+            /// <param name="hashVersion">The hash version to use.</param>
+            /// <returns>The signed transaction.</returns>
             /// <exception cref="ArgumentNullException"></exception>
             /// <exception cref="ArgumentException"></exception>
-            public Signed Sign(ISignatureProvider signatureProvider)
+            public Signed Sign(ISignatureProvider signatureProvider, int hashVersion)
             {
                 if (signatureProvider == null)
                     throw new ArgumentNullException(nameof(signatureProvider));
                 if (!Signers.Contains(signatureProvider.PubKey))
                     throw new ArgumentException("signature provider not a valid signer");
 
-                var newTx = Build(BlockchainRID)
+                var newTx = Build(BlockchainRID, hashVersion: hashVersion)
                     .AddOperations(Operations)
                     .AddSigners(Signers)
                     .AddSignatureProvider(signatureProvider);

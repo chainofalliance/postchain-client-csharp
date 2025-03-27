@@ -10,6 +10,9 @@ namespace Chromia.Tests.Encoding
 {
     public class HashTest : PrintableTest
     {
+        private const int HASH_VERSION_2 = 2;
+        private const int HASH_VERSION_1 = 1;
+
         public HashTest(ITestOutputHelper output) : base(output) { }
 
 
@@ -18,13 +21,13 @@ namespace Chromia.Tests.Encoding
         [InlineData("bar", "A741C1E407F18A889E2EFA136C0C9F1600D325363D1E21F0EB1B0DD85FFD9F30")]
         public void StringHashTest(string val, string expected)
         {
-            Assert.Equal(Gtv.Hash(val), Buffer.From(expected));
+            Assert.Equal(Gtv.Hash(val, HASH_VERSION_2), Buffer.From(expected));
         }
 
         [Fact]
         public void IntStringTest()
         {
-            var actual = Gtv.Hash("1");
+            var actual = Gtv.Hash("1", HASH_VERSION_2);
             var expected = Buffer.From("4C3896768D311786D9B8507ED4E0A49F4DD5A1B5B630F73A87F43FD907D3EFAB");
             Assert.Equal(expected.Parse(), actual.Parse());
         }
@@ -34,9 +37,9 @@ namespace Chromia.Tests.Encoding
         {
             var dict = new Dictionary<string, Buffer>()
             {
-                { "1", ChromiaClient.Hash("foo", 2) }
+                { "1", ChromiaClient.Hash("foo", HASH_VERSION_2) }
             };
-            var actual = Gtv.Hash(dict);
+            var actual = Gtv.Hash(dict, HASH_VERSION_2);
             var expected = Buffer.From("7AE617AAA57255D40E5C8D9F284C872EBEC5CBCD2B0C551992D4389CC77E5181");
             Assert.Equal(expected.Parse(), actual.Parse());
         }
@@ -46,9 +49,9 @@ namespace Chromia.Tests.Encoding
         {
             var dict = new Dictionary<uint, Buffer>()
             {
-                { 1, ChromiaClient.Hash("foo", 2) }
+                { 1, ChromiaClient.Hash("foo", HASH_VERSION_2) }
             };
-            var actual = Gtv.Hash(dict);
+            var actual = Gtv.Hash(dict, HASH_VERSION_2);
             var expected = Buffer.From("7AE617AAA57255D40E5C8D9F284C872EBEC5CBCD2B0C551992D4389CC77E5181");
             Assert.Equal(expected.Parse(), actual.Parse());
         }
@@ -58,9 +61,9 @@ namespace Chromia.Tests.Encoding
         {
             var dict = new Dictionary<Buffer, Buffer>()
             {
-                { ChromiaClient.Hash("foo", 2), ChromiaClient.Hash("bar", 2) }
+                { ChromiaClient.Hash("foo", HASH_VERSION_2), ChromiaClient.Hash("bar", HASH_VERSION_2) }
             };
-            var actual = Gtv.Hash(dict);
+            var actual = Gtv.Hash(dict, HASH_VERSION_2);
             var expected = Buffer.From("55CF8EC4CB42114B0C0A7FBB99EF44008602F815609DEBBB10EBC52608A828A8");
             Assert.Equal(expected.Parse(), actual.Parse());
         }
@@ -69,7 +72,7 @@ namespace Chromia.Tests.Encoding
         public void LegacyGtvHashVersionListTest()
         {
             var list = new List<List<int>>() { new List<int>() { 1 } };
-            var hash = Gtv.Hash(list, 1);
+            var hash = Gtv.Hash(list, HASH_VERSION_1);
             var expected = Buffer.From("67BB8D38054DB41A4B401F5971FF7560E48A730693E46371191ECEA9D7BD1E32");
             Assert.Equal(expected.Parse(), hash.Parse());
         }
@@ -78,7 +81,7 @@ namespace Chromia.Tests.Encoding
         public void GtvHashVersion2ListTest()
         {
             var list = new List<List<int>>() { new List<int>() { 1 } };
-            var hash = Gtv.Hash(list);
+            var hash = Gtv.Hash(list, HASH_VERSION_2);
             var expected = Buffer.From("082E13545DD8A1D4003143D17F781C9346BC500800592CD9B2D5D39DEDF05415");
             Assert.Equal(expected.Parse(), hash.Parse());
         }
@@ -89,7 +92,7 @@ namespace Chromia.Tests.Encoding
             var dict = new List<Dictionary<string, string>>() {
                 new Dictionary<string, string>() { { "a", "b" }, { "c", "d" } },
             };
-            var hash = Gtv.Hash(dict, 1);
+            var hash = Gtv.Hash(dict, HASH_VERSION_1);
             var expected = Buffer.From("891CDF10FF613A90899FF0FFE1A515D8ED74FE71E36249F0B6DD175EEC70805D");
             Assert.Equal(expected.Parse(), hash.Parse());
         }
@@ -100,7 +103,7 @@ namespace Chromia.Tests.Encoding
             var dict = new List<Dictionary<string, string>>() {
                 new Dictionary<string, string>() { { "a", "b" }, { "c", "d" } },
             };
-            var hash = Gtv.Hash(dict);
+            var hash = Gtv.Hash(dict, HASH_VERSION_2);
             var expected = Buffer.From("9D2F6CFA72538E24584363ADA5882C2BE3F83D75AFF598D0009330DB22D961FF");
             Assert.Equal(expected.Parse(), hash.Parse());
         }
@@ -111,7 +114,7 @@ namespace Chromia.Tests.Encoding
             var obj = new MyBigStruct()
             {
                 String = "foo",
-                Buffer = ChromiaClient.Hash("bar", 2),
+                Buffer = ChromiaClient.Hash("bar", HASH_VERSION_2),
                 Bool = true,
                 Int = 1,
                 Long = 1,
@@ -119,7 +122,7 @@ namespace Chromia.Tests.Encoding
                 BigInt = 1,
                 Enum = MyEnum.V2
             };
-            var hash = Gtv.Hash(obj);
+            var hash = Gtv.Hash(obj, HASH_VERSION_2);
             var expected = Buffer.From("BA0D206C6ED3D9E751BB027A0C88BD84C70A123E44F12D7341594780CF695C9B");
             Assert.Equal(expected.Parse(), hash.Parse());
         }
@@ -130,7 +133,7 @@ namespace Chromia.Tests.Encoding
             var obj = new MyBigClass()
             {
                 String = "foo",
-                Buffer = ChromiaClient.Hash("bar", 2),
+                Buffer = ChromiaClient.Hash("bar", HASH_VERSION_2),
                 Bool = true,
                 Int = 1,
                 Long = 1,
@@ -138,7 +141,7 @@ namespace Chromia.Tests.Encoding
                 BigInt = 1,
                 Enum = MyEnum.V2
             };
-            var hash = Gtv.Hash(obj);
+            var hash = Gtv.Hash(obj, HASH_VERSION_2);
             var expected = Buffer.From("BA0D206C6ED3D9E751BB027A0C88BD84C70A123E44F12D7341594780CF695C9B");
             Assert.Equal(expected.Parse(), hash.Parse());
         }
@@ -146,8 +149,8 @@ namespace Chromia.Tests.Encoding
         [Fact]
         public void MixedObjectHashTest()
         {
-            var obj = new MyBigMixedClass("foo", ChromiaClient.Hash("bar", 2), true, 1, 1, 1f, 1, MyEnum.V2);
-            var hash = Gtv.Hash(obj);
+            var obj = new MyBigMixedClass("foo", ChromiaClient.Hash("bar", HASH_VERSION_2), true, 1, 1, 1f, 1, MyEnum.V2);
+            var hash = Gtv.Hash(obj, HASH_VERSION_2);
             var expected = Buffer.From("BA0D206C6ED3D9E751BB027A0C88BD84C70A123E44F12D7341594780CF695C9B");
             Assert.Equal(expected.Parse(), hash.Parse());
         }
@@ -155,8 +158,8 @@ namespace Chromia.Tests.Encoding
         [Fact]
         public void MixedObjectInArrayHashTest()
         {
-            var obj = new object[] { new MyBigMixedClass("foo", ChromiaClient.Hash("bar", 2), true, 1, 1, 1f, 1, MyEnum.V2) };
-            var hash = Gtv.Hash(obj);
+            var obj = new object[] { new MyBigMixedClass("foo", ChromiaClient.Hash("bar", HASH_VERSION_2), true, 1, 1, 1f, 1, MyEnum.V2) };
+            var hash = Gtv.Hash(obj, HASH_VERSION_2);
             var expected = Buffer.From("0DBD1C83F503CF5A32658E3E7223F7BA64936B178A25CC97C4247EB58E006B99");
             Assert.Equal(expected.Parse(), hash.Parse());
         }
@@ -173,7 +176,7 @@ namespace Chromia.Tests.Encoding
                     B = "bar"
                 }
             };
-            var hash = Gtv.Hash(obj);
+            var hash = Gtv.Hash(obj, HASH_VERSION_2);
             var expected = Buffer.From("9A78FF54FE4036856C550B4D94F58720958A23212F692CC1D31D70C2596744FE");
             Assert.Equal(expected.Parse(), hash.Parse());
         }
@@ -183,13 +186,12 @@ namespace Chromia.Tests.Encoding
         [InlineData(42424242)]
         [InlineData(-256)]
         [InlineData(float.Epsilon)]
-
         [InlineData(-float.Epsilon)]
         [InlineData(float.MinValue)]
         [InlineData(float.MaxValue)]
         public void FloatTest(float f)
         {
-            var expected = Gtv.Hash(f);
+            var expected = Gtv.Hash(f, HASH_VERSION_2);
             Console.WriteLine(expected);
         }
 
@@ -203,7 +205,7 @@ namespace Chromia.Tests.Encoding
         [InlineData(long.MaxValue)]
         public void DoubleTest(double d)
         {
-            var expected = Gtv.Hash(d);
+            var expected = Gtv.Hash(d, HASH_VERSION_2);
             Console.WriteLine(expected);
         }
 
@@ -216,7 +218,7 @@ namespace Chromia.Tests.Encoding
         public void LegacyEmptyObjectTest(string json)
         {
             var obj = JsonConvert.DeserializeObject(json);
-            var hash = ChromiaClient.Hash(obj, 1);
+            var hash = ChromiaClient.Hash(obj, HASH_VERSION_1);
             var actual = Buffer.From("46af9064f12528cad6a7c377204acd0ac38cdc6912903e7dab3703764c8dd5e5");
             Assert.Equal(hash, actual);
         }
@@ -225,7 +227,7 @@ namespace Chromia.Tests.Encoding
         public void LegacyEmptyListTest()
         {
             var obj = Array.Empty<object>();
-            var hash = ChromiaClient.Hash(obj, 1);
+            var hash = ChromiaClient.Hash(obj, HASH_VERSION_1);
             var actual = Buffer.From("46af9064f12528cad6a7c377204acd0ac38cdc6912903e7dab3703764c8dd5e5");
             Assert.Equal(hash, actual);
         }
@@ -234,7 +236,7 @@ namespace Chromia.Tests.Encoding
         public void EmptyNestedListTest()
         {
             var obj = new object[] { Array.Empty<object>(), Array.Empty<object>() };
-            var hash = ChromiaClient.Hash(obj, 1);
+            var hash = ChromiaClient.Hash(obj, HASH_VERSION_1);
             var actual = Buffer.From("8f0402234fe66da0b21f7c871cc2f3211fe8cee5af714bdcdb76bd9ef848b1fd");
             Assert.Equal(hash, actual);
         }
@@ -243,8 +245,8 @@ namespace Chromia.Tests.Encoding
         public void ListEqualToArrayHashTest()
         {
             var list = new List<int>() { int.MinValue, -1, 0, 1, int.MaxValue };
-            var hash = ChromiaClient.Hash(list, 1);
-            var actual = ChromiaClient.Hash(list.ToArray(), 1);
+            var hash = ChromiaClient.Hash(list, HASH_VERSION_1);
+            var actual = ChromiaClient.Hash(list.ToArray(), HASH_VERSION_1);
             Assert.Equal(hash, actual);
         }
 
@@ -256,7 +258,7 @@ namespace Chromia.Tests.Encoding
             var actualGtv = Buffer.From("a52e302ca20a0c08477561726469616ea303020100a5023000a511300fa303020101a303020102a303020103a5023000");
             Assert.Equal(gtv, actualGtv);
 
-            var hash = ChromiaClient.Hash(obj, 2);
+            var hash = ChromiaClient.Hash(obj, HASH_VERSION_2);
             var actualHash = Buffer.From("b532f964a6969bcd8f7f509fe13cc5d3dc70e702d8f939edba90af8150f9e30d");
             Assert.Equal(hash, actualHash);
         }
@@ -286,7 +288,7 @@ namespace Chromia.Tests.Encoding
         {
             var obj = ChromiaClient.DecodeFromGtv(Buffer.From(gtv));
 
-            var hash = ChromiaClient.Hash(obj, 2);
+            var hash = ChromiaClient.Hash(obj, HASH_VERSION_2);
             var expectedHash = Buffer.From(expected);
             Assert.Equal(expectedHash, hash);
         }
